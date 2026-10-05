@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro Voluntário - AACD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Nunito:wght@800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cadastro.css">
+</head>
+<body>
+  <main class="tela">
+    <!-- Forma de fundo (círculo escuro) -->
+    <div class="forma"></div>
+
+    <!-- Card de cadastro -->
+    <form class="card-cadastro" action="#" method="post">
+      <div class="grade">
+        <input type="email" name="email" placeholder="Email:" required>
+        <input type="text" name="cnpj" placeholder="CNPJ: AA.AAA.AAA/AAAA-DV" maxlength="18">
+
+        <input type="text" name="endereco" placeholder="Endereço">
+        <input type="tel" name="telefone" placeholder="Telefone: (XX) XXXXX-XXXX" maxlength="15">
+
+        <input type="password" name="senha" placeholder="Senha" required>
+        <input type="password" name="confirmar_senha" placeholder="Confirmar Senha:" required>
+      </div>
+
+      <button type="submit" class="btn-cadastrar">Cadastrar</button>
+
+      <a href="" class="voltar">Voltar para tela inicial</a>
+    </form>
+
+    <!-- Logo no canto inferior direito -->
+    <div class="logo">
+      <span class="logo-texto"></span>
+      <!-- Exporte o logo do Figma e salve como logo-aacd.png na mesma pasta -->
+      <img src="logo-aacd2.png" alt="AACD" class="logo-img">
+    </div>
+  </main>
+</body>
+</html>
