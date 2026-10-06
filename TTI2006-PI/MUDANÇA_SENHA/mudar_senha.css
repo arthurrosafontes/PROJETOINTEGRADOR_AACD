@@ -1,0 +1,142 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --verde-fundo: #17acac;
+    --verde-escuro: #127e7c;
+    --vermelho: #e12a44;
+    --branco: #ffffff;
+    --texto-escuro: #1a1a1a;
+    --placeholder: #b5b5b5;
+    --link: #3a2fd6;
+}
+
+body {
+    font-family: "Inter", Arial, sans-serif;
+    min-height: 100vh;
+    background-color: var(--verde-fundo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 16px;
+}
+
+/* Círculo escuro no fundo */
+.circulo-fundo {
+    position: absolute;
+    width: 115vw;
+    height: 115vw;
+    max-width: 1600px;
+    max-height: 1600px;
+    border-radius: 50%;
+    background-color: var(--verde-escuro);
+    left: 18%;
+    top: 25%;
+    z-index: 0;
+}
+
+/* Card vermelho */
+.card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 400px;
+    background-color: var(--vermelho);
+    border-radius: 20px;
+    padding: 22px 26px 30px 20px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+}
+
+.campo:last-of-type {
+    margin-bottom: 52px;
+}
+
+.label {
+    color: var(--branco);
+    font-size: 15px;
+    margin: 0 0 12px 6px;
+}
+
+.input {
+    width: 100%;
+    height: 48px;
+    border: none;
+    border-radius: 16px;
+    padding: 0 18px;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--texto-escuro);
+    background-color: var(--branco);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    outline: none;
+}
+
+.input::placeholder {
+    color: var(--placeholder);
+}
+
+.input:focus {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+}
+
+.btn-trocar {
+    align-self: center;
+    padding: 0 20px;
+    height: 50px;
+    border: none;
+    border-radius: 16px;
+    background-color: var(--branco);
+    color: var(--texto-escuro);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease;
+}
+
+.btn-trocar:hover {
+    transform: translateY(-1px);
+}
+
+.link-voltar {
+    align-self: center;
+    margin-top: 12px;
+    color: var(--link);
+    font-size: 15px;
+    text-decoration: underline;
+}
+
+/* Logo no canto inferior direito */
+.logo {
+    position: absolute;
+    right: 24px;
+    bottom: 20px;
+    height: 56px;
+    z-index: 1;
+}
+
+@media (max-width: 480px) {
+    .card {
+        padding: 22px 18px 28px;
+    }
+
+    .logo {
+        height: 40px;
+    }
+}
