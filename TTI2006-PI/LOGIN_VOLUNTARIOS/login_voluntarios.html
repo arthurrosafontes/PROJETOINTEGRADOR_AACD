@@ -16,26 +16,29 @@
     <div class="forma forma-esquerda"></div>
 
     <!-- Card de login -->
-    <form class="card-login" action="#" method="post">
+    <form class="card-login" id="formLogin" action="#" method="post" novalidate>
       <label for="email">Login</label>
-      <input type="email" id="email" name="email" placeholder="xxxxxx@gmail.com">
-      <a href="/TELA CADASTRO/tela-cadastro.html" class="link-branco">Não tem conta? Cadastre-se</a>
+      <input type="email" id="email" name="email" placeholder="xxxxxx@gmail.com" autocomplete="email">
+      <span class="erro" id="erroEmail"></span>
+      <a href="../TELA CADASTRO/tela-cadastro.html" class="link-branco">Não tem conta? Cadastre-se</a>
 
       <label for="senha">Senha</label>
-      <input type="password" id="senha" name="senha" placeholder="Digite sua senha:">
-      <a href="/TELA_ESQUECI_SENHA/tela_esqueci_senha_voluntarios.html" class="link-branco esqueci">Esqueci minha senha</a>
+      <input type="password" id="senha" name="senha" placeholder="Digite sua senha:" autocomplete="current-password">
+      <span class="erro" id="erroSenha"></span>
+      <a href="../TELA_ESQUECI_SENHA/tela_esqueci_senha_voluntarios.html" class="link-branco esqueci">Esqueci minha senha</a>
 
       <button type="submit" class="btn-entrar">Entrar</button>
 
-      <a href="/TELA_INICIAL/Tela.html" class="voltar">Voltar para tela inicial</a>
+      <a href="../TELA_INICIAL/Tela.html" class="voltar">Voltar para tela inicial</a>
     </form>
 
     <!-- Logo no canto inferior direito -->
     <div class="logo">
-      <span class="logo-texto"></span>
-      <!-- Exporte o logo do Figma e salve como logo-aacd.png na mesma pasta -->
-      <img src="img/logo-aacd2.png" alt="AACD" class="logo-img">
+      <!-- Exporte o logo do Figma e salve como img/logo-aacd2.png -->
+      <img src="img/logo-aacd2.png" alt="Hospital Ortopédico AACD" class="logo-img">
     </div>
   </main>
+
+  <script src="login_voluntario.js"></script>
 </body>
 </html>
