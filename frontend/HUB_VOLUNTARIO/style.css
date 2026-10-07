@@ -1,38 +1,181 @@
-:root { --teal:#17ADA8; --teal-dark:#0f8a86; --drop:#d9d9d9; --text:#111; }
-* { box-sizing:border-box; margin:0; padding:0; }
-body { font-family:"Segoe UI", Roboto, Arial, sans-serif; color:var(--text); background:#fff; min-height:100vh; display:flex; flex-direction:column; }
+:root {
+  --teal: #17adad;
+  --teal-dark: #127e7e;
+  --drop: #d9d9d9;
+}
 
-/* NAVBAR */
-.navbar { background:var(--teal); height:70px; padding:0 20px; display:flex; align-items:center; gap:28px; position:relative; z-index:10; }
-.logo { display:flex; align-items:center; gap:8px; color:#fff; font-weight:700; line-height:1.05; font-size:1.1rem; text-decoration:none; }
-.logo .aacd { background:#d62027; color:#fff; font-size:.6rem; font-weight:800; width:28px; height:34px; border-radius:50% 50% 50% 50% / 60% 60% 40% 40%; display:grid; place-items:center; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-.menu { display:flex; align-items:center; gap:22px; list-style:none; flex:1; }
-.menu > li { position:relative; }
-.menu > li > a, .menu > li > button { background:none; border:0; font:inherit; font-size:.9rem; color:#000; cursor:pointer; text-decoration:none; display:flex; align-items:center; gap:6px; padding:24px 4px; }
-.caret { width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:7px solid #000; transition:transform .2s; }
-.has-drop.open .caret { transform:rotate(180deg); }
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background: #ffffff;
+  color: #000;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
 
-/* DROPDOWN */
-.dropdown { display:none; position:absolute; top:calc(100% - 8px); left:0; min-width:190px; background:var(--drop); border-radius:12px; padding:8px 0; list-style:none; box-shadow:0 6px 16px rgba(0,0,0,.2); }
-.has-drop.open .dropdown { display:block; }
-@media (hover:hover) { .has-drop:hover .dropdown { display:block; } .has-drop:hover .caret { transform:rotate(180deg); } }
-.dropdown a { display:block; padding:9px 18px; font-size:.85rem; color:#000; text-decoration:none; }
-.dropdown a:hover { background:rgba(0,0,0,.1); }
+/* ===== CÍRCULO DECORATIVO (canto superior direito) ===== */
+.circulo {
+  position: absolute;
+  z-index: 11;
+  width: 250px;
+  height: 250px;
+  top: -85px;
+  right: -65px;
+  border-radius: 50%;
+  background: var(--teal-dark);
+  /* anel branco + anel escuro em volta */
+  box-shadow: 0 0 0 18px #ffffff, 0 0 0 46px var(--teal-dark);
+}
 
-/* USUÁRIO */
-.user { display:flex; align-items:center; gap:10px; margin-left:auto; }
-.avatar { width:40px; height:40px; border-radius:50%; background:#cfc6b8 center/cover; border:2px solid #fff; }
-.user-info { text-align:center; line-height:1.2; }
-.user-info strong { display:block; font-weight:400; font-size:1.1rem; border-bottom:1px solid #000; padding:0 14px; }
-.user-info small { font-size:.8rem; }
+/* ===== NAVBAR ===== */
+.navbar {
+  position: relative;
+  z-index: 20;
+  height: 76px;
+  background: var(--teal);
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 50px;
+}
 
-/* CONTEÚDO */
-main { flex:1; display:grid; place-items:center; font-size:1.4rem; text-align:center; padding:40px 20px; }
-.switch { position:fixed; bottom:14px; right:14px; background:var(--teal); color:#fff; border:0; border-radius:20px; padding:8px 16px; cursor:pointer; font:inherit; font-size:.85rem; }
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  line-height: 1.05;
+  color: #fff;
+  text-decoration: none;
+}
 
-@media (max-width:800px) {
-  .navbar { flex-wrap:wrap; height:auto; padding:10px 16px; gap:10px; }
-  .menu { order:3; width:100%; flex-wrap:wrap; gap:6px 16px; }
-  .menu > li > a, .menu > li > button { padding:10px 4px; }
+.logo img { width: 32px; height: 32px; object-fit: contain; }
+
+.menu {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  list-style: none;
+}
+
+.menu > li { position: relative; }
+
+.menu > li > a,
+.menu > li > button {
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: .9rem;
+  color: #000;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 26px 0;
+}
+
+/* setinha preta (para baixo) */
+.caret {
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid #000;
+  transition: transform .2s;
+}
+
+/* menu aberto: seta para cima */
+.has-drop.open .caret { transform: rotate(180deg); }
+
+/* ===== DROPDOWN (cinza, bem arredondado) ===== */
+.dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% - 10px);
+  left: -10px;
+  min-width: 130px;
+  background: var(--drop);
+  border-radius: 20px;
+  padding: 10px 0 14px;
+  list-style: none;
+  z-index: 30;
+}
+
+.has-drop.open .dropdown { display: block; }
+
+.dropdown a {
+  display: block;
+  padding: 6px 12px 6px 10px;
+  font-size: .72rem;
+  line-height: 1.2;
+  color: #000;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Impressora tem itens mais espaçados no Figma */
+.dropdown-espacado { padding: 14px 0 16px; }
+.dropdown-espacado a { padding: 9px 12px 9px 10px; }
+
+.dropdown a:hover { background: rgba(0,0,0,.08); }
+
+/* ===== USUÁRIO (fica por cima do círculo) ===== */
+.user {
+  position: absolute;
+  z-index: 12;
+  right: 40px;
+  top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #cfc6b8 center / cover;
+}
+
+.user-info { text-align: center; line-height: 1.15; }
+
+.user-info strong {
+  display: block;
+  font-weight: 400;
+  font-size: 1.05rem;
+  padding: 0 18px;
+  border-bottom: 1px solid #000;
+}
+
+.user-info small { font-size: .8rem; }
+
+/* ===== CONTEÚDO ===== */
+main {
+  position: relative;
+  z-index: 5;
+  min-height: calc(100vh - 76px);
+  display: flex;
+  justify-content: center;
+  padding-top: 185px;
+  padding-inline: 16px;
+}
+
+h1 {
+  font-weight: 400;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+/* ===== RESPONSIVO ===== */
+@media (max-width: 800px) {
+  .circulo { display: none; }
+  .navbar { flex-wrap: wrap; height: auto; padding: 10px 16px; gap: 10px; }
+  .menu { order: 3; width: 100%; flex-wrap: wrap; gap: 6px 20px; }
+  .menu > li > a, .menu > li > button { padding: 10px 0; }
+  .user { position: static; margin-left: auto; }
+  main { padding-top: 80px; }
 }

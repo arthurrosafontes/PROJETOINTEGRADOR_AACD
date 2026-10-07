@@ -3,23 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hospital Ortopédico</title>
-<link rel="stylesheet" href="menu.css">
+<title>Hub Voluntário - Hospital Ortopédico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Nunito:wght@800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<!-- Círculo decorativo atrás do usuário -->
+<div class="circulo"></div>
+
 <header class="navbar">
-  <a class="logo" href="img/logo-aacd2.png"><span>Hospital<br>Ortopédico</span><span class="aacd">AACD</span></a>
-  <ul class="menu" id="menu"></ul>
+  <a class="logo" href="hub-voluntario.html">
+    <span>Hospital<br>Ortopédico</span>
+    <!-- Exporte o logo do Figma e salve como img/logo-aacd.png -->
+    <img src="img/logo-aacd.png" alt="AACD">
+  </a>
+
+  <ul class="menu">
+    <li class="has-drop">
+      <button type="button" aria-expanded="false">Pedidos <span class="caret"></span></button>
+      <ul class="dropdown">
+        <li><a href="#pedidos-disponiveis">Pedidos disponíveis</a></li>
+        <li><a href="#pedidos-recomendados">Pedidos recomendados</a></li>
+        <li><a href="#pedidos-aceitos">Pedidos aceitos</a></li>
+        <li><a href="#pedidos-recusados">Pedidos recusados</a></li>
+      </ul>
+    </li>
+
+    <li class="has-drop">
+      <button type="button" aria-expanded="false">Impressora <span class="caret"></span></button>
+      <ul class="dropdown dropdown-espacado">
+        <li><a href="cadastrar-impressora.html">Cadastrar Impressora</a></li>
+        <li><a href="#selecionar-impressora">Selecionar Impressora</a></li>
+        <li><a href="#ficha-tecnica">Ficha Técnica<br>Impressora</a></li>
+        <li><a href="#tipo-de-filamento">Tipo de filamento</a></li>
+      </ul>
+    </li>
+
+    <li class="has-drop">
+      <button type="button" aria-expanded="false">Produção <span class="caret"></span></button>
+      <ul class="dropdown">
+        <li><a href="#em-producao">Em produção</a></li>
+        <li><a href="#aguardando-envio">Aguardando envio</a></li>
+        <li><a href="#aguardando-validacao">Aguardando validação</a></li>
+        <li><a href="#concluidas">Concluídas</a></li>
+      </ul>
+    </li>
+
+    <li><a href="#sobre">Sobre</a></li>
+  </ul>
+
   <div class="user">
-    <div class="avatar"></div>
-    <div class="user-info"><strong id="userName">user</strong><small id="userRole">Funcionário</small></div>
+    <!-- Coloque a foto do usuário em img/avatar.png -->
+    <div class="avatar" style="background-image:url('img/avatar.png')"></div>
+    <div class="user-info">
+      <strong>user</strong>
+      <small>Voluntário</small>
+    </div>
   </div>
 </header>
 
-<main>CONTEÚDO DA PÁGINA</main>
-<button class="switch" id="switch">Ver como: Voluntário</button>
+<main>
+  <h1 id="conteudo">CONTEÚDO DA PAGINA</h1>
+</main>
 
-<script src="menu.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
