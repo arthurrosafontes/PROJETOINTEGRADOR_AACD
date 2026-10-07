@@ -1,12 +1,10 @@
-:root { --teal:#17ADA8; --teal-dark:#0f8a86; --drop:#d9d9d9; --text:#111; }
+:root { --teal:#17ADA8; --drop:#d9d9d9; --text:#111; }
 * { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:"Segoe UI", Roboto, Arial, sans-serif; color:var(--text); background:#fff; min-height:100vh; display:flex; flex-direction:column; }
 
 /* NAVBAR */
 .navbar { background:var(--teal); height:70px; padding:0 20px; display:flex; align-items:center; gap:28px; position:relative; z-index:10; }
-.logo { display:flex; align-items:center; gap:8px; color:#fff; font-weight:700; line-height:1.05; font-size:1.1rem; text-decoration:none; }
-.logo .aacd { background:#d62027; color:#fff; font-size:.6rem; font-weight:800; width:28px; height:34px; border-radius:50% 50% 50% 50% / 60% 60% 40% 40%; display:grid; place-items:center; }
-.logoAura { height:45px; width:auto; display:block; }
+.logo { height:45px; width:auto; display:block; }
 
 .menu { display:flex; align-items:center; gap:22px; list-style:none; flex:1; }
 .menu > li { position:relative; }
@@ -30,7 +28,6 @@ body { font-family:"Segoe UI", Roboto, Arial, sans-serif; color:var(--text); bac
 
 /* CONTEÚDO */
 main { flex:1; display:grid; place-items:center; font-size:1.4rem; text-align:center; padding:40px 20px; }
-.switch { position:fixed; bottom:14px; right:14px; background:var(--teal); color:#fff; border:0; border-radius:20px; padding:8px 16px; cursor:pointer; font:inherit; font-size:.85rem; }
 
 @media (max-width:800px) {
   .navbar { flex-wrap:wrap; height:auto; padding:10px 16px; gap:10px; }

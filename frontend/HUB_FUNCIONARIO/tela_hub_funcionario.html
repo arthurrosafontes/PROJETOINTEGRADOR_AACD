@@ -3,117 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hospital Ortopédico</title>
-<style>
-  :root { --teal:#17ADA8; --teal-dark:#0f8a86; --drop:#d9d9d9; --text:#111; }
-  * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:"Segoe UI", Roboto, Arial, sans-serif; color:var(--text); background:#fff; min-height:100vh; display:flex; flex-direction:column; }
-
-  /* NAVBAR */
-  .navbar { background:var(--teal); height:70px; padding:0 20px; display:flex; align-items:center; gap:28px; position:relative; z-index:10; }
-  .logo { display:flex; align-items:center; gap:8px; color:#fff; font-weight:700; line-height:1.05; font-size:1.1rem; text-decoration:none; }
-  .logo .aacd { background:#d62027; color:#fff; font-size:.6rem; font-weight:800; width:28px; height:34px; border-radius:50% 50% 50% 50% / 60% 60% 40% 40%; display:grid; place-items:center; }
-
-  .menu { display:flex; align-items:center; gap:22px; list-style:none; flex:1; }
-  .menu > li { position:relative; }
-  .menu > li > a, .menu > li > button { background:none; border:0; font:inherit; font-size:.9rem; color:#000; cursor:pointer; text-decoration:none; display:flex; align-items:center; gap:6px; padding:24px 4px; }
-  .caret { width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:7px solid #000; transition:transform .2s; }
-  .has-drop.open .caret { transform:rotate(180deg); }
-
-  /* DROPDOWN */
-  .dropdown { display:none; position:absolute; top:calc(100% - 8px); left:0; min-width:190px; background:var(--drop); border-radius:12px; padding:8px 0; list-style:none; box-shadow:0 6px 16px rgba(0,0,0,.2); }
-  .has-drop.open .dropdown { display:block; }
-  @media (hover:hover) { .has-drop:hover .dropdown { display:block; } .has-drop:hover .caret { transform:rotate(180deg); } }
-  .dropdown a { display:block; padding:9px 18px; font-size:.85rem; color:#000; text-decoration:none; }
-  .dropdown a:hover { background:rgba(0,0,0,.1); }
-
-  /* USUÁRIO */
-  .user { display:flex; align-items:center; gap:10px; margin-left:auto; }
-  .avatar { width:40px; height:40px; border-radius:50%; background:#cfc6b8 center/cover; border:2px solid #fff; }
-  .user-info { text-align:center; line-height:1.2; }
-  .user-info strong { display:block; font-weight:400; font-size:1.1rem; border-bottom:1px solid #000; padding:0 14px; }
-  .user-info small { font-size:.8rem; }
-
-  /* CONTEÚDO */
-  main { flex:1; display:grid; place-items:center; font-size:1.4rem; text-align:center; padding:40px 20px; }
-  .switch { position:fixed; bottom:14px; right:14px; background:var(--teal); color:#fff; border:0; border-radius:20px; padding:8px 16px; cursor:pointer; font:inherit; font-size:.85rem; }
-
-  @media (max-width:800px) {
-    .navbar { flex-wrap:wrap; height:auto; padding:10px 16px; gap:10px; }
-    .menu { order:3; width:100%; flex-wrap:wrap; gap:6px 16px; }
-    .menu > li > a, .menu > li > button { padding:10px 4px; }
-  }
-</style>
+<title>Hospital Ortopédico - Funcionário</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header class="navbar">
-  <a class="logo" href="img/logo-aacd2.png"><span>Hospital<br>Ortopédico</span><span class="aacd">AACD</span></a>
+  <img class="logo" src="img/logo-aacd2.png" alt="Logo Hospital Ortopédico AACD">
   <ul class="menu" id="menu"></ul>
   <div class="user">
     <div class="avatar"></div>
-    <div class="user-info"><strong id="userName">user</strong><small id="userRole">Funcionário</small></div>
+    <div class="user-info"><strong id="userName">user</strong><small>Funcionário</small></div>
   </div>
 </header>
 
-<main>CONTEÚDO DA PÁGINA</main>
-<button class="switch" id="switch">Ver como: Voluntário</button>
+<main><h1>BEM VINDO!</h1></main>
 
-<script>
-  // Menus por perfil — edite aqui para mudar itens/links
-  const menus = {
-    funcionario: {
-      role: "Funcionário",
-      items: [
-        { label:"Demandas", sub:["Tipo de órtese","Medida","Tipo de Reparo"] },
-        { label:"Voluntários", sub:["Lista de Voluntários","Ocorrências Cadastradas","Disponibilidade","Homologação"] },
-        { label:"Próteses", sub:["Tipos de Prótese","Modelos / Arquivos 3D","Especificações Técnicas","Histórico de Fabricação"] },
-        { label:"Sobre" }
-      ]
-    },
-    voluntario: {
-      role: "Voluntário",
-      items: [
-        { label:"Pedidos", sub:["Pedidos disponíveis","Pedidos recomendados","Pedidos criados","Pedidos recusados"] },
-        { label:"Impressoras", sub:["Cadastrar Impressora","Selecionar Impressora","Ficha Técnica (impressora)","Tipo de Material"] },
-        { label:"Produção", sub:["Em produção","Aguardando envio","Aguardando validação","Concluídos"] },
-        { label:"Sobre" }
-      ]
-    }
-  };
-
-  const menuEl = document.getElementById("menu");
-  let perfil = "funcionario";
-
-  const slug = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-");
-
-  function render() {
-    const m = menus[perfil];
-    document.getElementById("userRole").textContent = m.role;
-    document.getElementById("switch").textContent = "Ver como: " + (perfil === "funcionario" ? "Voluntário" : "Funcionário");
-    menuEl.innerHTML = m.items.map(it => it.sub
-      ? `<li class="has-drop">
-           <button type="button" aria-haspopup="true" aria-expanded="false">${it.label}<span class="caret"></span></button>
-           <ul class="dropdown">${it.sub.map(s => `<li><a href="#${slug(s)}">${s}</a></li>`).join("")}</ul>
-         </li>`
-      : `<li><a href="#${slug(it.label)}">${it.label}</a></li>`
-    ).join("");
-  }
-
-  // Abrir/fechar por clique (celular) e fechar ao clicar fora
-  menuEl.addEventListener("click", e => {
-    const btn = e.target.closest(".has-drop > button");
-    if (!btn) return;
-    const li = btn.parentElement, aberto = li.classList.contains("open");
-    document.querySelectorAll(".has-drop.open").forEach(x => { x.classList.remove("open"); x.firstElementChild.setAttribute("aria-expanded","false"); });
-    if (!aberto) { li.classList.add("open"); btn.setAttribute("aria-expanded","true"); }
-  });
-  document.addEventListener("click", e => {
-    if (!e.target.closest(".menu")) document.querySelectorAll(".has-drop.open").forEach(x => x.classList.remove("open"));
-  });
-
-  document.getElementById("switch").onclick = () => { perfil = perfil === "funcionario" ? "voluntario" : "funcionario"; render(); };
-  render();
-</script>
+<script src="script.js"></script>
 </body>
 </html>
