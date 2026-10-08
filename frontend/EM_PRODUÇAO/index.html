@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pacientes – Hospital Ortopédico</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <a class="brand" href="">
+      <!-- Coloque aqui o arquivo do logo -->
+      <img src="img/logo-aacd2.png" alt="">
+      <span class="logo-fallback"></span>
+      
+    </a>
+
+    <nav>
+      <div class="nav-item">
+        <button class="nav-btn">Pedidos <span class="arrow"></span></button>
+        <div class="dropdown">
+          <a href="#">Novo pedido</a>
+          <a href="#">Meus pedidos</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <button class="nav-btn">Impressora <span class="arrow"></span></button>
+        <div class="dropdown">
+          <a href="#">Status das impressoras</a>
+          <a href="#">Filamentos</a>
+        </div>
+      </div>
+      <div class="nav-item active">
+        <button class="nav-btn">Produção <span class="arrow"></span></button>
+        <div class="dropdown">
+          <a href="index.html">Em produção</a>
+          <a href="#">Finalizadas</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <button class="nav-btn">Sobre</button>
+      </div>
+    </nav>
+  </header>
+
+  <div class="corner"></div>
+
+  <div class="user">
+    <div class="avatar" id="avatar">U</div>
+    <div class="user-info">
+      <div class="user-name">user</div>
+      <div class="user-role">Voluntário</div>
+    </div>
+  </div>
+
+  <main>
+    <h1 class="titulo-pagina">EM PRODUÇÃO</h1>
+
+    <!-- Lista de pacientes -->
+    <section class="card lista-card">
+      <div class="card-head">
+        <h1>Pacientes</h1>
+        <input type="search" id="busca" class="busca" placeholder="Buscar paciente ou prótese...">
+      </div>
+      <p class="subtitle" id="contagem">—</p>
+
+      <div class="lista-cabecalho">
+        <span>Paciente</span>
+        <span>Prótese</span>
+        <span>Prazo de entrega</span>
+        <span>Situação</span>
+      </div>
+      <ul class="lista" id="lista"></ul>
+      <p class="lista-vazia" id="vazia" hidden>Nenhum paciente encontrado.</p>
+    </section>
+
+    <!-- Troque "principal.html" pelo endereço da sua tela principal -->
+    <a href="principal.html" class="btn-voltar">&larr; Voltar à tela principal</a>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
