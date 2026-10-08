@@ -1,0 +1,55 @@
+:root { --teal:#17ADA8; --teal-dark:#11807d; --cinza:#d9d9d9; --text:#111; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:"Segoe UI", Roboto, Arial, sans-serif; color:var(--text); background:#fff; min-height:100vh; display:flex; flex-direction:column; overflow-x:hidden; }
+
+/* NAVBAR */
+.navbar { background:var(--teal); height:70px; padding:0 20px; display:flex; align-items:center; gap:40px; position:relative; z-index:10; }
+.logo img { height:52px; display:block; }
+
+.menu { display:flex; align-items:center; gap:28px; list-style:none; flex:1; }
+.menu > li { position:relative; }
+.menu > li > a, .menu > li > button { background:none; border:0; font:inherit; font-size:.9rem; color:#000; cursor:pointer; text-decoration:none; display:flex; align-items:center; gap:8px; padding:24px 4px; }
+.caret { width:0; height:0; border-left:5px solid transparent; border-right:5px solid transparent; border-top:7px solid #000; transition:transform .2s; }
+.has-drop.open .caret { transform:rotate(180deg); }
+
+/* DROPDOWN */
+.dropdown { display:none; position:absolute; top:calc(100% - 8px); left:0; min-width:190px; background:var(--cinza); border-radius:12px; padding:8px 0; list-style:none; box-shadow:0 6px 16px rgba(0,0,0,.2); }
+.has-drop.open .dropdown { display:block; }
+@media (hover:hover) { .has-drop:hover .dropdown { display:block; } .has-drop:hover .caret { transform:rotate(180deg); } }
+.dropdown a { display:block; padding:9px 18px; font-size:.85rem; color:#000; text-decoration:none; }
+.dropdown a:hover, .dropdown a.ativo { background:rgba(0,0,0,.1); }
+
+/* CÍRCULO DO VOLUNTÁRIO (canto direito, invade o conteúdo) */
+.circulo { position:absolute; top:-140px; right:-110px; width:340px; height:340px; border-radius:50%; background:var(--teal-dark); box-shadow:0 0 0 12px #fff, 0 0 0 40px var(--teal-dark); pointer-events:none; z-index:-1; }
+
+/* USUÁRIO */
+.user { display:flex; align-items:center; gap:10px; margin-left:auto; margin-right:20px; position:relative; }
+.avatar { width:44px; height:44px; border-radius:50%; background:#cfc6b8 center/cover; border:2px solid #fff; }
+.user-info { text-align:center; line-height:1.2; }
+.user-info strong { display:block; font-weight:400; font-size:1.1rem; border-bottom:1px solid #000; padding:0 18px; }
+.user-info small { font-size:.75rem; }
+
+/* CONTEÚDO */
+main { flex:1; display:flex; flex-direction:column; align-items:center; padding:28px 16px 40px; }
+.titulo { font-weight:400; font-size:1.5rem; margin-bottom:30px; text-align:center; }
+
+/* Moldura cinza + cartão branco */
+.moldura { background:var(--cinza); border-radius:36px; padding:20px; width:100%; max-width:240px; }
+.cartao { background:#fff; border-radius:28px; padding:22px 14px 40px; min-height:420px; }
+
+.lista-pedidos { list-style:none; display:flex; flex-direction:column; gap:22px; }
+.pedido { font-size:.9rem; line-height:1.25; cursor:pointer; border-radius:8px; padding:4px; overflow-wrap:anywhere; transition:background .15s; }
+.pedido:hover, .pedido:focus-visible { background:rgba(23,173,168,.15); outline:none; }
+.pedido.selecionado { background:rgba(23,173,168,.3); }
+
+@media (min-width:801px) {
+  .moldura { max-width:320px; }
+}
+
+@media (max-width:800px) {
+  .navbar { flex-wrap:wrap; height:auto; padding:10px 16px; gap:10px; }
+  .menu { order:3; width:100%; flex-wrap:wrap; gap:6px 16px; }
+  .menu > li > a, .menu > li > button { padding:10px 4px; }
+  .user { margin-right:0; }
+  .circulo { width:200px; height:200px; top:-110px; right:-80px; }
+}
