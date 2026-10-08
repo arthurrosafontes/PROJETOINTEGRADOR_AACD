@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadastrar Impressora - Voluntário</title>
+<link rel="stylesheet" href="cadastrar_impressora.css">
+</head>
+<body>
+
+<header class="navbar">
+  <div class="circulo" aria-hidden="true"></div>
+  <a class="logo" href="tela_hub_voluntario.html"><img src="img/logo-aacd2.png" alt="Hospital Ortopédico AACD"></a>
+  <ul class="menu" id="menu"></ul>
+  <div class="user">
+    <div class="avatar"></div>
+    <div class="user-info"><strong id="userName">user</strong><small id="userRole">Voluntário</small></div>
+  </div>
+</header>
+
+<main>
+  <h1 class="titulo">Cadastrar Impressora</h1>
+
+  <form class="painel" id="formImpressora" novalidate>
+    <input class="campo esq" name="nome" placeholder="Nome da Impressora:" aria-label="Nome da Impressora" required>
+    <input class="campo esq" name="localizacao" placeholder="Localização Impressora" aria-label="Localização da Impressora" required>
+    <input class="campo esq" name="marca" placeholder="Marca da Impressora:" aria-label="Marca da Impressora" required>
+    <input class="campo esq" name="tecnologia" placeholder="Tecnologia da impressão:" aria-label="Tecnologia da impressão" list="listaTecnologias" required>
+    <input class="campo esq" name="diametroFilamento" placeholder="Diametro do Filamento" aria-label="Diâmetro do Filamento" list="listaDiametrosFilamento" required>
+
+    <input class="campo dir bico" name="diametroBico" placeholder="Diametro do Bico" aria-label="Diâmetro do Bico" list="listaBicos" required>
+    <input class="campo dir" name="areaMaxima" placeholder="Área Máxima da impressão" aria-label="Área Máxima da impressão" required>
+    <input class="campo dir" name="filamento" placeholder="Tipo de Filamento" aria-label="Tipo de Filamento" list="listaFilamentos" required>
+    <input class="campo dir" name="modelo" placeholder="Modelo da Impressora: RTX90" aria-label="Modelo da Impressora" required>
+
+    <div class="acoes">
+      <p class="mensagem" id="mensagem" role="status"></p>
+      <button type="submit" class="btn-cadastrar">Cadastrar</button>
+    </div>
+  </form>
+
+  <!-- Sugestões que aparecem ao digitar nos campos -->
+  <datalist id="listaTecnologias"><option value="FDM"><option value="SLA (resina)"><option value="SLS"></datalist>
+  <datalist id="listaDiametrosFilamento"><option value="1,75 mm"><option value="2,85 mm"></datalist>
+  <datalist id="listaBicos"><option value="0,2 mm"><option value="0,4 mm"><option value="0,6 mm"><option value="0,8 mm"></datalist>
+  <datalist id="listaFilamentos"><option value="PLA"><option value="PETG"><option value="ABS"><option value="TPU"></datalist>
+</main>
+
+<script src="cadastrar_impressora.js"></script>
+</body>
+</html>
