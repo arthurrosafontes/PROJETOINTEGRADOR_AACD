@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Voluntário - AACD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="voluntarios.css">
+</head>
+<body>
+  <main class="tela">
+    <!-- Formas de fundo (nuvem escura) -->
+    <div class="forma forma-direita"></div>
+    <div class="forma forma-esquerda"></div>
+
+    <!-- Card de login -->
+    <form class="card-login" id="formLogin" action="#" method="post" novalidate>
+      <label for="email">Login</label>
+      <input type="email" id="email" name="email" placeholder="xxxxxx@gmail.com" autocomplete="email">
+      <span class="erro" id="erroEmail"></span>
+      <a href="../TELA CADASTRO/tela-cadastro.html" class="link-branco">Não tem conta? Cadastre-se</a>
+
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" name="senha" placeholder="Digite sua senha:" autocomplete="current-password">
+      <span class="erro" id="erroSenha"></span>
+      <a href="../TELA_ESQUECI_SENHA/tela_esqueci_senha_voluntarios.html" class="link-branco esqueci">Esqueci minha senha</a>
+
+      <button type="submit" class="btn-entrar">Entrar</button>
+
+      <a href="../TELA_INICIAL/Tela.html" class="voltar">Voltar para tela inicial</a>
+    </form>
+
+    <!-- Logo no canto inferior direito -->
+    <div class="logo">
+      <!-- Exporte o logo do Figma e salve como img/logo-aacd2.png -->
+      <img src="img/logo-aacd2.png" alt="Hospital Ortopédico AACD" class="logo-img">
+    </div>
+  </main>
+
+  <script src="login_voluntario.js"></script>
+</body>
+</html>
