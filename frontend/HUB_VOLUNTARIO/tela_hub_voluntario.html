@@ -1,74 +1,112 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hub Voluntário - Hospital Ortopédico</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Nunito:wght@800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hospital Ortopédico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #fff;
+      font-family: "Lato", "Segoe UI", Arial, sans-serif;
+      overflow-x: hidden;
+    }
+    .conteudo {
+      position: relative;
+      z-index: 3;
+      max-width: 1012px;
+      margin: 0 auto;
+      padding: 200px 16px 60px;
+      text-align: center;
+      font-size: 26px;
+    }
+  </style>
 </head>
 <body>
+  <!-- ===== INÍCIO DO CABEÇALHO (copie este bloco para as outras páginas) ===== -->
+  <header class="topo">
+    <img src="img/logo-aacd2.png" alt="Hospital Ortopédico" class="logo" />
 
-<!-- Círculo decorativo atrás do usuário -->
-<div class="circulo"></div>
+    <nav class="menu">
+      <ul class="menu-lista">
+        <li class="menu-item">
+          <button type="button" class="menu-botao" aria-expanded="false" aria-controls="sub-pedidos">
+            Pedidos <span class="seta">▼</span>
+          </button>
+          <ul class="submenu" id="sub-pedidos">
+            <li><a href="pedidos-disponiveis.html">Pedidos disponíveis</a></li>
+            <li><a href="pedidos-recomendados.html">Pedidos recomendados</a></li>
+            <li><a href="pedidos-aceitos.html">Pedidos aceitos</a></li>
+            <li><a href="pedidos-recusados.html">Pedidos recusados</a></li>
+          </ul>
+        </li>
 
-<header class="navbar">
-  <a class="logo" href="hub-voluntario.html">
-    <span>Hospital<br>Ortopédico</span>
-    <!-- Exporte o logo do Figma e salve como img/logo-aacd.png -->
-    <img src="img/logo-aacd.png" alt="AACD">
-  </a>
+        <li class="menu-item">
+          <button type="button" class="menu-botao" aria-expanded="false" aria-controls="sub-impressora">
+            Impressora <span class="seta">▼</span>
+          </button>
+          <ul class="submenu" id="sub-impressora">
+            <li><a href="impressora.html">Cadastrar impressora</a></li>
+            <li><a href="selecionar-impressora.html">Selecionar impressora</a></li>
+            <li><a href="ficha-tecnica-impressora.html">Ficha técnica da impressora</a></li>
+            <li><a href="tipo-filamento.html">Tipo de filamento</a></li>
+          </ul>
+        </li>
 
-  <ul class="menu">
-    <li class="has-drop">
-      <button type="button" aria-expanded="false">Pedidos <span class="caret"></span></button>
-      <ul class="dropdown">
-        <li><a href="../PEDIDOS_DISPONIVEIS/tela_pedidos_disponiveis.html">Pedidos disponíveis</a></li>
-        <li><a href="#pedidos-recomendados">Pedidos recomendados</a></li>
-        <li><a href="#pedidos-aceitos">Pedidos aceitos</a></li>
-        <li><a href="#pedidos-recusados">Pedidos recusados</a></li>
+        <li class="menu-item">
+          <button type="button" class="menu-botao" aria-expanded="false" aria-controls="sub-producao">
+            Produção <span class="seta">▼</span>
+          </button>
+          <ul class="submenu" id="sub-producao">
+            <li><a href="em-producao.html">Em produção</a></li>
+            <li><a href="aguardando-envio.html">Aguardando envio</a></li>
+            <li><a href="aguardando-validacao.html">Aguardando validação</a></li>
+            <li><a href="concluidas.html">Concluídas</a></li>
+          </ul>
+        </li>
+
+        <li class="menu-item">
+          <a href="sobre.html" class="menu-link">Sobre</a>
+        </li>
       </ul>
-    </li>
+    </nav>
 
-    <li class="has-drop">
-      <button type="button" aria-expanded="false">Impressora <span class="caret"></span></button>
-      <ul class="dropdown dropdown-espacado">
-        <li><a href="../CADASTRAR_IMPRESSORA/tela_cadastrar_impressora.html">Cadastrar Impressora</a></li>
-        <li><a href="#selecionar-impressora">Selecionar Impressora</a></li>
-        <li><a href="#ficha-tecnica">Ficha Técnica<br>Impressora</a></li>
-        <li><a href="#tipo-de-filamento">Tipo de filamento</a></li>
+    <div class="usuario menu-item">
+      <button type="button" class="menu-botao usuario-botao" aria-expanded="false" aria-controls="sub-usuario">
+        <span class="avatar" aria-hidden="true"></span>
+        <span class="usuario-info">
+          <span class="usuario-nome">user</span>
+          <span class="usuario-papel">Voluntário</span>
+        </span>
+        <span class="seta">▼</span>
+      </button>
+      <ul class="submenu submenu-usuario" id="sub-usuario">
+        <li class="submenu-cabecalho">
+          <strong>user</strong>
+          <span>user@email.com</span>
+        </li>
+        <li><a href="perfil.html">Meu perfil</a></li>
+        <li><a href="minhas-impressoras.html">Minhas impressoras</a></li>
+        <li><a href="meus-pedidos.html">Meus pedidos</a></li>
+        <li><a href="configuracoes.html">Configurações</a></li>
+        <li class="submenu-divisor" role="separator"></li>
+        <li><a href="login.html" class="sair">Sair</a></li>
       </ul>
-    </li>
-
-    <li class="has-drop">
-      <button type="button" aria-expanded="false">Produção <span class="caret"></span></button>
-      <ul class="dropdown">
-        <li><a href="#em-producao">Em produção</a></li>
-        <li><a href="#aguardando-envio">Aguardando envio</a></li>
-        <li><a href="#aguardando-validacao">Aguardando validação</a></li>
-        <li><a href="#concluidas">Concluídas</a></li>
-      </ul>
-    </li>
-
-    <li><a href="#sobre">Sobre</a></li>
-  </ul>
-
-  <div class="user">
-    <!-- Coloque a foto do usuário em img/avatar.png -->
-    <div class="avatar" style="background-image:url('img/avatar.png')"></div>
-    <div class="user-info">
-      <strong>user</strong>
-      <small>Voluntário</small>
     </div>
-  </div>
-</header>
+  </header>
 
-<main>
-  <h1 id="conteudo">CONTEÚDO DA PAGINA</h1>
-</main>
+  <div class="arco arco-externo" aria-hidden="true"></div>
+  <div class="arco arco-interno" aria-hidden="true"></div>
+  <!-- ===== FIM DO CABEÇALHO ===== -->
 
-<script src="script.js"></script>
+  <main class="conteudo">
+    CONTEÚDO DA PÁGINA
+  </main>
+
+  <script src="script.js"></script>
 </body>
 </html>

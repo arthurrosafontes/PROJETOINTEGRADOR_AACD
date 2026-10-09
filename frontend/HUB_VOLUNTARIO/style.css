@@ -1,181 +1,272 @@
+/* =========================================================
+   menu.css — cabeçalho com dropdowns (Pedidos, Impressora,
+   Produção e usuário). Inclua em todas as páginas.
+   ========================================================= */
+
 :root {
-  --teal: #17adad;
-  --teal-dark: #127e7e;
-  --drop: #d9d9d9;
+  --verde-claro: #1aafad;
+  --verde-escuro: #137f7e;
+  --branco: #fff;
+  --texto: #222;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'Inter', Arial, sans-serif;
-  background: #ffffff;
-  color: #000;
-  min-height: 100vh;
+/* ===== Cabeçalho ===== */
+.topo {
   position: relative;
-  overflow-x: hidden;
-}
-
-/* ===== CÍRCULO DECORATIVO (canto superior direito) ===== */
-.circulo {
-  position: absolute;
-  z-index: 11;
-  width: 250px;
-  height: 250px;
-  top: -85px;
-  right: -65px;
-  border-radius: 50%;
-  background: var(--teal-dark);
-  /* anel branco + anel escuro em volta */
-  box-shadow: 0 0 0 18px #ffffff, 0 0 0 46px var(--teal-dark);
-}
-
-/* ===== NAVBAR ===== */
-.navbar {
-  position: relative;
-  z-index: 20;
-  height: 76px;
-  background: var(--teal);
-  padding: 0 14px;
+  z-index: 5;
+  height: 86px;
+  background: var(--verde-claro);
   display: flex;
   align-items: center;
-  gap: 50px;
+  padding: 0 20px;
+  gap: 60px;
+  font-family: "Lato", "Segoe UI", Arial, sans-serif;
+}
+.topo *,
+.topo *::before,
+.topo *::after {
+  box-sizing: border-box;
 }
 
 .logo {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 800;
-  font-size: 1.15rem;
-  line-height: 1.05;
-  color: #fff;
-  text-decoration: none;
+  height: 52px;
 }
 
-.logo img { width: 32px; height: 32px; object-fit: contain; }
-
-.menu {
-  display: flex;
-  align-items: center;
-  gap: 36px;
+/* ===== Menu ===== */
+.menu-lista {
   list-style: none;
+  display: flex;
+  gap: 40px;
+  margin: 0;
+  padding: 0;
+}
+.menu-item {
+  position: relative;
 }
 
-.menu > li { position: relative; }
-
-.menu > li > a,
-.menu > li > button {
+.menu-botao,
+.menu-link {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 8px;
   background: none;
-  border: 0;
-  font: inherit;
-  font-size: .9rem;
-  color: #000;
+  font-family: inherit;
+  font-size: 17px;
+  color: #111;
+  text-decoration: none;
   cursor: pointer;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 26px 0;
+  transition: background 0.2s;
+}
+.menu-botao:hover,
+.menu-link:hover,
+.menu-botao[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.25);
 }
 
-/* setinha preta (para baixo) */
-.caret {
-  width: 0; height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 7px solid #000;
-  transition: transform .2s;
+.seta {
+  display: inline-block;
+  font-size: 13px;
+  margin-left: 8px;
+  transition: transform 0.2s;
+}
+.menu-botao[aria-expanded="true"] .seta {
+  transform: rotate(180deg);
 }
 
-/* menu aberto: seta para cima */
-.has-drop.open .caret { transform: rotate(180deg); }
-
-/* ===== DROPDOWN (cinza, bem arredondado) ===== */
-.dropdown {
-  display: none;
-  position: absolute;
-  top: calc(100% - 10px);
-  left: -10px;
-  min-width: 130px;
-  background: var(--drop);
-  border-radius: 20px;
-  padding: 10px 0 14px;
+/* ===== Dropdown ===== */
+.submenu {
   list-style: none;
-  z-index: 30;
-}
-
-.has-drop.open .dropdown { display: block; }
-
-.dropdown a {
-  display: block;
-  padding: 6px 12px 6px 10px;
-  font-size: .72rem;
-  line-height: 1.2;
-  color: #000;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-/* Impressora tem itens mais espaçados no Figma */
-.dropdown-espacado { padding: 14px 0 16px; }
-.dropdown-espacado a { padding: 9px 12px 9px 10px; }
-
-.dropdown a:hover { background: rgba(0,0,0,.08); }
-
-/* ===== USUÁRIO (fica por cima do círculo) ===== */
-.user {
+  margin: 0;
   position: absolute;
-  z-index: 12;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 220px;
+  padding: 8px 0;
+  background: var(--branco);
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  border-top: 4px solid var(--verde-escuro);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.18s, transform 0.18s, visibility 0.18s;
+  z-index: 10;
+}
+.menu-item.aberto .submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.submenu a {
+  display: block;
+  padding: 10px 18px;
+  color: var(--texto);
+  text-decoration: none;
+  font-size: 16px;
+}
+.submenu a:hover,
+.submenu a:focus {
+  background: #e6f5f5;
+  color: var(--verde-escuro);
+  outline: none;
+}
+/* Página atual: coloque aria-current="page" no link */
+.submenu a[aria-current="page"] {
+  font-weight: 700;
+  color: var(--verde-escuro);
+  border-left: 4px solid var(--verde-claro);
+  padding-left: 14px;
+}
+
+/* ===== Usuário ===== */
+.usuario {
+  position: absolute;
   right: 40px;
-  top: 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  top: 12px;
+  z-index: 6;
+}
+.menu-botao.usuario-botao {
+  height: auto;
+  padding: 4px 12px 4px 4px;
+  gap: 14px;
+  border-radius: 40px;
+}
+.usuario-botao:hover,
+.usuario-botao[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.18);
+}
+.usuario-botao .seta {
+  color: var(--branco);
+  margin-left: 0;
 }
 
 .avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: #cfc6b8 center / cover;
-}
-
-.user-info { text-align: center; line-height: 1.15; }
-
-.user-info strong {
   display: block;
-  font-weight: 400;
-  font-size: 1.05rem;
-  padding: 0 18px;
-  border-bottom: 1px solid #000;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #d6c8bd;
+  border: 2px solid var(--branco);
+  flex-shrink: 0;
 }
-
-.user-info small { font-size: .8rem; }
-
-/* ===== CONTEÚDO ===== */
-main {
-  position: relative;
-  z-index: 5;
-  min-height: calc(100vh - 76px);
+.usuario-info {
   display: flex;
-  justify-content: center;
-  padding-top: 185px;
-  padding-inline: 16px;
+  flex-direction: column;
+  align-items: center;
+}
+.usuario-nome {
+  font-size: 19px;
+  color: var(--branco);
+  border-bottom: 1px solid #111;
+  padding: 0 24px;
+}
+.usuario-papel {
+  font-size: 14px;
+  color: #111;
 }
 
-h1 {
-  font-weight: 400;
-  font-size: 1.4rem;
-  text-align: center;
+.submenu-usuario {
+  left: auto;
+  right: 0;
+  min-width: 240px;
+}
+.submenu-cabecalho {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 18px 12px;
+  border-bottom: 1px solid #e5e5e5;
+  margin-bottom: 6px;
+}
+.submenu-cabecalho strong {
+  font-size: 16px;
+  color: var(--texto);
+}
+.submenu-cabecalho span {
+  font-size: 14px;
+  color: #777;
+}
+.submenu-divisor {
+  height: 1px;
+  background: #e5e5e5;
+  margin: 6px 0;
+}
+.submenu a.sair {
+  color: #c62828;
+}
+.submenu a.sair:hover,
+.submenu a.sair:focus {
+  background: #fdecec;
+  color: #c62828;
 }
 
-/* ===== RESPONSIVO ===== */
-@media (max-width: 800px) {
-  .circulo { display: none; }
-  .navbar { flex-wrap: wrap; height: auto; padding: 10px 16px; gap: 10px; }
-  .menu { order: 3; width: 100%; flex-wrap: wrap; gap: 6px 20px; }
-  .menu > li > a, .menu > li > button { padding: 10px 0; }
-  .user { position: static; margin-left: auto; }
-  main { padding-top: 80px; }
+/* ===== Arcos decorativos do canto ===== */
+.arco {
+  position: absolute;
+  border-radius: 50%;
+  z-index: 2;
+  pointer-events: none;
+}
+.arco-externo {
+  width: 460px;
+  height: 460px;
+  top: -205px;
+  right: -230px;
+  background: var(--verde-escuro);
+}
+.arco-interno {
+  width: 400px;
+  height: 400px;
+  top: -175px;
+  right: -230px;
+  border: 14px solid var(--branco);
+  border-right-color: transparent;
+  border-top-color: transparent;
+  transform: rotate(10deg);
+}
+
+/* ===== Responsivo ===== */
+@media (max-width: 900px) {
+  .menu-lista {
+    gap: 12px;
+  }
+  .usuario-info,
+  .arco {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .topo {
+    gap: 12px;
+  }
+  .logo {
+    height: 40px;
+  }
+  .menu-lista {
+    gap: 2px;
+  }
+  .menu-botao,
+  .menu-link {
+    font-size: 14px;
+    padding: 0 6px;
+    white-space: nowrap;
+  }
+  .seta {
+    margin-left: 4px;
+  }
+  .usuario {
+    right: 10px;
+    top: 17px;
+  }
+  .avatar {
+    width: 40px;
+    height: 40px;
+  }
+  .usuario-botao .seta {
+    display: none;
+  }
 }
