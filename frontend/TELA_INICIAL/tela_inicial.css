@@ -25,15 +25,8 @@ body {
   color: #1d1d1d;
 }
 
-/* ============ FORMA DE FUNDO ============ */
-.forma {
-  position: absolute;
-  border-radius: 50%;
-  background: var(--teal-escuro);
-  z-index: 0;
-}
 /* ============ LOGO ============ */
-/* Para usar o logo oficial, troque por <img src="img/logo-hospital.png"> */
+/* Texto que aparece se a imagem do logo não for encontrada */
 .app-logo {
   display: flex;
   align-items: center;
@@ -73,25 +66,33 @@ body {
   align-items: center;
   padding: 22px 40px;
 }
-.ap-btn-topo {
-  color: var(--branco);
-  font-weight: 600;
-  text-decoration: none;
-  padding: 9px 22px;
-  border-radius: 30px;
-  box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.8);
-  transition: background .15s;
-}
-.ap-btn-topo:hover { background: rgba(255,255,255,.15); }
+
+/* ----- Logo do canto superior esquerdo ----- */
+/* Para mudar o tamanho do logo, altere o height abaixo */
+.ap-logo { display: inline-flex; align-items: center; text-decoration: none; }
+.ap-logo img { height: 56px; width: auto; display: block; }
+.ap-logo [hidden] { display: none !important; }
 
 .ap-hero {
   position: relative;
   overflow: hidden;
-  background: var(--teal);
   color: var(--branco);
   padding: 150px 40px 110px;
+
+  /* ===== FOTO DA AACD NO CABEÇALHO =====
+     A foto usada é  img/fundo-hospital.jpeg  (pasta "img" ao lado deste arquivo).
+     Para usar outra foto, troque o nome dentro do url("...") abaixo.
+     A camada verde por cima deixa o título legível.
+     Para a foto aparecer MAIS, diminua os números 0.75 / 0.55 / 0.25.
+     Se a foto não existir, o fundo fica verde. */
+  background:
+    linear-gradient(90deg,
+      rgba(16, 127, 123, 0.75) 0%,
+      rgba(23, 174, 170, 0.55) 55%,
+      rgba(23, 174, 170, 0.25) 100%),
+    url("img/fundo-hospita.jpeg") center / cover no-repeat,
+    var(--teal);
 }
-.ap-forma { width: 900px; height: 900px; right: -260px; top: 120px; }
 .ap-hero-texto {
   position: relative;
   z-index: 1;
@@ -120,23 +121,43 @@ body {
   line-height: 1.6;
   color: rgba(255,255,255,.92);
 }
-.ap-acoes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 32px;
-}
-.ap-btn {
-  text-decoration: none;
+
+/* ----- Botão "Conhecer a AACD" ----- */
+.ap-btn-aacd {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 8px 10px 8px 24px;
+  background: var(--branco);
+  color: #1d1d1d;
   font-weight: 700;
   font-size: 16px;
-  padding: 15px 30px;
-  border-radius: 30px;
-  transition: transform .15s;
+  text-decoration: none;
+  border-radius: 40px;
+  box-shadow: 0 8px 20px rgba(0, 60, 58, .25);
+  transition: transform .2s, box-shadow .2s;
 }
-.ap-btn:hover { transform: translateY(-2px); }
-.ap-btn-principal { background: var(--vermelho); color: var(--branco); box-shadow: 0 6px 16px rgba(160,20,40,.35); }
-.ap-btn-secundario { background: var(--branco); color: var(--teal-escuro); box-shadow: var(--sombra); }
+.ap-btn-aacd-seta {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e3f4f3;
+  color: var(--teal-escuro);
+  transition: transform .2s, background .2s, color .2s;
+}
+.ap-btn-aacd:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(0, 60, 58, .3);
+}
+.ap-btn-aacd:hover .ap-btn-aacd-seta {
+  transform: translateX(3px);
+  background: var(--teal-escuro);
+  color: var(--branco);
+}
+.ap-btn-aacd:focus-visible { outline: 3px solid var(--branco); outline-offset: 3px; }
 
 .ap-conteudo {
   max-width: 1100px;
@@ -214,18 +235,6 @@ body {
 }
 .ap-rodape a { color: var(--teal-escuro); font-weight: 600; }
 
-
-/* ----- Apresentação: menu do topo ----- */
-.ap-menu { display: flex; align-items: center; gap: 28px; }
-.ap-menu a:not(.ap-btn-topo) {
-  color: var(--branco);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 15px;
-  opacity: .9;
-}
-.ap-menu a:not(.ap-btn-topo):hover { opacity: 1; text-decoration: underline; }
-
 /* ----- Desafio x Solução ----- */
 .ap-comparacao {
   display: grid;
@@ -274,19 +283,6 @@ body {
   border-radius: 18px;
   padding: 24px 22px;
 }
-.ap-icone {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: #e3f4f3;
-  color: var(--teal-escuro);
-  font-weight: 800;
-  font-size: 16px;
-  margin-bottom: 14px;
-}
-.ap-icone-vermelho { background: #fde2e4; color: var(--vermelho); }
 .ap-ator h3 { font-size: 17px; }
 .ap-ator small { display: block; color: var(--teal-escuro); font-weight: 600; margin: 3px 0 10px; }
 .ap-ator p { color: #555; font-size: 14px; line-height: 1.55; }
@@ -329,13 +325,12 @@ body {
 
 @media (max-width: 760px) {
   .ap-topo { padding: 18px 16px; }
-  .ap-hero { padding: 110px 16px 70px; }
+  .ap-logo img { height: 44px; }
+  .ap-hero { padding: 120px 16px 80px; }
   .ap-hero h1 { font-size: 30px; }
   .ap-hero p { font-size: 16px; }
-  .ap-forma { width: 500px; height: 500px; right: -250px; top: 300px; }
   .ap-conteudo { padding: 48px 16px 24px; }
   .ap-passos, .ap-perfis, .ap-ecossistema, .ap-rede, .ap-comparacao { grid-template-columns: 1fr; }
-  .ap-menu a:not(.ap-btn-topo) { display: none; }
   .ap-seta { justify-self: center; transform: rotate(90deg); }
   .ap-rede { padding: 26px 20px; }
   .ap-rodape { padding: 22px 16px 28px; }

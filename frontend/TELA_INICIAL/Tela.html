@@ -14,28 +14,24 @@
   <!-- ============ TELA DE APRESENTAÇÃO DO SITE ============ -->
   <section class="tela-apresentacao">
     <div class="ap-topo">
-      <div class="app-logo">
-      <nav class="ap-menu">
-        <a href="#" data-ancora="ap-solucao">A solução</a>
-        <a href="#" data-ancora="ap-fluxo">Como funciona</a>
-        <a href="#" data-ancora="ap-rede">Rede ABC</a>
-        <a href="index.html#inicio" class="ap-btn-topo">Entrar</a>
-      </nav>
+      <a href="img/fundo-hospita.jpeg" class="ap-logo" aria-label="Hospital Ortopédico AACD">
+        <!-- LOGO: coloque a imagem na pasta "img" com o nome logo-aacd.png
+             (ou troque o nome abaixo). Se a imagem não existir, aparece o texto. -->
+        <img src="img/logoaacd2.png" alt="Hospital Ortopédico AACD"
+             onerror="this.hidden = true; this.nextElementSibling.hidden = false;">
+        <span class="app-logo" hidden><span>Hospital<br>Ortopédico</span><i>AACD</i></span>
+      </a>
     </div>
 
     <!-- HERO -->
     <div class="ap-hero">
-      <div class="forma ap-forma" aria-hidden="true"></div>
       <div class="ap-hero-texto">
+        <span class="ap-etiqueta">Instituto Mauá · AACD · Redes Regionais</span>
         <h1>Hub de Manufatura Aditiva para Saúde</h1>
-        <p>Uma plataforma que une a demanda de próteses da AACD à capacidade ociosa de impressoras 3D
-          de FabLabs universitários, voluntários técnicos e empresas. A AACD publica o que os pacientes
-          precisam, e o sistema direciona cada pedido para o laboratório ou voluntário mais apto e
-          mais próximo.</p>
-        <div class="ap-acoes">
-          <a href="index.html#inicio" class="ap-btn ap-btn-principal">Acessar a plataforma</a>
-          <a href="index.html#cadastro" class="ap-btn ap-btn-secundario">Quero ser voluntário</a>
-        </div>
+        <a href="https://aacd.org.br" target="_blank" rel="noopener" class="ap-btn-aacd">
+          Conhecer a AACD
+          <span class="ap-btn-aacd-seta" aria-hidden="true">→</span>
+        </a>
       </div>
     </div>
 
@@ -91,25 +87,21 @@
       <h2 class="ap-titulo">Quem faz parte</h2>
       <div class="ap-ecossistema">
         <div class="ap-ator">
-          <span class="ap-icone ap-icone-vermelho">✚</span>
           <h3>A demanda</h3>
           <small>AACD</small>
           <p>Registra as necessidades de próteses e envia os arquivos de fatiamento aprovados.</p>
         </div>
         <div class="ap-ator">
-          <span class="ap-icone">▣</span>
           <h3>A capacidade de produção</h3>
           <small>FabLabs, voluntários e empresas</small>
           <p>Microfábricas espalhadas pela região, articuladas com a União dos Reitores do Grande ABC.</p>
         </div>
         <div class="ap-ator">
-          <span class="ap-icone">&lt;/&gt;</span>
           <h3>O desenvolvimento</h3>
           <small>Instituto Mauá de Tecnologia</small>
           <p>Alunos de Ciência da Computação, Sistemas de Informação e Ciência de Dados constroem a plataforma.</p>
         </div>
         <div class="ap-ator">
-          <span class="ap-icone">↗</span>
           <h3>O apoio financeiro</h3>
           <small>Parceiros corporativos</small>
           <p>Financiamento de insumos e pesquisa por meio de leis de incentivo (PRONAS/PCD, Lei do Bem, Lei da Informática).</p>
@@ -159,13 +151,7 @@
         </div>
       </div>
     </div>
-
-    <footer class="ap-rodape">
-      <span>Projeto Integrador Interdisciplinar · Instituto Mauá de Tecnologia · Parceria com a AACD</span>
-      <a href="https://aacd.org.br" target="_blank" rel="noopener">Conhecer a AACD</a>
-    </footer>
   </section>
 
-  <script src="tela_inicial.js"></script>
 </body>
 </html>
