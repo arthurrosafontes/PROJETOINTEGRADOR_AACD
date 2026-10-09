@@ -52,33 +52,33 @@ body {
 
 /* ===== Card do formulário ===== */
 .card-form {
-  position: relative; /* fica acima do círculo */
+    position: relative; /* fica acima do círculo */
     width: 100%;
-    max-width: 276px;
-    padding: 16px 16px 22px;
+    max-width: 520px;          /* antes 380px */
+    padding: 44px 44px 46px;   /* antes 28px 26px 30px */
     background-color: var(--cor-card);
-    border-radius: 16px;
+    border-radius: 26px;       /* antes 20px */
     display: flex;
     flex-direction: column;
 }
 
 .card-form__label {
     color: var(--cor-branco);
-    font-size: 12px;
-    margin: 0 0 6px 4px;
+    font-size: 17px;           /* antes 14px */
+    margin: 0 0 10px 6px;
 }
 
 .card-form__input {
     width: 100%;
-    height: 33px;
-    padding: 0 13px;
-    margin-bottom: 18px;
+    height: 56px;              /* antes 42px */
+    padding: 0 22px;
+    margin-bottom: 26px;
     border: none;
-    border-radius: 14px;
+    border-radius: 28px;
     background-color: var(--cor-branco);
     box-shadow: var(--sombra);
     font-family: var(--fonte);
-    font-size: 12px;
+    font-size: 17px;           /* antes 14px */
     color: #333;
 }
 
@@ -92,9 +92,9 @@ body {
 
 .card-form__esqueci {
     align-self: flex-start;
-    margin: -10px 0 8px 4px;
+    margin: -12px 0 18px 6px;
     color: var(--cor-branco);
-    font-size: 12px;
+    font-size: 16px;           /* antes 14px */
     text-decoration: none;
 }
 
@@ -105,15 +105,15 @@ body {
 /* ===== Botão Entrar ===== */
 .card-form__botao {
     align-self: center;
-    width: 87px;
-    height: 33px;
-    margin-bottom: 20px;
+    width: 170px;              /* antes 120px */
+    height: 54px;              /* antes 40px */
+    margin-bottom: 28px;
     border: none;
-    border-radius: 14px;
+    border-radius: 27px;
     background-color: var(--cor-branco);
     box-shadow: var(--sombra);
     font-family: var(--fonte);
-    font-size: 12px;
+    font-size: 17px;           /* antes 14px */
     color: #000;
     cursor: pointer;
     transition: transform 0.15s ease;
@@ -127,7 +127,7 @@ body {
 .card-form__voltar {
     align-self: center;
     color: var(--cor-link);
-    font-size: 12px;
+    font-size: 16px;           /* antes 14px */
     text-decoration: underline;
 }
 
@@ -155,4 +155,27 @@ body {
 .marca__logo {
     height: 26px;
     width: auto;
+}
+
+/* ===== Telas pequenas (celular) ===== */
+@media (max-width: 600px) {
+    .card-form {
+        padding: 32px 24px 34px;
+        border-radius: 22px;
+    }
+
+    .card-form__label,
+    .card-form__input,
+    .card-form__botao {
+        font-size: 15px;
+    }
+
+    .card-form__input {
+        height: 50px;
+    }
+
+    .card-form__botao {
+        width: 150px;
+        height: 48px;
+    }
 }

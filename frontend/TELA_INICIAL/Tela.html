@@ -1,41 +1,171 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AACD - Tela Inicial</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hub de Manufatura Aditiva para Saúde — AACD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tela_inicial.css">
 </head>
 <body>
-    <main class="tela-inicial">
-        <section class="card-login" aria-labelledby="titulo-login">
-            <h1 id="titulo-login" class="card-login__titulo">Selecione o tipo de Login</h1>
 
-            <div class="card-login__opcoes">
-                <a href="\frontend\LOGIN_FUNCIONARIOS\login_funcionarios.html" class="botao-login">
-                    <img src="img/logo-aacd.png" alt="Logo AACD" class="botao-login__icone botao-login__icone--logo">
-                    <span class="botao-login__texto">Funcionario AACD</span>
-                </a>
+  <!-- ============ TELA DE APRESENTAÇÃO DO SITE ============ -->
+  <section class="tela-apresentacao">
+    <div class="ap-topo">
+      <div class="app-logo">
+      <nav class="ap-menu">
+        <a href="#" data-ancora="ap-solucao">A solução</a>
+        <a href="#" data-ancora="ap-fluxo">Como funciona</a>
+        <a href="#" data-ancora="ap-rede">Rede ABC</a>
+        <a href="index.html#inicio" class="ap-btn-topo">Entrar</a>
+      </nav>
+    </div>
 
-                <a href="\frontend\LOGIN_VOLUNTARIOS\login_voluntarios.html" class="botao-login">
-                    <img src="img/voluntarios.png" alt="" class="botao-login__icone">
-                    <span class="botao-login__texto">Voluntário</span>
-                </a>
-            </div>
+    <!-- HERO -->
+    <div class="ap-hero">
+      <div class="forma ap-forma" aria-hidden="true"></div>
+      <div class="ap-hero-texto">
+        <h1>Hub de Manufatura Aditiva para Saúde</h1>
+        <p>Uma plataforma que une a demanda de próteses da AACD à capacidade ociosa de impressoras 3D
+          de FabLabs universitários, voluntários técnicos e empresas. A AACD publica o que os pacientes
+          precisam, e o sistema direciona cada pedido para o laboratório ou voluntário mais apto e
+          mais próximo.</p>
+        <div class="ap-acoes">
+          <a href="index.html#inicio" class="ap-btn ap-btn-principal">Acessar a plataforma</a>
+          <a href="index.html#cadastro" class="ap-btn ap-btn-secundario">Quero ser voluntário</a>
+        </div>
+      </div>
+    </div>
 
-            <a href="https://aacd.org.br/" class="card-login__link">Conhecer a AACD</a>
+    <div class="ap-conteudo">
 
-            <div class="card-login__marca">
-                <span class="card-login__marca-texto"></span>
-                <img src="img/logoaacd2.png"alt="AACD" class="card-login__marca-logo">
-            </div>
-        </section>
-    </main>
-    <script src="tela-inicial.js"></script>
+      <!-- DESAFIO x SOLUÇÃO -->
+      <div class="ap-comparacao" id="ap-solucao">
+        <div class="ap-bloco ap-desafio">
+          <span class="ap-rotulo">O desafio atual</span>
+          <h2>Conexões manuais e isoladas</h2>
+          <ul>
+            <li>A produção de próteses 3D no Brasil depende de contatos feitos caso a caso.</li>
+            <li>Não existe uma plataforma que conecte automaticamente a demanda da AACD às impressoras 3D paradas em universidades, empresas e casas.</li>
+          </ul>
+        </div>
+        <div class="ap-seta" aria-hidden="true">→</div>
+        <div class="ap-bloco ap-solucao">
+          <span class="ap-rotulo">A solução</span>
+          <h2>Um hub digital centralizado</h2>
+          <ul>
+            <li>Um só lugar onde a AACD registra as demandas e os produtores oferecem a sua capacidade.</li>
+            <li>Os pedidos são distribuídos levando em conta a urgência clínica e a máquina mais adequada.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- FLUXO -->
+      <h2 class="ap-titulo" id="ap-fluxo">Como a plataforma funciona</h2>
+      <ol class="ap-passos">
+        <li>
+          <b>1</b>
+          <h3>Cadastro e homologação</h3>
+          <p>Voluntários e laboratórios cadastram suas impressoras, os filamentos suportados e a disponibilidade. A plataforma avalia se o equipamento atende às exigências.</p>
+        </li>
+        <li>
+          <b>2</b>
+          <h3>Distribuição das demandas</h3>
+          <p>A AACD envia os arquivos de fatiamento já aprovados, e o sistema direciona cada pedido ao produtor mais apto e mais próximo.</p>
+        </li>
+        <li>
+          <b>3</b>
+          <h3>Produção acompanhada</h3>
+          <p>Cada prótese é rastreada do pedido à entrega, com prazos e situação visíveis, para que os casos mais urgentes sejam atendidos primeiro.</p>
+        </li>
+        <li>
+          <b>4</b>
+          <h3>Controle de qualidade</h3>
+          <p>Regras definidas pela AACD (preenchimento mínimo e parâmetros de fatiamento) e uma validação clínica antes do uso.</p>
+        </li>
+      </ol>
+
+      <!-- ECOSSISTEMA -->
+      <h2 class="ap-titulo">Quem faz parte</h2>
+      <div class="ap-ecossistema">
+        <div class="ap-ator">
+          <span class="ap-icone ap-icone-vermelho">✚</span>
+          <h3>A demanda</h3>
+          <small>AACD</small>
+          <p>Registra as necessidades de próteses e envia os arquivos de fatiamento aprovados.</p>
+        </div>
+        <div class="ap-ator">
+          <span class="ap-icone">▣</span>
+          <h3>A capacidade de produção</h3>
+          <small>FabLabs, voluntários e empresas</small>
+          <p>Microfábricas espalhadas pela região, articuladas com a União dos Reitores do Grande ABC.</p>
+        </div>
+        <div class="ap-ator">
+          <span class="ap-icone">&lt;/&gt;</span>
+          <h3>O desenvolvimento</h3>
+          <small>Instituto Mauá de Tecnologia</small>
+          <p>Alunos de Ciência da Computação, Sistemas de Informação e Ciência de Dados constroem a plataforma.</p>
+        </div>
+        <div class="ap-ator">
+          <span class="ap-icone">↗</span>
+          <h3>O apoio financeiro</h3>
+          <small>Parceiros corporativos</small>
+          <p>Financiamento de insumos e pesquisa por meio de leis de incentivo (PRONAS/PCD, Lei do Bem, Lei da Informática).</p>
+        </div>
+      </div>
+
+      <!-- REDE ABC -->
+      <div class="ap-rede" id="ap-rede">
+        <div>
+          <span class="ap-rotulo ap-rotulo-claro">Produção descentralizada</span>
+          <h2>Uma rede de microfábricas no Grande ABC</h2>
+          <p>Em vez de depender de um único centro, a produção é dividida entre FabLabs universitários
+            dos sete municípios da região, com o Instituto Mauá como hub. Isso agiliza a logística e
+            garante entregas contínuas para a AACD.</p>
+        </div>
+        <ul class="ap-cidades">
+          <li>Santo André</li>
+          <li>São Bernardo</li>
+          <li>São Caetano</li>
+          <li>Diadema</li>
+          <li>Mauá</li>
+          <li>Ribeirão Pires</li>
+          <li>Rio Grande da Serra</li>
+        </ul>
+      </div>
+
+      <!-- PARA QUEM É -->
+      <h2 class="ap-titulo">Escolha como você vai usar</h2>
+      <div class="ap-perfis">
+        <div class="ap-perfil ap-perfil-vermelho">
+          <h3>Funcionários AACD</h3>
+          <ul>
+            <li>Cadastrar as demandas de próteses dos pacientes</li>
+            <li>Acompanhar prazos e a situação de cada pedido</li>
+            <li>Ver e aprovar os voluntários e laboratórios</li>
+          </ul>
+          <a href="index.html#login-funcionario">Entrar como funcionário →</a>
+        </div>
+        <div class="ap-perfil ap-perfil-teal">
+          <h3>Voluntários e FabLabs</h3>
+          <ul>
+            <li>Cadastrar impressoras e filamentos</li>
+            <li>Receber pedidos compatíveis com o seu equipamento</li>
+            <li>Acompanhar o que está em produção</li>
+          </ul>
+          <a href="index.html#login-voluntario">Entrar como voluntário →</a>
+        </div>
+      </div>
+    </div>
+
+    <footer class="ap-rodape">
+      <span>Projeto Integrador Interdisciplinar · Instituto Mauá de Tecnologia · Parceria com a AACD</span>
+      <a href="https://aacd.org.br" target="_blank" rel="noopener">Conhecer a AACD</a>
+    </footer>
+  </section>
+
+  <script src="tela_inicial.js"></script>
 </body>
 </html>
-</html>
-
