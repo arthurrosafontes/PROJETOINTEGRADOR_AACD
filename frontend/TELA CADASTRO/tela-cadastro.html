@@ -1,43 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cadastro Voluntário - AACD</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Nunito:wght@800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="cadastro.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro de Voluntário</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="cadastro.css" />
 </head>
 <body>
-  <main class="tela">
-    <!-- Forma de fundo (círculo escuro) -->
-    <div class="forma"></div>
+  <!-- Onda de fundo -->
+  <svg class="onda" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M520 900 C 640 640, 820 420, 1100 330 C 1250 285, 1360 270, 1440 280 L 1440 900 Z" />
+  </svg>
 
-    <!-- Card de cadastro -->
-    <form class="card-cadastro" action="#" method="post">
+  <main class="cartao">
+    <form id="form-cadastro" novalidate>
       <div class="grade">
-        <input type="email" name="email" placeholder="Email:" required>
-        <input type="text" name="cnpj" placeholder="CNPJ: AA.AAA.AAA/AAAA-DV" maxlength="18">
+        <!-- NOVO: campo de nome do voluntário -->
+        <div class="grupo grupo-nome">
+          <input type="text" id="nome" name="nome" class="campo"
+                 placeholder="Nome do voluntário:" autocomplete="name" required />
+          <span class="erro" data-erro-de="nome"></span>
+        </div>
 
-        <input type="text" name="endereco" placeholder="Endereço">
-        <input type="tel" name="telefone" placeholder="Telefone: (XX) XXXXX-XXXX" maxlength="15">
+        <div class="grupo">
+          <input type="email" id="email" name="email" class="campo"
+                 placeholder="Email:" autocomplete="email" required />
+          <span class="erro" data-erro-de="email"></span>
+        </div>
 
-        <input type="password" name="senha" placeholder="Senha" required>
-        <input type="password" name="confirmar_senha" placeholder="Confirmar Senha:" required>
+        <div class="grupo">
+          <input type="text" id="cnpj" name="cnpj" class="campo"
+                 placeholder="CNPJ: AA.AAA.AAA/AAAA-DV" inputmode="numeric" maxlength="18" required />
+          <span class="erro" data-erro-de="cnpj"></span>
+        </div>
+
+        <div class="grupo">
+          <input type="text" id="endereco" name="endereco" class="campo"
+                 placeholder="Endereço" autocomplete="street-address" required />
+          <span class="erro" data-erro-de="endereco"></span>
+        </div>
+
+        <div class="grupo">
+          <input type="tel" id="telefone" name="telefone" class="campo"
+                 placeholder="Telefone: (XX) XXXXX-XXXX" inputmode="numeric" maxlength="15" required />
+          <span class="erro" data-erro-de="telefone"></span>
+        </div>
+
+        <div class="grupo">
+          <input type="password" id="senha" name="senha" class="campo"
+                 placeholder="Senha" autocomplete="new-password" required />
+          <span class="erro" data-erro-de="senha"></span>
+        </div>
+
+        <div class="grupo">
+          <input type="password" id="confirmarSenha" name="confirmarSenha" class="campo"
+                 placeholder="Confirmar Senha:" autocomplete="new-password" required />
+          <span class="erro" data-erro-de="confirmarSenha"></span>
+        </div>
       </div>
 
-      <button type="submit" class="btn-cadastrar">Cadastrar</button>
+      <button type="submit" class="botao">Cadastrar</button>
+      <p id="mensagem" class="mensagem" role="status"></p>
 
-      <a href="../LOGIN_VOLUNTARIOS/login_voluntarios.html" class="voltar">Voltar para tela anterior</a>
+      <a href="/frontend/LOGIN_VOLUNTARIOS/login_voluntarios.html" id="voltar" class="link-voltar">Voltar para tela anterior</a>
     </form>
-
-    <!-- Logo no canto inferior direito -->
-    <div class="logo">
-      <span class="logo-texto"></span>
-      <!-- Exporte o logo do Figma e salve como logo-aacd.png na mesma pasta -->
-      <img src="img/logo-aacd2.png" alt="AACD" class="logo-img">
-    </div>
   </main>
+
+  <!-- Troque pelo caminho do logo do hospital -->
+  <img src="img/logo-aacd2.png" alt="Hospital Ortopédico" class="logo" />
+
+  <script src="cadastro.js"></script>
 </body>
 </html>
