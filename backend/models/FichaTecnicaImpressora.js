@@ -4,7 +4,7 @@ const fichaTecnicaImpressoraSchema = new mongoose.Schema({
     voluntario_id: { type: Number, required: true },
     modelo_da_impressora: { type: String, required: true },
     
-    tecnologia: {
+    tipo_impressao: {
         type: String,
         required: true,
     },
