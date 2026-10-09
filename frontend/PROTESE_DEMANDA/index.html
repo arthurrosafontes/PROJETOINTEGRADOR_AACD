@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nova Demanda | Hospital Ortopédico AACD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a href="#" class="brand" aria-label="Hospital Ortopédico AACD">
+        <span class="brand__text">Hospital<br>Ortopédico</span>
+        <span class="brand__badge">AACD</span>
+      </a>
+
+      <nav class="nav" aria-label="Principal">
+        <button class="nav__item nav__item--menu" type="button">Demandas</button>
+        <button class="nav__item nav__item--menu" type="button">Voluntários</button>
+        <button class="nav__item nav__item--menu" type="button">Próteses</button>
+        <a class="nav__item" href="#">Sobre</a>
+      </nav>
+
+      <div class="user">
+        <span class="user__avatar" aria-hidden="true">U</span>
+        <span class="user__info">
+          <span class="user__name">user</span>
+          <span class="user__role">Funcionário</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <!-- Breadcrumb / indicador de etapas -->
+    <nav class="breadcrumb" aria-label="Etapas do formulário">
+      <ol id="breadcrumb">
+        <li><button type="button" data-step="1">Identificação da Demanda</button></li>
+        <li><button type="button" data-step="2">Informações Gerais</button></li>
+        <li><button type="button" data-step="3">Entrega</button></li>
+      </ol>
+    </nav>
+
+    <h1 class="page__title">Nova Demanda</h1>
+
+    <form id="demandaForm" novalidate>
+
+      <!-- Etapa 1 -->
+      <section class="card step" data-step="1" aria-labelledby="t1">
+        <header class="card__header">
+          <span class="card__num">1</span>
+          <h2 id="t1">Identificação da Demanda</h2>
+        </header>
+        <div class="card__body">
+          <div class="field">
+            <label for="nome">Nome da Demanda</label>
+            <input type="text" id="nome" name="nome" placeholder="Nome da Demanda:" required autocomplete="off">
+            <small class="error" aria-live="polite"></small>
+          </div>
+        </div>
+      </section>
+
+      <!-- Etapa 2 -->
+      <section class="card step" data-step="2" aria-labelledby="t2" hidden>
+        <header class="card__header">
+          <span class="card__num">2</span>
+          <h2 id="t2">Informações Gerais</h2>
+        </header>
+        <div class="card__body card__body--3">
+          <div class="field">
+            <label for="tipo">Tipo da Prótese</label>
+            <input type="text" id="tipo" name="tipo" placeholder="Tipo da Prótese:" required autocomplete="off">
+            <small class="error" aria-live="polite"></small>
+          </div>
+          <div class="field">
+            <label for="quantidade">Quantidade</label>
+            <input type="number" id="quantidade" name="quantidade" placeholder="Quantidade:" min="1" step="1" inputmode="numeric" required>
+            <small class="error" aria-live="polite"></small>
+          </div>
+          <div class="field">
+            <label for="descricao">Descrição</label>
+            <input type="text" id="descricao" name="descricao" placeholder="Descrição:" required autocomplete="off">
+            <small class="error" aria-live="polite"></small>
+          </div>
+        </div>
+      </section>
+
+      <!-- Etapa 3 -->
+      <section class="card step" data-step="3" aria-labelledby="t3" hidden>
+        <header class="card__header">
+          <span class="card__num">3</span>
+          <h2 id="t3">Entrega</h2>
+        </header>
+        <div class="card__body card__body--2">
+          <div class="field">
+            <label for="local">Local</label>
+            <input type="text" id="local" name="local" placeholder="Local:" required autocomplete="off">
+            <small class="error" aria-live="polite"></small>
+          </div>
+          <div class="field">
+            <label for="entrega">Forma de Entrega</label>
+            <input type="text" id="entrega" name="entrega" placeholder="Forma de Entrega:" required autocomplete="off">
+            <small class="error" aria-live="polite"></small>
+          </div>
+        </div>
+      </section>
+
+      <footer class="actions">
+        <button type="button" class="btn btn--ghost" id="btnCancelar">Cancelar</button>
+        <div class="actions__right">
+          <button type="button" class="btn btn--ghost" id="btnVoltar" hidden>Voltar</button>
+          <button type="button" class="btn btn--outline" id="btnRascunho">Salvar rascunho</button>
+          <button type="button" class="btn btn--primary" id="btnAvancar">Próximo</button>
+          <button type="submit" class="btn btn--primary" id="btnPublicar" hidden>Publicar demanda</button>
+        </div>
+      </footer>
+    </form>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
