@@ -7,7 +7,6 @@ const fichaTecnicaImpressoraSchema = new mongoose.Schema({
     tecnologia: {
         type: String,
         required: true,
-        enum: ['FDM/FFF', 'SLA', 'SLS', 'Outra']
     },
 
     volume_impressao: {
@@ -18,7 +17,6 @@ const fichaTecnicaImpressoraSchema = new mongoose.Schema({
 
     materiais_compativeis: [{
         type: String,
-        enum: ['PLA', 'PETG', 'ABS', 'TPU', 'Nylon', 'ASA', 'Outros']
     }],
 
     diametro_bico_mm: { type: Number, required: true },
@@ -32,13 +30,22 @@ const fichaTecnicaImpressoraSchema = new mongoose.Schema({
     },
 
     localizacao: {
-        cidade: { type: String, required: true },
-        estado: { type: String, required: true },
-        cep_regiao: { type: String },
-        forma_entrega: {
-            type: String,
-            enum: ['Retirada', 'Envio', 'Ambos'],
-            required: true
+        endereco: {
+            logradouro: {
+                type: String,
+                required: [true, 'O logradouro é obrigatório'],
+                trim: true
+            },
+            numero: {
+                type: String,
+                required: [true, 'O número é obrigatório'],
+                trim: true
+            },
+            cep: {
+                type: String,
+                required: [true, 'O CEP é obrigatório'],
+                trim: true
+            }
         }
     },
 
