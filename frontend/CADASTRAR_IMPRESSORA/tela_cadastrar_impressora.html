@@ -1,51 +1,177 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cadastrar Impressora - Voluntário</title>
-<link rel="stylesheet" href="cadastrar_impressora.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastrar Impressora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="cadastrar_impressora.css" />
 </head>
 <body>
+  <!-- ===== Cabeçalho ===== -->
+  <header class="topo">
+    <!-- Troque pelo caminho do logo do hospital -->
+    <img src="img/logo-aacd2.png" alt="Hospital Ortopédico" class="logo" />
 
-<header class="navbar">
-  <div class="circulo" aria-hidden="true"></div>
-  <a class="logo" href="tela_hub_voluntario.html"><img src="img/logo-aacd2.png" alt="Hospital Ortopédico AACD"></a>
-  <ul class="menu" id="menu"></ul>
-  <div class="user">
-    <div class="avatar"></div>
-    <div class="user-info"><strong id="userName">user</strong><small id="userRole">Voluntário</small></div>
-  </div>
-</header>
+    <nav class="menu">
+      <ul class="menu-lista">
+        <li class="menu-item">
+          <button type="button" class="menu-botao" aria-expanded="false" aria-controls="sub-pedidos">
+            Pedidos <span class="seta">▼</span>
+          </button>
+          <ul class="submenu" id="sub-pedidos">
+            <li><a href="pedidos-disponiveis.html">Pedidos disponíveis</a></li>
+            <li><a href="pedidos-recomendados.html">Pedidos recomendados</a></li>
+            <li><a href="pedidos-aceitos.html">Pedidos aceitos</a></li>
+            <li><a href="pedidos-recusados.html">Pedidos recusados</a></li>
+          </ul>
+        </li>
 
-<main>
-  <h1 class="titulo">Cadastrar Impressora</h1>
+        <li class="menu-item">
+          <button type="button" class="menu-botao" aria-expanded="false" aria-controls="sub-impressora">
+            Impressora <span class="seta">▼</span>
+          </button>
+          <ul class="submenu" id="sub-impressora">
+            <li><a href="impressora.html" aria-current="page">Cadastrar impressora</a></li>
+            <li><a href="selecionar-impressora.html">Selecionar impressora</a></li>
+            <li><a href="ficha-tecnica-impressora.html">Ficha técnica da impressora</a></li>
+            <li><a href="tipo-filamento.html">Tipo de filamento</a></li>
+          </ul>
+        </li>
 
-  <form class="painel" id="formImpressora" novalidate>
-    <input class="campo esq" name="nome" placeholder="Nome da Impressora:" aria-label="Nome da Impressora" required>
-    <input class="campo esq" name="localizacao" placeholder="Localização Impressora" aria-label="Localização da Impressora" required>
-    <input class="campo esq" name="marca" placeholder="Marca da Impressora:" aria-label="Marca da Impressora" required>
-    <input class="campo esq" name="tecnologia" placeholder="Tecnologia da impressão:" aria-label="Tecnologia da impressão" list="listaTecnologias" required>
-    <input class="campo esq" name="diametroFilamento" placeholder="Diametro do Filamento" aria-label="Diâmetro do Filamento" list="listaDiametrosFilamento" required>
+        <li class="menu-item">
+          <button type="button" class="menu-botao" aria-expanded="false" aria-controls="sub-producao">
+            Produção <span class="seta">▼</span>
+          </button>
+          <ul class="submenu" id="sub-producao">
+            <li><a href="em-producao.html">Em produção</a></li>
+            <li><a href="aguardando-envio.html">Aguardando envio</a></li>
+            <li><a href="aguardando-validacao.html">Aguardando validação</a></li>
+            <li><a href="concluidas.html">Concluídas</a></li>
+          </ul>
+        </li>
 
-    <input class="campo dir bico" name="diametroBico" placeholder="Diametro do Bico" aria-label="Diâmetro do Bico" list="listaBicos" required>
-    <input class="campo dir" name="areaMaxima" placeholder="Área Máxima da impressão" aria-label="Área Máxima da impressão" required>
-    <input class="campo dir" name="filamento" placeholder="Tipo de Filamento" aria-label="Tipo de Filamento" list="listaFilamentos" required>
-    <input class="campo dir" name="modelo" placeholder="Modelo da Impressora: RTX90" aria-label="Modelo da Impressora" required>
+        <li class="menu-item">
+          <a href="sobre.html" class="menu-link">Sobre</a>
+        </li>
+      </ul>
+    </nav>
 
-    <div class="acoes">
-      <p class="mensagem" id="mensagem" role="status"></p>
-      <button type="submit" class="btn-cadastrar">Cadastrar</button>
+    <!-- Menu do usuário (usa o mesmo script dos outros dropdowns) -->
+    <div class="usuario menu-item">
+      <button type="button" class="menu-botao usuario-botao" aria-expanded="false" aria-controls="sub-usuario">
+        <span class="avatar" aria-hidden="true"></span>
+        <span class="usuario-info">
+          <span class="usuario-nome">user</span>
+          <span class="usuario-papel">Voluntário</span>
+        </span>
+        <span class="seta">▼</span>
+      </button>
+      <ul class="submenu submenu-usuario" id="sub-usuario">
+        <li class="submenu-cabecalho">
+          <strong>user</strong>
+          <span>user@email.com</span>
+        </li>
+        <li><a href="perfil.html">Meu perfil</a></li>
+        <li><a href="minhas-impressoras.html">Minhas impressoras</a></li>
+        <li><a href="meus-pedidos.html">Meus pedidos</a></li>
+        <li><a href="configuracoes.html">Configurações</a></li>
+        <li class="submenu-divisor" role="separator"></li>
+        <li><a href="login.html" class="sair">Sair</a></li>
+      </ul>
     </div>
-  </form>
+  </header>
 
-  <!-- Sugestões que aparecem ao digitar nos campos -->
-  <datalist id="listaTecnologias"><option value="FDM"><option value="SLA (resina)"><option value="SLS"></datalist>
-  <datalist id="listaDiametrosFilamento"><option value="1,75 mm"><option value="2,85 mm"></datalist>
-  <datalist id="listaBicos"><option value="0,2 mm"><option value="0,4 mm"><option value="0,6 mm"><option value="0,8 mm"></datalist>
-  <datalist id="listaFilamentos"><option value="PLA"><option value="PETG"><option value="ABS"><option value="TPU"></datalist>
-</main>
+  <!-- Arcos decorativos do canto -->
+  <div class="arco arco-externo" aria-hidden="true"></div>
+  <div class="arco arco-interno" aria-hidden="true"></div>
 
-<script src="cadastrar_impressora.js"></script>
+  <!-- ===== Conteúdo ===== -->
+  <main class="conteudo">
+    <h1 class="titulo">Cadastrar Impressora</h1>
+
+    <!-- Breadcrumb das etapas -->
+    <nav class="breadcrumb" aria-label="Etapas do cadastro">
+      <ol>
+        <li><button type="button" class="passo" data-passo="0">Identificação</button></li>
+        <li><button type="button" class="passo" data-passo="1">Especificações</button></li>
+        <li><button type="button" class="passo" data-passo="2">Filamento</button></li>
+        <li><button type="button" class="passo" data-passo="3">Revisão</button></li>
+      </ol>
+    </nav>
+
+    <form id="form-impressora" class="cartao" novalidate>
+      <!-- Etapa 1 -->
+      <section class="etapa" data-etapa="0">
+        <h2 class="etapa-titulo">Identificação</h2>
+        <div class="grade">
+          <div class="grupo">
+            <input type="text" id="nome" name="nome" class="campo" placeholder="Nome da Impressora:" required />
+            <span class="erro" data-erro-de="nome"></span>
+          </div>
+          <div class="grupo">
+            <input type="text" id="modelo" name="modelo" class="campo" placeholder="Modelo da Impressora: RTX90" required />
+            <span class="erro" data-erro-de="modelo"></span>
+          </div>
+          <div class="grupo">
+            <input type="text" id="marca" name="marca" class="campo" placeholder="Marca da Impressora:" required />
+            <span class="erro" data-erro-de="marca"></span>
+          </div>
+          <div class="grupo">
+            <input type="text" id="localizacao" name="localizacao" class="campo" placeholder="Localização Impressora" required />
+            <span class="erro" data-erro-de="localizacao"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Etapa 2 -->
+      <section class="etapa" data-etapa="1" hidden>
+        <h2 class="etapa-titulo">Especificações</h2>
+        <div class="grade">
+          <div class="grupo">
+            <input type="text" id="areaMaxima" name="areaMaxima" class="campo" placeholder="Área Máxima da impressão (ex: 220x220x250 mm)" required />
+            <span class="erro" data-erro-de="areaMaxima"></span>
+          </div>
+          <div class="grupo">
+            <input type="text" id="diametroBico" name="diametroBico" class="campo" placeholder="Diâmetro do Bico (mm)" inputmode="decimal" required />
+            <span class="erro" data-erro-de="diametroBico"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Etapa 3 -->
+      <section class="etapa" data-etapa="2" hidden>
+        <h2 class="etapa-titulo">Filamento</h2>
+        <div class="grade">
+          <div class="grupo">
+            <input type="text" id="tipoFilamento" name="tipoFilamento" class="campo" placeholder="Tipo de Filamento (ex: PLA, ABS, PETG)" required />
+            <span class="erro" data-erro-de="tipoFilamento"></span>
+          </div>
+          <div class="grupo">
+            <input type="text" id="diametroFilamento" name="diametroFilamento" class="campo" placeholder="Diâmetro do Filamento (mm)" inputmode="decimal" required />
+            <span class="erro" data-erro-de="diametroFilamento"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Etapa 4 -->
+      <section class="etapa" data-etapa="3" hidden>
+        <h2 class="etapa-titulo">Revisão</h2>
+        <dl id="resumo" class="resumo"></dl>
+      </section>
+
+      <p id="mensagem" class="mensagem" role="status"></p>
+
+      <!-- Navegação -->
+      <div class="acoes">
+        <button type="button" id="btn-voltar" class="botao botao-secundario">← Voltar</button>
+        <button type="button" id="btn-proximo" class="botao">Próximo →</button>
+        <button type="submit" id="btn-cadastrar" class="botao" hidden>Cadastrar</button>
+      </div>
+    </form>
+  </main>
+
+  <script src="cadastrar_impressora.js"></script>
 </body>
 </html>

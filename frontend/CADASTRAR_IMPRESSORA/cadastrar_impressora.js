@@ -1,82 +1,238 @@
-// Menu do Voluntário — edite aqui para mudar itens/links
-const menuVoluntario = [
-  { label:"Pedidos", sub:["Pedidos disponíveis","Pedidos recomendados","Pedidos aceitos","Pedidos recusados"] },
-  { label:"Impressora", sub:["Cadastrar Impressora","Selecionar Impressora","Ficha Técnica Impressora","Tipo de filamento"] },
-  { label:"Produção", sub:["Em produção","Aguardando envio","Aguardando validação","Concluídas"] },
-  { label:"Sobre" }
-];
-
-// Páginas que já existem (o resto fica como âncora até ser criado)
-const paginas = {
-  "Pedidos disponíveis": "pedidos_disponiveis.html",
-  "Cadastrar Impressora": "cadastrar_impressora.html"
-};
-const PAGINA_ATUAL = "Cadastrar Impressora";
-
-const menuEl = document.getElementById("menu");
-const form = document.getElementById("formImpressora");
+const form = document.getElementById("form-impressora");
+const etapas = [...document.querySelectorAll(".etapa")];
+const passos = [...document.querySelectorAll(".passo")];
+const btnVoltar = document.getElementById("btn-voltar");
+const btnProximo = document.getElementById("btn-proximo");
+const btnCadastrar = document.getElementById("btn-cadastrar");
 const mensagem = document.getElementById("mensagem");
+const resumo = document.getElementById("resumo");
 
-const slug = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-");
-const link = s => paginas[s] || `#${slug(s)}`;
+let etapaAtual = 0;
+let maiorEtapaVisitada = 0;
 
-function renderMenu() {
-  menuEl.innerHTML = menuVoluntario.map(it => it.sub
-    ? `<li class="has-drop${it.sub.includes(PAGINA_ATUAL) ? " atual" : ""}">
-         <button type="button" aria-haspopup="true" aria-expanded="false">${it.label}<span class="caret"></span></button>
-         <ul class="dropdown">${it.sub.map(s => `<li><a href="${link(s)}"${s === PAGINA_ATUAL ? ' class="ativo"' : ""}>${s}</a></li>`).join("")}</ul>
-       </li>`
-    : `<li><a href="${link(it.label)}">${it.label}</a></li>`
-  ).join("");
+/* ---------- Rótulos usados na revisão ---------- */
+const rotulos = {
+  nome: "Nome",
+  modelo: "Modelo",
+  marca: "Marca",
+  localizacao: "Localização",
+  areaMaxima: "Área máxima",
+  diametroBico: "Diâmetro do bico",
+  tipoFilamento: "Tipo de filamento",
+  diametroFilamento: "Diâmetro do filamento",
+};
+
+/* ---------- Validação ---------- */
+const numeroPositivo = (v) => {
+  const n = parseFloat(v.replace(",", "."));
+  return !isNaN(n) && n > 0;
+};
+
+const regras = {
+  nome: (v) => (v.trim() ? "" : "Informe o nome da impressora."),
+  modelo: (v) => (v.trim() ? "" : "Informe o modelo."),
+  marca: (v) => (v.trim() ? "" : "Informe a marca."),
+  localizacao: (v) => (v.trim() ? "" : "Informe onde a impressora fica."),
+  areaMaxima: (v) => (v.trim() ? "" : "Informe a área máxima de impressão."),
+  diametroBico: (v) => (numeroPositivo(v) ? "" : "Informe um número (ex: 0.4)."),
+  tipoFilamento: (v) => (v.trim() ? "" : "Informe o tipo de filamento."),
+  diametroFilamento: (v) => (numeroPositivo(v) ? "" : "Informe um número (ex: 1.75)."),
+};
+
+function validarCampo(input) {
+  const regra = regras[input.name];
+  if (!regra) return true;
+  const erro = regra(input.value);
+  const span = document.querySelector(`[data-erro-de="${input.name}"]`);
+  if (span) span.textContent = erro;
+  input.classList.toggle("invalido", Boolean(erro));
+  return !erro;
 }
 
-function fecharTodos() {
-  document.querySelectorAll(".has-drop.open").forEach(x => { x.classList.remove("open"); x.firstElementChild.setAttribute("aria-expanded","false"); });
+function validarEtapa(indice) {
+  const inputs = [...etapas[indice].querySelectorAll(".campo")];
+  const resultados = inputs.map(validarCampo);
+  const primeiroInvalido = inputs.find((_, i) => !resultados[i]);
+  if (primeiroInvalido) primeiroInvalido.focus();
+  return resultados.every(Boolean);
 }
 
-// Abrir/fechar dropdown por clique (celular)
-menuEl.addEventListener("click", e => {
-  const btn = e.target.closest(".has-drop > button");
-  if (!btn) { fecharTodos(); return; }
-  const li = btn.parentElement, aberto = li.classList.contains("open");
-  fecharTodos();
-  if (!aberto) { li.classList.add("open"); btn.setAttribute("aria-expanded","true"); }
+form.querySelectorAll(".campo").forEach((input) => {
+  input.addEventListener("blur", () => validarCampo(input));
+  input.addEventListener("input", () => {
+    if (input.classList.contains("invalido")) validarCampo(input);
+  });
 });
 
-// Fechar ao clicar fora ou apertar Esc
-document.addEventListener("click", e => { if (!e.target.closest(".menu")) fecharTodos(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape") fecharTodos(); });
+/* ---------- Navegação entre etapas ---------- */
+function mostrarEtapa(indice) {
+  etapaAtual = indice;
+  maiorEtapaVisitada = Math.max(maiorEtapaVisitada, indice);
+  mensagem.textContent = "";
 
-// Cadastro da impressora
-function mostrarMensagem(texto, erro) {
-  mensagem.textContent = texto;
-  mensagem.classList.toggle("erro", !!erro);
+  etapas.forEach((etapa, i) => (etapa.hidden = i !== indice));
+
+  passos.forEach((passo, i) => {
+    passo.classList.toggle("atual", i === indice);
+    passo.classList.toggle("visitado", i <= maiorEtapaVisitada && i !== indice);
+    if (i === indice) passo.setAttribute("aria-current", "step");
+    else passo.removeAttribute("aria-current");
+  });
+
+  const ultima = indice === etapas.length - 1;
+  btnVoltar.disabled = indice === 0;
+  btnProximo.hidden = ultima;
+  btnCadastrar.hidden = !ultima;
+
+  if (ultima) montarResumo();
+
+  const primeiroCampo = etapas[indice].querySelector(".campo");
+  if (primeiroCampo) primeiroCampo.focus();
 }
 
-form.addEventListener("input", e => e.target.classList.remove("erro"));
+btnProximo.addEventListener("click", () => {
+  if (validarEtapa(etapaAtual)) mostrarEtapa(etapaAtual + 1);
+});
 
-form.addEventListener("submit", e => {
+btnVoltar.addEventListener("click", () => {
+  if (etapaAtual > 0) mostrarEtapa(etapaAtual - 1);
+});
+
+// Clicar no breadcrumb: volta livremente; avança só até onde já visitou
+passos.forEach((passo, i) => {
+  passo.addEventListener("click", () => {
+    if (i === etapaAtual || i > maiorEtapaVisitada) return;
+    if (i > etapaAtual && !validarEtapa(etapaAtual)) return;
+    mostrarEtapa(i);
+  });
+});
+
+// Enter num campo = Próximo (em vez de enviar o formulário)
+form.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.classList.contains("campo")) {
+    e.preventDefault();
+    btnProximo.click();
+  }
+});
+
+/* ---------- Revisão ---------- */
+function montarResumo() {
+  resumo.innerHTML = "";
+  Object.entries(rotulos).forEach(([campo, rotulo]) => {
+    const dt = document.createElement("dt");
+    const dd = document.createElement("dd");
+    dt.textContent = rotulo;
+    dd.textContent = form.elements[campo].value.trim();
+    resumo.append(dt, dd);
+  });
+}
+
+/* ---------- Envio ---------- */
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const campos = [...form.querySelectorAll(".campo")];
-  const vazios = campos.filter(c => !c.value.trim());
-  campos.forEach(c => c.classList.toggle("erro", vazios.includes(c)));
 
-  if (vazios.length) {
-    mostrarMensagem("Preencha todos os campos.", true);
-    vazios[0].focus();
-    return;
+  // Garante que todas as etapas estão válidas antes de enviar
+  for (let i = 0; i < etapas.length - 1; i++) {
+    if (!validarEtapa(i)) {
+      mostrarEtapa(i);
+      mensagem.textContent = "Corrija os campos destacados.";
+      return;
+    }
   }
 
-  const impressora = Object.fromEntries(new FormData(form));
-  // Por enquanto salva só no navegador; depois trocar por envio ao servidor
-  try {
-    const lista = JSON.parse(localStorage.getItem("impressoras") || "[]");
-    lista.push(impressora);
-    localStorage.setItem("impressoras", JSON.stringify(lista));
-  } catch (err) { /* navegador sem localStorage: segue sem salvar */ }
+  const dados = Object.fromEntries(
+    Object.keys(rotulos).map((campo) => [campo, form.elements[campo].value.trim()])
+  );
 
-  mostrarMensagem(`Impressora "${impressora.nome}" cadastrada!`);
+  // TODO: trocar pela URL da sua API
+  // try {
+  //   const resp = await fetch("/api/impressoras", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify(dados),
+  //   });
+  //   if (!resp.ok) throw new Error();
+  // } catch {
+  //   mensagem.textContent = "Erro ao cadastrar. Tente novamente.";
+  //   return;
+  // }
+
+  console.log("Impressora cadastrada:", dados);
+  mensagem.textContent = `Impressora "${dados.nome}" cadastrada com sucesso!`;
   form.reset();
+  maiorEtapaVisitada = 0;
+  setTimeout(() => mostrarEtapa(0), 1800);
 });
 
-renderMenu();
+mostrarEtapa(0);
+
+/* ---------- Dropdowns do menu ---------- */
+const itensMenu = [...document.querySelectorAll(".menu-item")].filter((item) =>
+  item.querySelector(".submenu")
+);
+
+function fecharMenus(exceto) {
+  itensMenu.forEach((item) => {
+    if (item === exceto) return;
+    item.classList.remove("aberto");
+    item.querySelector(".menu-botao").setAttribute("aria-expanded", "false");
+  });
+}
+
+itensMenu.forEach((item) => {
+  const botao = item.querySelector(".menu-botao");
+
+  botao.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const abrir = !item.classList.contains("aberto");
+    fecharMenus(item);
+    item.classList.toggle("aberto", abrir);
+    botao.setAttribute("aria-expanded", String(abrir));
+  });
+
+  // Seta para baixo no botão abre o menu e foca o primeiro link
+  botao.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      fecharMenus(item);
+      item.classList.add("aberto");
+      botao.setAttribute("aria-expanded", "true");
+      item.querySelector(".submenu a").focus();
+    }
+  });
+
+  // Setas para cima/baixo navegam entre os links do submenu
+  item.querySelector(".submenu").addEventListener("keydown", (e) => {
+    const links = [...item.querySelectorAll(".submenu a")];
+    const i = links.indexOf(document.activeElement);
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      links[(i + 1) % links.length].focus();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (i <= 0) botao.focus();
+      else links[i - 1].focus();
+    }
+  });
+
+  // Fecha quando o foco sai do item (navegação por Tab)
+  item.addEventListener("focusout", (e) => {
+    if (!item.contains(e.relatedTarget)) {
+      item.classList.remove("aberto");
+      botao.setAttribute("aria-expanded", "false");
+    }
+  });
+});
+
+// Clique fora fecha
+document.addEventListener("click", () => fecharMenus());
+
+// Esc fecha e devolve o foco ao botão
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  const aberto = itensMenu.find((item) => item.classList.contains("aberto"));
+  if (aberto) {
+    fecharMenus();
+    aberto.querySelector(".menu-botao").focus();
+  }
+});
