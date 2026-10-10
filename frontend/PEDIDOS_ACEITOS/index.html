@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pedidos Aceitos · Hospital Ortopédico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ===== INÍCIO DO CABEÇALHO (copie este bloco para as outras páginas) ===== -->
+  <header class="topo">
+    <img src="img/logo-aacd2.png" alt="Hospital Ortopédico" class="logo" />
+
+    <nav class="menu">
+      <ul class="menu-lista">
+        <li class="menu-item">
+          <button type="button" class="menu-botao" aria-expanded="false" aria-controls="sub-pedidos">
+            Pedidos <span class="seta">▼</span>
+          </button>
+          <ul class="submenu" id="sub-pedidos">
+            <li><a href="/frontend/PEDIDOS_DISPONIVEIS/tela_pedidos_disponiveis.html">Pedidos disponíveis</a></li>
+            <li><a href="pedidos-recomendados.html">Pedidos recomendados</a></li>
+            <li><a href="pedidos-aceitos.html" aria-current="page">Pedidos aceitos</a></li>
+            <li><a href="pedidos-recusados.html">Pedidos recusados</a></li>
+          </ul>
+        </li>
+
+        <li class="menu-item">
+          <button type="button" class="menu-botao" aria-expanded="false" aria-controls="sub-impressora">
+            Impressora <span class="seta">▼</span>
+          </button>
+          <ul class="submenu" id="sub-impressora">
+            <li><a href="/frontend/CADASTRAR_IMPRESSORA/tela_cadastrar_impressora.html">Cadastrar impressora</a></li>
+            <li><a href="selecionar-impressora.html">Selecionar impressora</a></li>
+            <li><a href="ficha-tecnica-impressora.html">Ficha técnica da impressora</a></li>
+            <li><a href="tipo-filamento.html">Tipo de filamento</a></li>
+          </ul>
+        </li>
+
+        <li class="menu-item">
+          <button type="button" class="menu-botao" aria-expanded="false" aria-controls="sub-producao">
+            Produção <span class="seta">▼</span>
+          </button>
+          <ul class="submenu" id="sub-producao">
+            <li><a href="/frontend/EM_PRODUÇAO/index.html">Em produção</a></li>
+            <li><a href="aguardando-envio.html">Aguardando envio</a></li>
+            <li><a href="aguardando-validacao.html">Aguardando validação</a></li>
+            <li><a href="concluidas.html">Concluídas</a></li>
+          </ul>
+        </li>
+
+        <li class="menu-item">
+          <a href="sobre.html" class="menu-link">Sobre</a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="usuario menu-item">
+      <button type="button" class="menu-botao usuario-botao" aria-expanded="false" aria-controls="sub-usuario">
+        <span class="avatar" aria-hidden="true"></span>
+        <span class="usuario-info">
+          <span class="usuario-nome">user</span>
+          <span class="usuario-papel">Voluntário</span>
+        </span>
+        <span class="seta">▼</span>
+      </button>
+      <ul class="submenu submenu-usuario" id="sub-usuario">
+        <li class="submenu-cabecalho">
+          <strong>user</strong>
+          <span>user@email.com</span>
+        </li>
+        <li><a href="perfil.html">Meu perfil</a></li>
+        <li><a href="minhas-impressoras.html">Minhas impressoras</a></li>
+        <li><a href="meus-pedidos.html">Meus pedidos</a></li>
+        <li><a href="configuracoes.html">Configurações</a></li>
+        <li class="submenu-divisor" role="separator"></li>
+        <li><a href="login.html" class="sair">Sair</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <div class="arco arco-externo" aria-hidden="true"></div>
+  <div class="arco arco-interno" aria-hidden="true"></div>
+  <!-- ===== FIM DO CABEÇALHO ===== -->
+
+  <main class="conteudo">
+    <h1 class="titulo">Pedidos Aceitos</h1>
+    <p class="subtitulo">Pedidos que você aceitou e como eles estão andando.</p>
+
+    <input type="search" id="busca" class="busca" placeholder="Buscar pelo número do pedido ou produto..." aria-label="Buscar pedido" />
+
+    <!-- Filtro por status -->
+    <div class="filtro-status" role="group" aria-label="Filtrar por status">
+      <button type="button" class="filtro ativo" data-status="todos" aria-pressed="true">Todos <span>0</span></button>
+      <button type="button" class="filtro" data-status="pendente" aria-pressed="false">Pendente <span>0</span></button>
+      <button type="button" class="filtro" data-status="producao" aria-pressed="false">Em produção <span>0</span></button>
+      <button type="button" class="filtro" data-status="concluido" aria-pressed="false">Concluído <span>0</span></button>
+    </div>
+
+    <ul class="lista" id="lista"></ul>
+
+    <p class="vazio" id="vazio" hidden>Nenhum pedido encontrado.</p>
+
+    <p class="aviso-privacidade">
+      🔒 Para proteger a privacidade, os pacientes aparecem só com um código (ex.: PAC-0842), sem o nome.
+    </p>
+  </main>
+
+  <footer class="rodape">
+    <a href="sobre.html">Precisa de ajuda? Fale com a equipe</a>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
