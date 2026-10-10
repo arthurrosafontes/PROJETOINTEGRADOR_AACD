@@ -1,24 +1,111 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hospital Ortopédico - Funcionário</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hospital Ortopédico — Funcionário</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #fff;
+      font-family: "Lato", "Segoe UI", Arial, sans-serif;
+      overflow-x: hidden;
+    }
+    .conteudo {
+      position: relative;
+      z-index: 3;
+      max-width: 1012px;
+      margin: 0 auto;
+      padding: 200px 16px 60px;
+      text-align: center;
+      font-size: 26px;
+    }
+  </style>
 </head>
 <body>
+  <!-- ===== INÍCIO DO CABEÇALHO DO FUNCIONÁRIO (copie este bloco para as outras páginas do funcionário) ===== -->
+  <header class="topo">
+    <img src="img/logo-aacd2.png" alt="Hospital Ortopédico" class="logo" />
 
-<header class="navbar">
-  <img class="logo" src="img/logo-aacd2.png" alt="Logo Hospital Ortopédico AACD">
-  <ul class="menu" id="menu"></ul>
-  <div class="user">
-    <div class="avatar"></div>
-    <div class="user-info"><strong id="userName">user</strong><small>Funcionário</small></div>
-  </div>
-</header>
+    <nav class="menu">
+      <ul class="menu-lista">
+        <li class="menu-item">
+          <button type="button" class="menu-botao" aria-expanded="false" aria-controls="sub-pedidos">
+            demanda<span class="seta">▼</span>
+          </button>
+          <ul class="submenu" id="sub-pedidos">
+            <li><a href="func-criar-pedido.html">tipo de ortese</a></li>
+            <li><a href="func-pedidos-abertos.html">medida</a></li>
+            <li><a href="func-pedidos-andamento.html">tipo de  reparo</a></li>
+          </ul>
+        </li>
 
-<main><h1>BEM VINDO!</h1></main>
+        <li class="menu-item">
+          <button type="button" class="menu-botao" aria-expanded="false" aria-controls="sub-validacao">
+            voluntarios<span class="seta">▼</span>
+          </button>
+          <ul class="submenu" id="sub-validacao">
+            <li><a href="func-aguardando-validacao.html">lista de voluntarios</a></li>
+            <li><a href="func-pecas-aprovadas.html">ocorrencias cadatradas</a></li>
+            <li><a href="func-pecas-reprovadas.html">disponibilidade</a></li>
+            <li><a href="func-recebimentos.html">homologaçao</a></li>
+          </ul>
+        </li>
 
-<script src="script.js"></script>
+        <li class="menu-item">
+          <button type="button" class="menu-botao" aria-expanded="false" aria-controls="sub-voluntarios">
+            proteses<span class="seta">▼</span>
+          </button>
+          <ul class="submenu" id="sub-voluntarios">
+            <li><a href="func-lista-voluntarios.html">Lista de proteses</a></li>
+            <li><a href="func-impressoras-cadastradas.html">modelos/arquivos 3D</a></li>
+            <li><a href="func-ranking-voluntarios.html">especificaçoes tecnicas</a></li>
+            <li><a href="func-ranking-voluntarios.html">historico de fabricaçao</a></li>
+
+          </ul>
+        </li>
+
+        <li class="menu-item">
+          <a href="func-relatorios.html" class="menu-link">sobre</a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="usuario menu-item">
+      <button type="button" class="menu-botao usuario-botao" aria-expanded="false" aria-controls="sub-usuario">
+        <span class="avatar" aria-hidden="true"></span>
+        <span class="usuario-info">
+          <span class="usuario-nome">user</span>
+          <span class="usuario-papel">Funcionário</span>
+        </span>
+        <span class="seta">▼</span>
+      </button>
+      <ul class="submenu submenu-usuario" id="sub-usuario">
+        <li class="submenu-cabecalho">
+          <strong>user</strong>
+          <span>user@hospital.com</span>
+        </li>
+        <li><a href="func-perfil.html">Meu perfil</a></li>
+        <li><a href="func-meus-pedidos.html">Pedidos que criei</a></li>
+        <li><a href="func-configuracoes.html">Configurações</a></li>
+        <li class="submenu-divisor" role="separator"></li>
+        <li><a href="login.html" class="sair">Sair</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <div class="arco arco-externo" aria-hidden="true"></div>
+  <div class="arco arco-interno" aria-hidden="true"></div>
+  <!-- ===== FIM DO CABEÇALHO DO FUNCIONÁRIO ===== -->
+
+  <main class="conteudo">
+    CONTEÚDO DA PÁGINA 
+  </main>
+
+  <script src="script.js"></script>
 </body>
 </html>

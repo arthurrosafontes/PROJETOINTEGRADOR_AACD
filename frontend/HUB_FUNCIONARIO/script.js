@@ -1,34 +1,84 @@
-// Menu do FUNCIONÁRIO — edite aqui para mudar itens/links
-const menu = [
-  { label:"Demandas", sub:["Tipo de órtese","Medida","Tipo de Reparo"] },
-  { label:"Voluntários", sub:["Lista de Voluntários","Ocorrências Cadastradas","Disponibilidade","Homologação"] },
-  { label:"Próteses", sub:["Tipos de Prótese","Modelos / Arquivos 3D","Especificações Técnicas","Histórico de Fabricação"] },
-  { label:"Sobre" }
-];
+/* =========================================================
+   menu.js — abre/fecha os dropdowns do cabeçalho.
+   Inclua em todas as páginas, antes de fechar o </body>.
+   ========================================================= */
+(function () {
+  const itensMenu = [...document.querySelectorAll(".menu-item")].filter((item) =>
+    item.querySelector(".submenu")
+  );
 
-const menuEl = document.getElementById("menu");
-const slug = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-");
+  function fecharMenus(exceto) {
+    itensMenu.forEach((item) => {
+      if (item === exceto) return;
+      item.classList.remove("aberto");
+      item.querySelector(".menu-botao").setAttribute("aria-expanded", "false");
+    });
+  }
 
-function render() {
-  menuEl.innerHTML = menu.map(it => it.sub
-    ? `<li class="has-drop">
-         <button type="button" aria-haspopup="true" aria-expanded="false">${it.label}<span class="caret"></span></button>
-         <ul class="dropdown">${it.sub.map(s => `<li><a href="#${slug(s)}">${s}</a></li>`).join("")}</ul>
-       </li>`
-    : `<li><a href="#${slug(it.label)}">${it.label}</a></li>`
-  ).join("");
-}
+  itensMenu.forEach((item) => {
+    const botao = item.querySelector(".menu-botao");
+    const submenu = item.querySelector(".submenu");
 
-// Abrir/fechar por clique (celular) e fechar ao clicar fora
-menuEl.addEventListener("click", e => {
-  const btn = e.target.closest(".has-drop > button");
-  if (!btn) return;
-  const li = btn.parentElement, aberto = li.classList.contains("open");
-  document.querySelectorAll(".has-drop.open").forEach(x => { x.classList.remove("open"); x.firstElementChild.setAttribute("aria-expanded","false"); });
-  if (!aberto) { li.classList.add("open"); btn.setAttribute("aria-expanded","true"); }
-});
-document.addEventListener("click", e => {
-  if (!e.target.closest(".menu")) document.querySelectorAll(".has-drop.open").forEach(x => x.classList.remove("open"));
-});
+    botao.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const abrir = !item.classList.contains("aberto");
+      fecharMenus(item);
+      item.classList.toggle("aberto", abrir);
+      botao.setAttribute("aria-expanded", String(abrir));
+    });
 
-render();
+    // Seta para baixo abre o menu e foca o primeiro link
+    botao.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        fecharMenus(item);
+        item.classList.add("aberto");
+        botao.setAttribute("aria-expanded", "true");
+        submenu.querySelector("a").focus();
+      }
+    });
+
+    // Setas navegam entre os links
+    submenu.addEventListener("keydown", (e) => {
+      const links = [...submenu.querySelectorAll("a")];
+      const i = links.indexOf(document.activeElement);
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        links[(i + 1) % links.length].focus();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (i <= 0) botao.focus();
+        else links[i - 1].focus();
+      }
+    });
+
+    // Fecha quando o foco sai do item (Tab)
+    item.addEventListener("focusout", (e) => {
+      if (!item.contains(e.relatedTarget)) {
+        item.classList.remove("aberto");
+        botao.setAttribute("aria-expanded", "false");
+      }
+    });
+  });
+
+  // Clique fora fecha
+  document.addEventListener("click", () => fecharMenus());
+
+  // Esc fecha e devolve o foco ao botão
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const aberto = itensMenu.find((item) => item.classList.contains("aberto"));
+    if (aberto) {
+      fecharMenus();
+      aberto.querySelector(".menu-botao").focus();
+    }
+  });
+
+  // Marca automaticamente a página atual no dropdown
+  const paginaAtual = location.pathname.split("/").pop() || "index.html";
+  document.querySelectorAll(".submenu a").forEach((link) => {
+    if (link.getAttribute("href") === paginaAtual) {
+      link.setAttribute("aria-current", "page");
+    }
+  });
+})();
