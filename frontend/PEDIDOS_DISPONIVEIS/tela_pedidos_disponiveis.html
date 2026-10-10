@@ -1,32 +1,111 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pedidos Disponíveis - Voluntário</title>
-<link rel="stylesheet" href="pedidos_disponiveis.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedidos Disponíveis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="pedidos_disponiveis.css">
 </head>
 <body>
+  <!-- ===== BARRA DE NAVEGAÇÃO ===== -->
+  <header class="navbar">
+    <a href="#" class="logo">
+      <!-- Coloque o arquivo do logo em img/logo.png -->
+      <img src="img/logo-aacd2.png" alt="" class="logo-img" onerror="this.style.display='none'">
+    </a>
 
-<header class="navbar">
-  <div class="circulo" aria-hidden="true"></div>
-  <a class="logo" href="../HUB_VOLUNTARIO/tela_hub_voluntario.html"><img src="img/logo-aacd2.png" alt="Hospital Ortopédico AACD"></a>
-  <ul class="menu" id="menu"></ul>
-  <div class="user">
-    <div class="avatar"></div>
-    <div class="user-info"><strong id="userName">user</strong><small id="userRole">Voluntário</small></div>
-  </div>
-</header>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">☰</button>
 
-<main>
-  <h1 class="titulo">Pedidos Disponíveis</h1>
-  <section class="moldura">
-    <div class="cartao">
-      <ul class="lista-pedidos" id="listaPedidos"></ul>
+    <nav class="menu" id="menu">
+      <div class="menu-item dropdown">
+        <button class="menu-link">Pedidos <span class="seta">▼</span></button>
+        <ul class="dropdown-lista">
+          <li><a href="#" class="ativo">Pedidos disponíveis</a></li>
+          <li><a href="#">pedidos recomendados</a></li>
+          <li><a href="#">pedidos aceito</a></li>
+          <li><a href="#">pedidos recusados</a></li>
+        </ul>
+      </div>
+      <div class="menu-item dropdown">
+        <button class="menu-link">Impressora <span class="seta">▼</span></button>
+        <ul class="dropdown-lista">
+          <li><a href="#">cadastrar impressora</a></li>
+          <li><a href="#">selecionar impressora</a></li>
+          <li><a href="#">ficha tecnica da impressora</a></li>
+          <li><a href="#">tipo de filamento</a></li>
+        </ul>
+      </div>
+      <div class="menu-item dropdown">
+        <button class="menu-link">Produção <span class="seta">▼</span></button>
+        <ul class="dropdown-lista">
+          <li><a href="#">Em produção</a></li>
+          <li><a href="#">aguardando envio</a></li>
+          <li><a href="#">aguardando validaçao</a></li>
+          <li><a href="#">concluidas</a></li>
+        </ul>
+      </div>
+      <div class="menu-item">
+        <a href="#" class="menu-link">Sobre</a>
+      </div>
+    </nav>
+
+    <div class="usuario dropdown">
+      <button class="usuario-btn">
+        <span class="avatar"></span>
+        <span class="usuario-info">
+          <span class="usuario-nome">user</span>
+          <span class="usuario-cargo">Voluntário</span>
+        </span>
+        <span class="seta">▼</span>
+      </button>
+      <ul class="dropdown-lista dropdown-direita">
+        <li><a href="#">Meu perfil</a></li>
+        <li><a href="#">Configurações</a></li>
+        <li><a href="#">Sair</a></li>
+      </ul>
     </div>
-  </section>
-</main>
+  </header>
 
-<script src="pedidos_disponiveis.js"></script>
+  <!-- Decoração do canto superior direito -->
+  <div class="decoracao" aria-hidden="true">
+    <span class="circulo-externo"></span>
+    <span class="circulo-interno"></span>
+  </div>
+
+  <!-- ===== CONTEÚDO DA PÁGINA ===== -->
+  <main class="conteudo">
+    <div class="cabecalho-pagina">
+      <h1>Pedidos Disponíveis</h1>
+      <p>Escolha um pedido para imprimir e ajude um paciente.</p>
+    </div>
+
+    <div class="filtros">
+      <input type="search" id="busca" placeholder="Buscar por peça ou código...">
+      <select id="filtroPrioridade">
+        <option value="todas">Todas as prioridades</option>
+        <option value="Alta">Alta</option>
+        <option value="Média">Média</option>
+        <option value="Baixa">Baixa</option>
+      </select>
+      <select id="ordenar">
+        <option value="recentes">Mais recentes</option>
+        <option value="antigos">Mais antigos</option>
+        <option value="prioridade">Prioridade</option>
+      </select>
+    </div>
+
+    <p class="contador" id="contador"></p>
+
+    <ul class="lista-pedidos" id="listaPedidos"></ul>
+
+    <p class="vazio" id="vazio" hidden>Nenhum pedido encontrado.</p>
+  </main>
+
+  <!-- Aviso (toast) -->
+  <div class="toast" id="toast"></div>
+
+  <script src="pedidos_disponiveis.js"></script>
 </body>
 </html>
