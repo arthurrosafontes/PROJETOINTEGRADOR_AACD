@@ -135,7 +135,7 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
 
 .pedido {
   display: grid;
-  grid-template-columns: 56px 1fr auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 18px;
   padding: 16px 20px;
@@ -147,14 +147,6 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
 }
 .pedido:hover { box-shadow: 0 6px 18px rgba(19, 132, 130, .12); transform: translateY(-2px); }
 .pedido.saindo { opacity: 0; transform: translateX(30px); }
-
-.pedido-icone {
-  width: 56px; height: 56px;
-  border-radius: 10px;
-  background: var(--teal-claro);
-  display: grid; place-items: center;
-  font-size: 26px;
-}
 
 .pedido-titulo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .pedido-titulo h3 { font-size: 17px; }
@@ -176,7 +168,7 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
 .btn-secundario:hover { background: var(--teal-claro); }
 
 .pedido-extra {
-  grid-column: 2 / -1;
+  grid-column: 1 / -1;
   font-size: 14px;
   color: var(--texto-suave);
   border-top: 1px dashed var(--borda);
@@ -228,7 +220,6 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
 @media (max-width: 600px) {
   .conteudo { padding: 32px 16px 60px; }
   .pedido { grid-template-columns: 1fr; }
-  .pedido-icone { display: none; }
   .pedido-acoes { justify-content: stretch; }
   .pedido-acoes .btn { flex: 1; }
   .pedido-extra { grid-column: 1; }

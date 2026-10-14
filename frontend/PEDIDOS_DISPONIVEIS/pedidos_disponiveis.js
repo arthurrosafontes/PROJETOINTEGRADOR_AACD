@@ -1,12 +1,12 @@
 // ===== DADOS DE EXEMPLO =====
 // Depois você pode trocar isso por um fetch() para a sua API.
 const pedidos = [
-  { id: 1024, peca: "Órtese de punho", icone: "✋", material: "PLA", quantidade: 1, prazo: "2026-10-15", criado: "2026-10-08", prioridade: "Alta", tempo: "4h", obs: "Tamanho M, lado direito." },
-  { id: 1023, peca: "Adaptador de talher", icone: "🍴", material: "PETG", quantidade: 3, prazo: "2026-10-20", criado: "2026-10-07", prioridade: "Média", tempo: "1h30", obs: "Cor azul, se possível." },
-  { id: 1022, peca: "Mão protética infantil", icone: "🖐️", material: "PLA", quantidade: 1, prazo: "2026-10-14", criado: "2026-10-06", prioridade: "Alta", tempo: "12h", obs: "Escala 110%. Arquivo STL anexado ao pedido." },
-  { id: 1021, peca: "Engrossador de lápis", icone: "✏️", material: "TPU", quantidade: 5, prazo: "2026-10-30", criado: "2026-10-05", prioridade: "Baixa", tempo: "45min", obs: "Material flexível obrigatório." },
-  { id: 1020, peca: "Suporte para celular adaptado", icone: "📱", material: "PLA", quantidade: 2, prazo: "2026-10-25", criado: "2026-10-04", prioridade: "Média", tempo: "3h", obs: "Para uso em cadeira de rodas." },
-  { id: 1019, peca: "Órtese de dedo", icone: "☝️", material: "PETG", quantidade: 2, prazo: "2026-11-02", criado: "2026-10-02", prioridade: "Baixa", tempo: "40min", obs: "Tamanhos P e M." },
+  { id: 1024, peca: "Órtese de punho", material: "PLA", quantidade: 1, prazo: "2026-10-15", criado: "2026-10-08", prioridade: "Alta", tempo: "4h", obs: "Tamanho M, lado direito." },
+  { id: 1023, peca: "Adaptador de talher", material: "PETG", quantidade: 3, prazo: "2026-10-20", criado: "2026-10-07", prioridade: "Média", tempo: "1h30", obs: "Cor azul, se possível." },
+  { id: 1022, peca: "Mão protética infantil", material: "PLA", quantidade: 1, prazo: "2026-10-14", criado: "2026-10-06", prioridade: "Alta", tempo: "12h", obs: "Escala 110%. Arquivo STL anexado ao pedido." },
+  { id: 1021, peca: "Engrossador de lápis", material: "TPU", quantidade: 5, prazo: "2026-10-30", criado: "2026-10-05", prioridade: "Baixa", tempo: "45min", obs: "Material flexível obrigatório." },
+  { id: 1020, peca: "Suporte para celular adaptado", material: "PLA", quantidade: 2, prazo: "2026-10-25", criado: "2026-10-04", prioridade: "Média", tempo: "3h", obs: "Para uso em cadeira de rodas." },
+  { id: 1019, peca: "Órtese de dedo", material: "PETG", quantidade: 2, prazo: "2026-11-02", criado: "2026-10-02", prioridade: "Baixa", tempo: "40min", obs: "Tamanhos P e M." },
 ];
 
 const pesoPrioridade = { Alta: 3, Média: 2, Baixa: 1 };
@@ -52,7 +52,6 @@ function renderizar() {
     li.className = "pedido";
     li.dataset.id = p.id;
     li.innerHTML = `
-      <div class="pedido-icone">${p.icone}</div>
       <div class="pedido-info">
         <div class="pedido-titulo">
           <h3>${p.peca}</h3>
