@@ -20,10 +20,10 @@
             Pedidos <span class="seta">▼</span>
           </button>
           <ul class="submenu" id="sub-pedidos">
-            <li><a href="/frontend/PEDIDOS_DISPONIVEIS/tela_pedidos_disponiveis.html" class="ativo">Pedidos disponíveis</a></li>
-            <li><a href="pedidos-recomendados.html" class="ativo">Pedidos recomendados</a></li>
-            <li><a href="/frontend/PEDIDOS_ACEITOS/tela_pedidos_aceitos.html" class="ativo">Pedidos aceitos</a></li>
-            <li><a href="pedidos-recusados.html" class="ativo">Pedidos recusados</a></li>
+            <li><a href="../PEDIDOS_DISPONIVEIS/tela_pedidos_disponiveis.html">Pedidos disponíveis</a></li>
+            <li><a href="pedidos-recomendados.html">Pedidos recomendados</a></li>
+            <li><a href="../PEDIDOS_ACEITOS/index.html">Pedidos aceitos</a></li>
+            <li><a href="pedidos-recusados.html">Pedidos recusados</a></li>
           </ul>
         </li>
 
@@ -32,10 +32,10 @@
             Impressora <span class="seta">▼</span>
           </button>
           <ul class="submenu" id="sub-impressora">
-            <li><a href="/frontend/CADASTRAR_IMPRESSORA/tela_cadastrar_impressora.html" aria-current="page" class="ativo">Cadastrar impressora</a></li>
-            <li><a href="selecionar-impressora.html" class="ativo">Selecionar impressora</a></li>
-            <li><a href="ficha-tecnica-impressora.html" class="ativo">Ficha técnica da impressora</a></li>
-            <li><a href="tipo-filamento.html" class="ativo">Tipo de filamento</a></li>
+            <li><a href="../CADASTRAR_IMPRESSORA/tela_cadastrar_impressora.html" aria-current="page">Cadastrar impressora</a></li>
+            <li><a href="selecionar-impressora.html">Selecionar impressora</a></li>
+            <li><a href="ficha-tecnica-impressora.html">Ficha técnica da impressora</a></li>
+            <li><a href="tipo-filamento.html">Tipo de filamento</a></li>
           </ul>
         </li>
 
@@ -44,10 +44,10 @@
             Produção <span class="seta">▼</span>
           </button>
           <ul class="submenu" id="sub-producao">
-            <li><a href="/frontend/EM_PRODUÇAO/tela_em_producao.html" class="ativo">Em produção</a></li>
-            <li><a href="aguardando-envio.html" class="ativo">Aguardando envio</a></li>
-            <li><a href="aguardando-validacao.html" class="ativo">Aguardando validação</a></li>
-            <li><a href="concluidas.html" class="ativo">Concluídas</a></li>
+            <li><a href="../EM_PRODUÇAO/index.html">Em produção</a></li>
+            <li><a href="aguardando-envio.html">Aguardando envio</a></li>
+            <li><a href="aguardando-validacao.html">Aguardando validação</a></li>
+            <li><a href="concluidas.html">Concluídas</a></li>
           </ul>
         </li>
 
@@ -94,14 +94,15 @@
     <nav class="breadcrumb" aria-label="Etapas do cadastro">
       <ol>
         <li><button type="button" class="passo" data-passo="0">Identificação</button></li>
-        <li><button type="button" class="passo" data-passo="1">Especificações</button></li>
-        <li><button type="button" class="passo" data-passo="2">Filamento</button></li>
-        <li><button type="button" class="passo" data-passo="3">Revisão</button></li>
+        <li><button type="button" class="passo" data-passo="1">Endereço</button></li>
+        <li><button type="button" class="passo" data-passo="2">Especificações</button></li>
+        <li><button type="button" class="passo" data-passo="3">Filamento</button></li>
+        <li><button type="button" class="passo" data-passo="4">Revisão</button></li>
       </ol>
     </nav>
 
     <form id="form-impressora" class="cartao" novalidate>
-      <!-- Etapa 1 -->
+      <!-- Etapa 1: Identificação -->
       <section class="etapa" data-etapa="0">
         <h2 class="etapa-titulo">Identificação</h2>
         <div class="grade">
@@ -118,9 +119,16 @@
             <span class="erro" data-erro-de="modelo"></span>
           </div>
           <div class="grupo">
-            <input type="text" id="tecnologia_da_impressora" name="tecnologia_da_impressora" class="campo" placeholder="Ex: FDM, SLA, SLS" required />
+            <input type="text" id="tecnologia_da_impressora" name="tecnologia_da_impressora" class="campo" placeholder="Tecnologia da Impressão (Ex: FDM, SLA, SLS)" required />
             <span class="erro" data-erro-de="tecnologia_da_impressora"></span>
           </div>
+        </div>
+      </section>
+
+      <!-- Etapa 2: Endereço -->
+      <section class="etapa" data-etapa="1" hidden>
+        <h2 class="etapa-titulo">Endereço</h2>
+        <div class="grade">
           <div class="grupo">
             <input type="text" id="logradouro" name="logradouro" class="campo" placeholder="Logradouro / Rua" required />
             <span class="erro" data-erro-de="logradouro"></span>
@@ -133,11 +141,15 @@
             <input type="text" id="cep" name="cep" class="campo" placeholder="CEP (ex: 01001-000)" required />
             <span class="erro" data-erro-de="cep"></span>
           </div>
+          <div class="grupo">
+            <input type="text" id="complemento" name="complemento" class="campo" placeholder="Complemento (opcional - ex: Apto 12, Bloco B)" />
+            <span class="erro" data-erro-de="complemento"></span>
+          </div>
         </div>
       </section>
 
-      <!-- Etapa 2 -->
-      <section class="etapa" data-etapa="1" hidden>
+      <!-- Etapa 3: Especificações -->
+      <section class="etapa" data-etapa="2" hidden>
         <h2 class="etapa-titulo">Especificações</h2>
         <div class="grade">
           <div class="grupo">
@@ -159,8 +171,8 @@
         </div>
       </section>
 
-      <!-- Etapa 3 -->
-      <section class="etapa" data-etapa="2" hidden>
+      <!-- Etapa 4: Filamento -->
+      <section class="etapa" data-etapa="3" hidden>
         <h2 class="etapa-titulo">Filamento</h2>
         <div class="grade">
           <div class="grupo">
@@ -174,8 +186,8 @@
         </div>
       </section>
 
-      <!-- Etapa 4 -->
-      <section class="etapa" data-etapa="3" hidden>
+      <!-- Etapa 5: Revisão -->
+      <section class="etapa" data-etapa="4" hidden>
         <h2 class="etapa-titulo">Revisão</h2>
         <dl id="resumo" class="resumo"></dl>
       </section>

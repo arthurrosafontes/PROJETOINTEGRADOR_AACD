@@ -42,7 +42,8 @@ const fichaTecnicaImpressoraSchema = new mongoose.Schema({
         endereco: {
             logradouro: { type: String, required: true, trim: true },
             numero: { type: String, required: true, trim: true },
-            cep: { type: String, required: true, trim: true }
+            cep: { type: String, required: true, trim: true },
+            complemento: { type: String, required: false, trim: true, default: '' } // <-- Novo campo opcional adicionado aqui
         }
     },
     informacoes_adicionais: {
