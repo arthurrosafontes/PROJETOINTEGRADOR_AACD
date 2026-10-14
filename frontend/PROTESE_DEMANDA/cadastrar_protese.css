@@ -33,25 +33,15 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
   background: var(--teal);
 }
 .navbar-conteudo {
-  max-width: var(--largura);
   height: 100%;
-  margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 50px 0 20px; /* logo no canto esquerdo e usuário no canto direito */
   display: flex;
   align-items: center;
-  box-sizing: content-box;
 }
 
 .logo { display: flex; align-items: center; gap: 8px; margin-right: 40px; }
-.logo-texto { color: var(--branco); font-weight: 700; font-size: 18px; line-height: 1.05; }
-.logo-selo {
-  background: var(--vermelho);
-  color: var(--branco);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 5px 9px;
-  border-radius: 12px;
-}
+/* Altura do logo: aumente ou diminua para ajustar o tamanho da foto */
+.logo-img { height: 44px; width: auto; display: block; }
 
 .menu { display: flex; align-items: center; gap: 28px; }
 .menu-item { position: relative; }
@@ -241,7 +231,7 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
 }
 
 @media (max-width: 900px) {
-  .navbar-conteudo { flex-wrap: wrap; }
+  .navbar-conteudo { flex-wrap: wrap; padding: 0 16px; }
   .logo { margin-right: 0; }
   .menu-toggle { display: block; order: 2; margin-left: auto; margin-right: 12px; }
   .usuario { order: 3; margin-left: 0; }
