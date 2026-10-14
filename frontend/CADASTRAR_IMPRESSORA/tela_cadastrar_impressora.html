@@ -11,7 +11,6 @@
 <body>
   <!-- ===== Cabeçalho ===== -->
   <header class="topo">
-    <!-- Troque pelo caminho do logo do hospital -->
     <img src="img/logo-aacd2.png" alt="Hospital Ortopédico" class="logo" />
 
     <nav class="menu">
@@ -58,7 +57,7 @@
       </ul>
     </nav>
 
-    <!-- Menu do usuário (usa o mesmo script dos outros dropdowns) -->
+    <!-- Menu do usuário -->
     <div class="usuario menu-item">
       <button type="button" class="menu-botao usuario-botao" aria-expanded="false" aria-controls="sub-usuario">
         <span class="avatar" aria-hidden="true"></span>
@@ -107,20 +106,32 @@
         <h2 class="etapa-titulo">Identificação</h2>
         <div class="grade">
           <div class="grupo">
-            <input type="text" id="nome" name="nome" class="campo" placeholder="Nome da Impressora:" required />
+            <input type="text" id="nome" name="nome" class="campo" placeholder="Nome da Impressora (Ex: Minha Ender 3)" required />
             <span class="erro" data-erro-de="nome"></span>
           </div>
           <div class="grupo">
-            <input type="text" id="modelo" name="modelo" class="campo" placeholder="Modelo da Impressora: RTX90" required />
-            <span class="erro" data-erro-de="modelo"></span>
-          </div>
-          <div class="grupo">
-            <input type="text" id="marca" name="marca" class="campo" placeholder="Marca da Impressora:" required />
+            <input type="text" id="marca" name="marca" class="campo" placeholder="Marca da Impressora (Ex: Creality, Bambu Lab)" required />
             <span class="erro" data-erro-de="marca"></span>
           </div>
           <div class="grupo">
-            <input type="text" id="localizacao" name="localizacao" class="campo" placeholder="Localização Impressora" required />
-            <span class="erro" data-erro-de="localizacao"></span>
+            <input type="text" id="modelo" name="modelo" class="campo" placeholder="Modelo da Impressora (Ex: Ender 3 V2, P1S)" required />
+            <span class="erro" data-erro-de="modelo"></span>
+          </div>
+          <div class="grupo">
+            <input type="text" id="tecnologia_da_impressora" name="tecnologia_da_impressora" class="campo" placeholder="Ex: FDM, SLA, SLS" required />
+            <span class="erro" data-erro-de="tecnologia_da_impressora"></span>
+          </div>
+          <div class="grupo">
+            <input type="text" id="logradouro" name="logradouro" class="campo" placeholder="Logradouro / Rua" required />
+            <span class="erro" data-erro-de="logradouro"></span>
+          </div>
+          <div class="grupo">
+            <input type="text" id="numero" name="numero" class="campo" placeholder="Número (ou S/N)" required />
+            <span class="erro" data-erro-de="numero"></span>
+          </div>
+          <div class="grupo">
+            <input type="text" id="cep" name="cep" class="campo" placeholder="CEP (ex: 01001-000)" required />
+            <span class="erro" data-erro-de="cep"></span>
           </div>
         </div>
       </section>
@@ -130,12 +141,20 @@
         <h2 class="etapa-titulo">Especificações</h2>
         <div class="grade">
           <div class="grupo">
-            <input type="text" id="areaMaxima" name="areaMaxima" class="campo" placeholder="Área Máxima da impressão (ex: 220x220x250 mm)" required />
-            <span class="erro" data-erro-de="areaMaxima"></span>
+            <input type="number" id="largura_mm" name="largura_mm" class="campo" placeholder="Largura X (mm)" required />
+            <span class="erro" data-erro-de="largura_mm"></span>
           </div>
           <div class="grupo">
-            <input type="text" id="diametroBico" name="diametroBico" class="campo" placeholder="Diâmetro do Bico (mm)" inputmode="decimal" required />
-            <span class="erro" data-erro-de="diametroBico"></span>
+            <input type="number" id="profundidade_mm" name="profundidade_mm" class="campo" placeholder="Profundidade Y (mm)" required />
+            <span class="erro" data-erro-de="profundidade_mm"></span>
+          </div>
+          <div class="grupo">
+            <input type="number" id="altura_mm" name="altura_mm" class="campo" placeholder="Altura Z (mm)" required />
+            <span class="erro" data-erro-de="altura_mm"></span>
+          </div>
+          <div class="grupo">
+            <input type="text" id="diametro_bico_mm" name="diametro_bico_mm" class="campo" placeholder="Diâmetro do Bico (mm) ex: 0.4" inputmode="decimal" required />
+            <span class="erro" data-erro-de="diametro_bico_mm"></span>
           </div>
         </div>
       </section>

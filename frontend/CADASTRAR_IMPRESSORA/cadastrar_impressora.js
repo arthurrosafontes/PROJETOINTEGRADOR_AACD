@@ -1,171 +1,3 @@
-const form = document.getElementById("form-impressora");
-const etapas = [...document.querySelectorAll(".etapa")];
-const passos = [...document.querySelectorAll(".passo")];
-const btnVoltar = document.getElementById("btn-voltar");
-const btnProximo = document.getElementById("btn-proximo");
-const btnCadastrar = document.getElementById("btn-cadastrar");
-const mensagem = document.getElementById("mensagem");
-const resumo = document.getElementById("resumo");
-
-let etapaAtual = 0;
-let maiorEtapaVisitada = 0;
-
-/* ---------- Rótulos usados na revisão ---------- */
-const rotulos = {
-  nome: "Nome",
-  modelo: "Modelo",
-  marca: "Marca",
-  localizacao: "Localização",
-  areaMaxima: "Área máxima",
-  diametroBico: "Diâmetro do bico",
-  tipoFilamento: "Tipo de filamento",
-  diametroFilamento: "Diâmetro do filamento",
-};
-
-/* ---------- Validação ---------- */
-const numeroPositivo = (v) => {
-  const n = parseFloat(v.replace(",", "."));
-  return !isNaN(n) && n > 0;
-};
-
-const regras = {
-  nome: (v) => (v.trim() ? "" : "Informe o nome da impressora."),
-  modelo: (v) => (v.trim() ? "" : "Informe o modelo."),
-  marca: (v) => (v.trim() ? "" : "Informe a marca."),
-  localizacao: (v) => (v.trim() ? "" : "Informe onde a impressora fica."),
-  areaMaxima: (v) => (v.trim() ? "" : "Informe a área máxima de impressão."),
-  diametroBico: (v) => (numeroPositivo(v) ? "" : "Informe um número (ex: 0.4)."),
-  tipoFilamento: (v) => (v.trim() ? "" : "Informe o tipo de filamento."),
-  diametroFilamento: (v) => (numeroPositivo(v) ? "" : "Informe um número (ex: 1.75)."),
-};
-
-function validarCampo(input) {
-  const regra = regras[input.name];
-  if (!regra) return true;
-  const erro = regra(input.value);
-  const span = document.querySelector(`[data-erro-de="${input.name}"]`);
-  if (span) span.textContent = erro;
-  input.classList.toggle("invalido", Boolean(erro));
-  return !erro;
-}
-
-function validarEtapa(indice) {
-  const inputs = [...etapas[indice].querySelectorAll(".campo")];
-  const resultados = inputs.map(validarCampo);
-  const primeiroInvalido = inputs.find((_, i) => !resultados[i]);
-  if (primeiroInvalido) primeiroInvalido.focus();
-  return resultados.every(Boolean);
-}
-
-form.querySelectorAll(".campo").forEach((input) => {
-  input.addEventListener("blur", () => validarCampo(input));
-  input.addEventListener("input", () => {
-    if (input.classList.contains("invalido")) validarCampo(input);
-  });
-});
-
-/* ---------- Navegação entre etapas ---------- */
-function mostrarEtapa(indice) {
-  etapaAtual = indice;
-  maiorEtapaVisitada = Math.max(maiorEtapaVisitada, indice);
-  mensagem.textContent = "";
-
-  etapas.forEach((etapa, i) => (etapa.hidden = i !== indice));
-
-  passos.forEach((passo, i) => {
-    passo.classList.toggle("atual", i === indice);
-    passo.classList.toggle("visitado", i <= maiorEtapaVisitada && i !== indice);
-    if (i === indice) passo.setAttribute("aria-current", "step");
-    else passo.removeAttribute("aria-current");
-  });
-
-  const ultima = indice === etapas.length - 1;
-  btnVoltar.disabled = indice === 0;
-  btnProximo.hidden = ultima;
-  btnCadastrar.hidden = !ultima;
-
-  if (ultima) montarResumo();
-
-  const primeiroCampo = etapas[indice].querySelector(".campo");
-  if (primeiroCampo) primeiroCampo.focus();
-}
-
-btnProximo.addEventListener("click", () => {
-  if (validarEtapa(etapaAtual)) mostrarEtapa(etapaAtual + 1);
-});
-
-btnVoltar.addEventListener("click", () => {
-  if (etapaAtual > 0) mostrarEtapa(etapaAtual - 1);
-});
-
-// Clicar no breadcrumb: volta livremente; avança só até onde já visitou
-passos.forEach((passo, i) => {
-  passo.addEventListener("click", () => {
-    if (i === etapaAtual || i > maiorEtapaVisitada) return;
-    if (i > etapaAtual && !validarEtapa(etapaAtual)) return;
-    mostrarEtapa(i);
-  });
-});
-
-// Enter num campo = Próximo (em vez de enviar o formulário)
-form.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && e.target.classList.contains("campo")) {
-    e.preventDefault();
-    btnProximo.click();
-  }
-});
-
-/* ---------- Revisão ---------- */
-function montarResumo() {
-  resumo.innerHTML = "";
-  Object.entries(rotulos).forEach(([campo, rotulo]) => {
-    const dt = document.createElement("dt");
-    const dd = document.createElement("dd");
-    dt.textContent = rotulo;
-    dd.textContent = form.elements[campo].value.trim();
-    resumo.append(dt, dd);
-  });
-}
-
-/* ---------- Envio ---------- */
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  // Garante que todas as etapas estão válidas antes de enviar
-  for (let i = 0; i < etapas.length - 1; i++) {
-    if (!validarEtapa(i)) {
-      mostrarEtapa(i);
-      mensagem.textContent = "Corrija os campos destacados.";
-      return;
-    }
-  }
-
-  const dados = Object.fromEntries(
-    Object.keys(rotulos).map((campo) => [campo, form.elements[campo].value.trim()])
-  );
-
-  // TODO: trocar pela URL da sua API
-  // try {
-  //   const resp = await fetch("/api/impressoras", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify(dados),
-  //   });
-  //   if (!resp.ok) throw new Error();
-  // } catch {
-  //   mensagem.textContent = "Erro ao cadastrar. Tente novamente.";
-  //   return;
-  // }
-
-  console.log("Impressora cadastrada:", dados);
-  mensagem.textContent = `Impressora "${dados.nome}" cadastrada com sucesso!`;
-  form.reset();
-  maiorEtapaVisitada = 0;
-  setTimeout(() => mostrarEtapa(0), 1800);
-});
-
-mostrarEtapa(0);
-
 /* ---------- Dropdowns do menu ---------- */
 const itensMenu = [...document.querySelectorAll(".menu-item")].filter((item) =>
   item.querySelector(".submenu")
@@ -236,3 +68,173 @@ document.addEventListener("keydown", (e) => {
     aberto.querySelector(".menu-botao").focus();
   }
 });
+
+/* ---------- Formulário de Cadastro ---------- */
+const form = document.getElementById("form-impressora");
+const etapas = [...document.querySelectorAll(".etapa")];
+const passos = [...document.querySelectorAll(".passo")];
+const btnVoltar = document.getElementById("btn-voltar");
+const btnProximo = document.getElementById("btn-proximo");
+const btnCadastrar = document.getElementById("btn-cadastrar");
+const mensagem = document.getElementById("mensagem");
+const resumo = document.getElementById("resumo");
+
+let etapaAtual = 0;
+let maiorEtapaVisitada = 0;
+
+/* ---------- Rótulos usados na revisão ---------- */
+const rotulos = {
+  nome: "Nome",
+  marca: "Marca",
+  modelo: "Modelo",
+  tecnologia_da_impressora: "Tecnologia da impressora",
+  logradouro: "Logradouro / Rua",
+  numero: "Número",
+  cep: "CEP",
+  largura_mm: "Largura X (mm)",
+  profundidade_mm: "Profundidade Y (mm)",
+  altura_mm: "Altura Z (mm)",
+  diametro_bico_mm: "Diâmetro do bico (mm)",
+  tipoFilamento: "Tipo de filamento",
+  diametroFilamento: "Diâmetro do filamento",
+};
+
+/* ---------- Validação ---------- */
+const numeroPositivo = (v) => {
+  const n = parseFloat(String(v).replace(",", "."));
+  return !isNaN(n) && n > 0;
+};
+
+const regras = {
+  nome: (v) => (v.trim() ? "" : "Informe o nome da impressora."),
+  marca: (v) => (v.trim() ? "" : "Informe a marca."),
+  modelo: (v) => (v.trim() ? "" : "Informe o modelo."),
+  tecnologia_da_impressora: (v) => (v.trim() ? "" : "Informe a tecnologia (ex: FDM, SLA, SLS)."),
+  logradouro: (v) => (v.trim() ? "" : "Informe o logradouro / rua."),
+  numero: (v) => (v.trim() ? "" : "Informe o número (ou S/N)."),
+  cep: (v) => (v.trim() ? "" : "Informe o CEP."),
+  largura_mm: (v) => (numeroPositivo(v) ? "" : "Informe a largura X em mm."),
+  profundidade_mm: (v) => (numeroPositivo(v) ? "" : "Informe a profundidade Y em mm."),
+  altura_mm: (v) => (numeroPositivo(v) ? "" : "Informe a altura Z em mm."),
+  diametro_bico_mm: (v) => (numeroPositivo(v) ? "" : "Informe um número (ex: 0.4)."),
+  tipoFilamento: (v) => (v.trim() ? "" : "Informe o tipo de filamento."),
+  diametroFilamento: (v) => (numeroPositivo(v) ? "" : "Informe um número (ex: 1.75)."),
+};
+
+function validarCampo(input) {
+  const chave = input.name || input.id;
+  const regra = regras[chave];
+  if (!regra) return true;
+  const erro = regra(input.value);
+  const span = document.querySelector(`[data-erro-de="${chave}"]`);
+  if (span) span.textContent = erro;
+  input.classList.toggle("invalido", Boolean(erro));
+  return !erro;
+}
+
+function validarEtapa(indice) {
+  const inputs = [...etapas[indice].querySelectorAll(".campo")];
+  const resultados = inputs.map(validarCampo);
+  const primeiroInvalido = inputs.find((_, i) => !resultados[i]);
+  if (primeiroInvalido) primeiroInvalido.focus();
+  return resultados.every(Boolean);
+}
+
+if (form) {
+  form.querySelectorAll(".campo").forEach((input) => {
+    input.addEventListener("blur", () => validarCampo(input));
+    input.addEventListener("input", () => {
+      if (input.classList.contains("invalido")) validarCampo(input);
+    });
+  });
+
+  /* ---------- Navegação entre etapas ---------- */
+  function mostrarEtapa(indice) {
+    etapaAtual = indice;
+    maiorEtapaVisitada = Math.max(maiorEtapaVisitada, indice);
+    mensagem.textContent = "";
+
+    etapas.forEach((etapa, i) => (etapa.hidden = i !== indice));
+
+    passos.forEach((passo, i) => {
+      passo.classList.toggle("atual", i === indice);
+      passo.classList.toggle("visitado", i <= maiorEtapaVisitada && i !== indice);
+      if (i === indice) passo.setAttribute("aria-current", "step");
+      else passo.removeAttribute("aria-current");
+    });
+
+    const ultima = indice === etapas.length - 1;
+    btnVoltar.disabled = indice === 0;
+    btnProximo.hidden = ultima;
+    btnCadastrar.hidden = !ultima;
+
+    if (ultima) montarResumo();
+
+    const primeiroCampo = etapas[indice].querySelector(".campo");
+    if (primeiroCampo) primeiroCampo.focus();
+  }
+
+  btnProximo.addEventListener("click", () => {
+    if (validarEtapa(etapaAtual)) mostrarEtapa(etapaAtual + 1);
+  });
+
+  btnVoltar.addEventListener("click", () => {
+    if (etapaAtual > 0) mostrarEtapa(etapaAtual - 1);
+  });
+
+  passos.forEach((passo, i) => {
+    passo.addEventListener("click", () => {
+      if (i === etapaAtual || i > maiorEtapaVisitada) return;
+      if (i > etapaAtual && !validarEtapa(etapaAtual)) return;
+      mostrarEtapa(i);
+    });
+  });
+
+  form.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target.classList.contains("campo")) {
+      e.preventDefault();
+      btnProximo.click();
+    }
+  });
+
+  /* ---------- Revisão ---------- */
+  function montarResumo() {
+    resumo.innerHTML = "";
+    Object.entries(rotulos).forEach(([campo, rotulo]) => {
+      const dt = document.createElement("dt");
+      const dd = document.createElement("dd");
+      dt.textContent = rotulo;
+      const el = form.elements[campo] || document.getElementById(campo);
+      dd.textContent = el ? el.value.trim() : "";
+      resumo.append(dt, dd);
+    });
+  }
+
+  /* ---------- Envio ---------- */
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    for (let i = 0; i < etapas.length - 1; i++) {
+      if (!validarEtapa(i)) {
+        mostrarEtapa(i);
+        mensagem.textContent = "Corrija os campos destacados.";
+        return;
+      }
+    }
+
+    const dados = Object.fromEntries(
+      Object.keys(rotulos).map((campo) => {
+        const el = form.elements[campo] || document.getElementById(campo);
+        return [campo, el ? el.value.trim() : ""];
+      })
+    );
+
+    console.log("Impressora cadastrada:", dados);
+    mensagem.textContent = `Impressora "${dados.nome}" cadastrada com sucesso!`;
+    form.reset();
+    maiorEtapaVisitada = 0;
+    setTimeout(() => mostrarEtapa(0), 1800);
+  });
+
+  mostrarEtapa(0);
+}
