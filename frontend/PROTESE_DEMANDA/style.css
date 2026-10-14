@@ -23,6 +23,10 @@ body {
   flex-direction: column;
 }
 
+#arquivo {
+  text-align: center;
+}
+
 button, input { font: inherit; color: inherit; }
 
 :focus-visible {
