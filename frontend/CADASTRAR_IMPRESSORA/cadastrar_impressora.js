@@ -91,6 +91,7 @@ const rotulos = {
   logradouro: "Logradouro / Rua",
   numero: "Número",
   cep: "CEP",
+  complemento: "Complemento",
   largura_mm: "Largura X (mm)",
   profundidade_mm: "Profundidade Y (mm)",
   altura_mm: "Altura Z (mm)",
@@ -113,6 +114,7 @@ const regras = {
   logradouro: (v) => (v.trim() ? "" : "Informe o logradouro / rua."),
   numero: (v) => (v.trim() ? "" : "Informe o número (ou S/N)."),
   cep: (v) => (v.trim() ? "" : "Informe o CEP."),
+  complemento: () => "", // Opcional: sempre válido
   largura_mm: (v) => (numeroPositivo(v) ? "" : "Informe a largura X em mm."),
   profundidade_mm: (v) => (numeroPositivo(v) ? "" : "Informe a profundidade Y em mm."),
   altura_mm: (v) => (numeroPositivo(v) ? "" : "Informe a altura Z em mm."),
@@ -182,6 +184,7 @@ if (form) {
     if (etapaAtual > 0) mostrarEtapa(etapaAtual - 1);
   });
 
+  // Clicar no breadcrumb: volta livremente; avança só até onde já visitou
   passos.forEach((passo, i) => {
     passo.addEventListener("click", () => {
       if (i === etapaAtual || i > maiorEtapaVisitada) return;
@@ -190,6 +193,7 @@ if (form) {
     });
   });
 
+  // Enter num campo = Próximo (em vez de enviar o formulário)
   form.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && e.target.classList.contains("campo")) {
       e.preventDefault();
@@ -205,7 +209,8 @@ if (form) {
       const dd = document.createElement("dd");
       dt.textContent = rotulo;
       const el = form.elements[campo] || document.getElementById(campo);
-      dd.textContent = el ? el.value.trim() : "";
+      const valor = el ? el.value.trim() : "";
+      dd.textContent = valor || "—";
       resumo.append(dt, dd);
     });
   }
@@ -214,6 +219,7 @@ if (form) {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // Garante que todas as etapas estão válidas antes de enviar
     for (let i = 0; i < etapas.length - 1; i++) {
       if (!validarEtapa(i)) {
         mostrarEtapa(i);
@@ -228,6 +234,19 @@ if (form) {
         return [campo, el ? el.value.trim() : ""];
       })
     );
+
+    // TODO: trocar pela URL da sua API
+    // try {
+    //   const resp = await fetch("/api/impressoras", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify(dados),
+    //   });
+    //   if (!resp.ok) throw new Error();
+    // } catch {
+    //   mensagem.textContent = "Erro ao cadastrar. Tente novamente.";
+    //   return;
+    // }
 
     console.log("Impressora cadastrada:", dados);
     mensagem.textContent = `Impressora "${dados.nome}" cadastrada com sucesso!`;
