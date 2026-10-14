@@ -128,7 +128,6 @@ body {
   z-index: 6;
 }
 
-/* O botão do usuário reaproveita .menu-botao, com ajustes */
 .menu-botao.usuario-botao {
   height: auto;
   padding: 4px 12px 4px 4px;
@@ -159,7 +158,6 @@ body {
   align-items: center;
 }
 
-/* Dropdown do usuário abre alinhado à direita */
 .submenu-usuario {
   left: auto;
   right: 0;
@@ -407,7 +405,6 @@ body {
   visibility: hidden;
 }
 
-/* Só um dos dois (Próximo/Cadastrar) aparece; mantém alinhado à direita */
 .acoes .botao:not(.botao-secundario) {
   margin-left: auto;
 }
