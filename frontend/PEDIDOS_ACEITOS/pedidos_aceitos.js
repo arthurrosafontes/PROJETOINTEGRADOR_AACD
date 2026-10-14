@@ -1,232 +1,148 @@
-/* ===== script.js — Tela Pedidos Aceitos (menu + lista) ===== */
+// ===== DADOS DE EXEMPLO =====
+// Depois você pode trocar isso por um fetch() para a sua API.
+// O paciente aparece só pelo código, para proteger a privacidade.
+const pedidosAceitos = [
+  { id: 1024, produto: "Órtese de punho", regiao: "Membro superior", aceito: "2026-10-09", status: "Pendente", paciente: "PAC-0842", material: "PLA", quantidade: 1, prazo: "2026-10-20", obs: "Tamanho M, lado direito." },
+  { id: 1025, produto: "Prótese ortopédica", regiao: "Membro inferior", aceito: "2026-10-08", status: "Em produção", paciente: "PAC-0517", material: "PETG", quantidade: 1, prazo: "2026-10-25", obs: "Imprimir em duas partes." },
+  { id: 1026, produto: "Palmilha ortopédica", regiao: "Apoio plantar", aceito: "2026-10-06", status: "Concluído", paciente: "PAC-0233", material: "TPU", quantidade: 2, prazo: "2026-10-12", obs: "Par completo, tamanho 38." },
+];
 
-/* =========================================================
-   menu.js — abre/fecha os dropdowns do cabeçalho.
-   Inclua em todas as páginas, antes de fechar o </body>.
-   ========================================================= */
-(function () {
-  const itensMenu = [...document.querySelectorAll(".menu-item")].filter((item) =>
-    item.querySelector(".submenu")
-  );
+// Classe CSS de cada status
+const classeStatus = { "Pendente": "pendente", "Em produção": "producao", "Concluído": "concluido" };
 
-  function fecharMenus(exceto) {
-    itensMenu.forEach((item) => {
-      if (item === exceto) return;
-      item.classList.remove("aberto");
-      item.querySelector(".menu-botao").setAttribute("aria-expanded", "false");
-    });
-  }
+let statusSelecionado = "todos";
 
-  itensMenu.forEach((item) => {
-    const botao = item.querySelector(".menu-botao");
-    const submenu = item.querySelector(".submenu");
+// ===== ELEMENTOS =====
+const lista = document.getElementById("listaPedidos");
+const busca = document.getElementById("busca");
+const abas = document.querySelectorAll(".aba");
+const vazio = document.getElementById("vazio");
+const toast = document.getElementById("toast");
 
-    botao.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const abrir = !item.classList.contains("aberto");
-      fecharMenus(item);
-      item.classList.toggle("aberto", abrir);
-      botao.setAttribute("aria-expanded", String(abrir));
-    });
+// ===== FUNÇÕES =====
+function formatarData(iso) {
+  const [ano, mes, dia] = iso.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
 
-    // Seta para baixo abre o menu e foca o primeiro link
-    botao.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        fecharMenus(item);
-        item.classList.add("aberto");
-        botao.setAttribute("aria-expanded", "true");
-        submenu.querySelector("a").focus();
-      }
-    });
+function filtrarPedidos() {
+  const termo = busca.value.trim().toLowerCase().replace("#", "");
 
-    // Setas navegam entre os links
-    submenu.addEventListener("keydown", (e) => {
-      const links = [...submenu.querySelectorAll("a")];
-      const i = links.indexOf(document.activeElement);
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        links[(i + 1) % links.length].focus();
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        if (i <= 0) botao.focus();
-        else links[i - 1].focus();
-      }
-    });
+  return pedidosAceitos
+    .filter(p => {
+      const bateTexto = String(p.id).includes(termo) || p.produto.toLowerCase().includes(termo);
+      const bateStatus = statusSelecionado === "todos" || p.status === statusSelecionado;
+      return bateTexto && bateStatus;
+    })
+    .sort((a, b) => b.aceito.localeCompare(a.aceito)); // aceitos mais recentes primeiro
+}
 
-    // Fecha quando o foco sai do item (Tab)
-    item.addEventListener("focusout", (e) => {
-      if (!item.contains(e.relatedTarget)) {
-        item.classList.remove("aberto");
-        botao.setAttribute("aria-expanded", "false");
-      }
-    });
+function atualizarContadores() {
+  document.querySelectorAll("[data-contador]").forEach(span => {
+    const status = span.dataset.contador;
+    span.textContent = status === "todos"
+      ? pedidosAceitos.length
+      : pedidosAceitos.filter(p => p.status === status).length;
+  });
+}
+
+function renderizar() {
+  const itens = filtrarPedidos();
+  lista.innerHTML = "";
+
+  itens.forEach(p => {
+    const li = document.createElement("li");
+    li.className = "pedido";
+    li.dataset.id = p.id;
+    li.innerHTML = `
+      <div class="pedido-info">
+        <h3>Pedido #${p.id}</h3>
+        <p>${p.produto} · ${p.regiao}</p>
+      </div>
+      <div class="pedido-data">
+        <span>Aceito em ${formatarData(p.aceito)}</span>
+        <span class="badge ${classeStatus[p.status]}">${p.status}</span>
+      </div>
+      <button class="btn btn-secundario" data-acao="detalhes">Ver detalhes</button>
+    `;
+    lista.appendChild(li);
   });
 
-  // Clique fora fecha
-  document.addEventListener("click", () => fecharMenus());
+  atualizarContadores();
+  vazio.hidden = itens.length > 0;
+}
 
-  // Esc fecha e devolve o foco ao botão
-  document.addEventListener("keydown", (e) => {
-    if (e.key !== "Escape") return;
-    const aberto = itensMenu.find((item) => item.classList.contains("aberto"));
-    if (aberto) {
-      fecharMenus();
-      aberto.querySelector(".menu-botao").focus();
-    }
-  });
+function mostrarToast(mensagem) {
+  toast.textContent = mensagem;
+  toast.classList.add("visivel");
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove("visivel"), 2500);
+}
 
-  // Marca automaticamente a página atual no dropdown
-  const paginaAtual = location.pathname.split("/").pop() || "index.html";
-  document.querySelectorAll(".submenu a").forEach((link) => {
-    if (link.getAttribute("href") === paginaAtual) {
-      link.setAttribute("aria-current", "page");
-    }
-  });
-})();
+// ===== EVENTOS DA LISTA =====
+lista.addEventListener("click", e => {
+  const botao = e.target.closest("button[data-acao]");
+  if (!botao) return;
 
-/* =========================================================
-   LISTA DA TELA "PEDIDOS ACEITOS"
-   Depois troque o array "pedidos" por um fetch() para a API.
-   ========================================================= */
-(function () {
-  const pedidos = [
-    { id: 1024, paciente: "PAC-0842", produto: "Órtese de punho",     regiao: "Membro superior", aceite: "2026-10-09", status: "pendente",  material: "PLA",  tamanho: "M", prazo: "2026-10-20" },
-    { id: 1025, paciente: "PAC-0917", produto: "Prótese ortopédica",  regiao: "Membro inferior", aceite: "2026-10-08", status: "producao",  material: "PETG", tamanho: "G", prazo: "2026-10-25" },
-    { id: 1026, paciente: "PAC-0763", produto: "Palmilha ortopédica", regiao: "Apoio plantar",   aceite: "2026-10-06", status: "concluido", material: "TPU",  tamanho: "38", prazo: "2026-10-15" },
-  ];
+  const item = botao.closest(".pedido");
+  const id = Number(item.dataset.id);
+  const pedido = pedidosAceitos.find(p => p.id === id);
 
-  // Texto que aparece para cada status
-  const nomesStatus = { pendente: "Pendente", producao: "Em produção", concluido: "Concluído" };
-
-  const lista = document.getElementById("lista");
-  const busca = document.getElementById("busca");
-  const vazio = document.getElementById("vazio");
-  const toast = document.getElementById("toast");
-  const filtros = document.querySelectorAll(".filtro");
-  let statusEscolhido = "todos";
-
-  // "2026-10-09" -> "09/10/2026"
-  function formatarData(iso) {
-    const [ano, mes, dia] = iso.split("-");
-    return `${dia}/${mes}/${ano}`;
-  }
-
-  function mostrarAviso(msg) {
-    toast.textContent = msg;
-    toast.classList.add("visivel");
-    clearTimeout(toast._t);
-    toast._t = setTimeout(() => toast.classList.remove("visivel"), 2500);
-  }
-
-  // Atualiza os números dentro dos botões de filtro
-  function atualizarContagem() {
-    filtros.forEach((botao) => {
-      const s = botao.dataset.status;
-      const total = s === "todos" ? pedidos.length : pedidos.filter((p) => p.status === s).length;
-      botao.querySelector("span").textContent = total;
-    });
-  }
-
-  // Texto e ação do botão principal, conforme o status
-  function botaoPrincipal(p) {
-    if (p.status === "pendente") return `<button type="button" class="btn btn-principal" data-acao="iniciar">Começar a produzir</button>`;
-    if (p.status === "producao") return `<button type="button" class="btn btn-principal" data-acao="concluir">Marcar como concluído</button>`;
-    return "";
-  }
-
-  function mostrarLista() {
-    const termo = busca.value.trim().toLowerCase();
-
-    const itens = pedidos.filter((p) => {
-      const texto = `${p.id} ${p.produto} ${p.paciente}`.toLowerCase();
-      const bateStatus = statusEscolhido === "todos" || p.status === statusEscolhido;
-      return texto.includes(termo) && bateStatus;
-    });
-
-    lista.innerHTML = "";
-
-    itens.forEach((p) => {
-      const li = document.createElement("li");
-      li.className = "item";
-      li.dataset.id = p.id;
-      li.innerHTML = `
-        <div class="item-linha">
-          <div class="item-texto">
-            <p class="item-nome">Pedido #${p.id}</p>
-            <p class="item-protese">${p.produto} · ${p.regiao}</p>
-          </div>
-          <div class="item-data">
-            Aceito em ${formatarData(p.aceite)}
-            <span class="status ${p.status}">${nomesStatus[p.status]}</span>
-          </div>
-          <button type="button" class="btn btn-detalhes" aria-expanded="false" aria-controls="det-${p.id}">
-            Ver detalhes
-          </button>
-        </div>
-        <div class="detalhes" id="det-${p.id}" hidden>
-          <p><strong>Paciente:</strong> ${p.paciente}</p>
-          <p><strong>Produto:</strong> ${p.produto} (${p.regiao})</p>
-          <p><strong>Material:</strong> ${p.material}</p>
-          <p><strong>Tamanho:</strong> ${p.tamanho}</p>
-          <p><strong>Entregar até:</strong> ${formatarData(p.prazo)}</p>
-          ${botaoPrincipal(p)}
-        </div>
+  if (botao.dataset.acao === "detalhes") {
+    const extra = item.querySelector(".pedido-extra");
+    if (extra) {
+      extra.remove();
+      botao.textContent = "Ver detalhes";
+    } else {
+      const div = document.createElement("div");
+      div.className = "pedido-extra";
+      div.innerHTML = `
+        <dl>
+          <dt>Paciente:</dt><dd>${pedido.paciente}</dd>
+          <dt>Material:</dt><dd>${pedido.material}</dd>
+          <dt>Quantidade:</dt><dd>${pedido.quantidade}</dd>
+          <dt>Prazo:</dt><dd>${formatarData(pedido.prazo)}</dd>
+          <dt>Observações:</dt><dd>${pedido.obs}</dd>
+        </dl>
       `;
-      lista.appendChild(li);
-    });
-
-    vazio.hidden = itens.length > 0;
-    atualizarContagem();
+      item.appendChild(div);
+      botao.textContent = "Fechar";
+    }
   }
+});
 
-  // Clique nos botões de filtro
-  filtros.forEach((botao) => {
-    botao.addEventListener("click", () => {
-      filtros.forEach((b) => {
-        b.classList.remove("ativo");
-        b.setAttribute("aria-pressed", "false");
-      });
-      botao.classList.add("ativo");
-      botao.setAttribute("aria-pressed", "true");
-      statusEscolhido = botao.dataset.status;
-      mostrarLista();
-    });
+// ===== FILTROS =====
+busca.addEventListener("input", renderizar);
+
+abas.forEach(aba => {
+  aba.addEventListener("click", () => {
+    abas.forEach(a => a.classList.remove("ativa"));
+    aba.classList.add("ativa");
+    statusSelecionado = aba.dataset.status;
+    renderizar();
   });
+});
 
-  // Clique dentro da lista
-  lista.addEventListener("click", (e) => {
-    const item = e.target.closest(".item");
-    if (!item) return;
-    const pedido = pedidos.find((p) => p.id === Number(item.dataset.id));
-
-    // Abrir / fechar detalhes
-    if (e.target.closest(".btn-detalhes")) {
-      const botao = item.querySelector(".btn-detalhes");
-      const detalhes = item.querySelector(".detalhes");
-      const abrir = detalhes.hidden;
-      detalhes.hidden = !abrir;
-      botao.textContent = abrir ? "Fechar" : "Ver detalhes";
-      botao.setAttribute("aria-expanded", String(abrir));
-      return;
-    }
-
-    // Mudar o status
-    const acao = e.target.closest("[data-acao]");
-    if (!acao) return;
-
-    if (acao.dataset.acao === "iniciar") {
-      pedido.status = "producao";
-      mostrarAviso(`Pedido #${pedido.id} agora está em produção.`);
-    }
-    if (acao.dataset.acao === "concluir") {
-      pedido.status = "concluido";
-      mostrarAviso(`Pedido #${pedido.id} concluído!`);
-    }
-    mostrarLista();
+// ===== DROPDOWNS DA NAVBAR =====
+document.querySelectorAll(".dropdown > button").forEach(botao => {
+  botao.addEventListener("click", e => {
+    e.stopPropagation();
+    const dropdown = botao.parentElement;
+    const estavaAberto = dropdown.classList.contains("aberto");
+    document.querySelectorAll(".dropdown.aberto").forEach(d => d.classList.remove("aberto"));
+    if (!estavaAberto) dropdown.classList.add("aberto");
   });
+});
 
-  busca.addEventListener("input", mostrarLista);
+document.addEventListener("click", () => {
+  document.querySelectorAll(".dropdown.aberto").forEach(d => d.classList.remove("aberto"));
+});
 
-  mostrarLista();
-})();
+// Menu mobile
+document.getElementById("menuToggle").addEventListener("click", e => {
+  e.stopPropagation();
+  document.getElementById("menu").classList.toggle("aberto");
+});
+
+// ===== INICIAR =====
+renderizar();
