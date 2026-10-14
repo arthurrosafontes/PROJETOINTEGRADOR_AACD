@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Em Produção · Hospital Ortopédico</title>
+  <title>Pedidos Aceitos · Hospital Ortopédico</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="pedidos_aceitos.css" />
 </head>
 <body>
   <!-- ===== INÍCIO DO CABEÇALHO (copie este bloco para as outras páginas) ===== -->
@@ -22,7 +22,7 @@
           <ul class="submenu" id="sub-pedidos">
             <li><a href="../PEDIDOS_DISPONIVEIS/tela_pedidos_disponiveis.html">Pedidos disponíveis</a></li>
             <li><a href="pedidos-recomendados.html">Pedidos recomendados</a></li>
-            <li><a href="../PEDIDOS_ACEITOS/index.html">Pedidos aceitos</a></li>
+            <li><a href="../PEDIDOS_ACEITOS/index.html" aria-current="page">Pedidos aceitos</a></li>
             <li><a href="pedidos-recusados.html">Pedidos recusados</a></li>
           </ul>
         </li>
@@ -44,7 +44,7 @@
             Produção <span class="seta">▼</span>
           </button>
           <ul class="submenu" id="sub-producao">
-            <li><a href="../EM_PRODUÇAO/index.html" aria-current="page">Em produção</a></li>
+            <li><a href="../EM_PRODUÇAO/index.html">Em produção</a></li>
             <li><a href="aguardando-envio.html">Aguardando envio</a></li>
             <li><a href="aguardando-validacao.html">Aguardando validação</a></li>
             <li><a href="concluidas.html">Concluídas</a></li>
@@ -86,18 +86,34 @@
   <!-- ===== FIM DO CABEÇALHO ===== -->
 
   <main class="conteudo">
-    <h1 class="titulo">Em Produção</h1>
-    <p class="subtitulo">Peças que você está imprimindo agora.</p>
+    <h1 class="titulo">Pedidos Aceitos</h1>
+    <p class="subtitulo">Pedidos que você aceitou e como eles estão andando.</p>
 
-    <input type="search" id="busca" class="busca" placeholder="Buscar pelo nome do paciente..." aria-label="Buscar paciente" />
+    <input type="search" id="busca" class="busca" placeholder="Buscar pelo número do pedido ou produto..." aria-label="Buscar pedido" />
+
+    <!-- Filtro por status -->
+    <div class="filtro-status" role="group" aria-label="Filtrar por status">
+      <button type="button" class="filtro ativo" data-status="todos" aria-pressed="true">Todos <span>0</span></button>
+      <button type="button" class="filtro" data-status="pendente" aria-pressed="false">Pendente <span>0</span></button>
+      <button type="button" class="filtro" data-status="producao" aria-pressed="false">Em produção <span>0</span></button>
+      <button type="button" class="filtro" data-status="concluido" aria-pressed="false">Concluído <span>0</span></button>
+    </div>
 
     <ul class="lista" id="lista"></ul>
 
-    <p class="vazio" id="vazio" hidden>Nenhuma peça em produção.</p>
+    <p class="vazio" id="vazio" hidden>Nenhum pedido encontrado.</p>
+
+    <p class="aviso-privacidade">
+      🔒 Para proteger a privacidade, os pacientes aparecem só com um código (ex.: PAC-0842), sem o nome.
+    </p>
   </main>
+
+  <footer class="rodape">
+    <a href="sobre.html">Precisa de ajuda? Fale com a equipe</a>
+  </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="script.js"></script>
+  <script src="pedidos_aceitos.js"></script>
 </body>
 </html>
