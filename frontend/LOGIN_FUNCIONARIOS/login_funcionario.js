@@ -53,7 +53,7 @@ form.addEventListener("submit", (e) => {
   botaoEntrar.textContent = "Entrando...";
 
   setTimeout(() => {
-    window.location.href = PAGINA_APOS_LOGIN;
+    window.location.href = "../HUB_FUNCIONARIO/tela_hub_funcionario.html";
   }, 800);
 });
 
