@@ -71,7 +71,8 @@
     <ol class="etapas" id="etapas">
       <li><button type="button" class="etapa ativa" data-etapa="0">Identificação da Demanda</button></li>
       <li><button type="button" class="etapa" data-etapa="1" disabled>Informações Gerais</button></li>
-      <li><button type="button" class="etapa" data-etapa="2" disabled>Entrega</button></li>
+      <li><button type="button" class="etapa" data-etapa="2" disabled>Especificações de Impressão</button></li>
+      <li><button type="button" class="etapa" data-etapa="3" disabled>Entrega</button></li>
     </ol>
 
     <div class="cabecalho-pagina">
@@ -83,11 +84,24 @@
       <!-- ===== ETAPA 1: IDENTIFICAÇÃO ===== -->
       <section class="cartao passo ativo" data-passo="0">
         <h2 class="cartao-titulo"><span class="numero">1</span> Identificação da Demanda</h2>
-        <div class="cartao-corpo">
-          <div class="campo">
+        <div class="cartao-corpo grade">
+          <div class="campo campo-inteiro">
             <label for="nome">Nome da Demanda</label>
             <input type="text" id="nome" name="nome" placeholder="Nome da Demanda:" required>
             <small class="erro">Informe o nome da demanda.</small>
+          </div>
+          <div class="campo">
+            <label for="protese">Prótese já cadastrada (opcional)</label>
+            <select id="protese" name="protese">
+              <option value="">Selecione uma prótese cadastrada</option>
+              <!-- As opções são carregadas pelo JavaScript (lista "protesesCadastradas") -->
+            </select>
+            <small class="dica">Ao selecionar, os dados da peça são preenchidos automaticamente nas próximas etapas.</small>
+          </div>
+          <div class="campo">
+            <label for="quantidade">Unidades solicitadas</label>
+            <input type="number" id="quantidade" name="quantidade" placeholder="Ex: 1" min="1" step="1" required>
+            <small class="erro">Informe a quantidade de unidades (mínimo 1).</small>
           </div>
         </div>
       </section>
@@ -126,11 +140,6 @@
             <small class="erro">Informe o código do paciente (ex: PAC-0842).</small>
           </div>
           <div class="campo">
-            <label for="quantidade">Quantidade</label>
-            <input type="number" id="quantidade" name="quantidade" placeholder="Ex: 1" min="1" required>
-            <small class="erro">Informe a quantidade.</small>
-          </div>
-          <div class="campo">
             <label for="prioridade">Prioridade</label>
             <select id="prioridade" name="prioridade" required>
               <option value="">Selecione</option>
@@ -139,16 +148,6 @@
               <option value="Baixa">Baixa</option>
             </select>
             <small class="erro">Selecione a prioridade.</small>
-          </div>
-          <div class="campo">
-            <label for="material">Material indicado</label>
-            <select id="material" name="material">
-              <option value="">Sem preferência</option>
-              <option value="PLA">PLA</option>
-              <option value="PETG">PETG</option>
-              <option value="TPU">TPU</option>
-              <option value="ABS">ABS</option>
-            </select>
           </div>
           <div class="campo campo-inteiro">
             <label for="arquivo">Arquivo do modelo 3D (opcional)</label>
@@ -161,9 +160,70 @@
         </div>
       </section>
 
-      <!-- ===== ETAPA 3: ENTREGA ===== -->
+      <!-- ===== ETAPA 3: ESPECIFICAÇÕES DE IMPRESSÃO ===== -->
       <section class="cartao passo" data-passo="2">
-        <h2 class="cartao-titulo"><span class="numero">3</span> Entrega</h2>
+        <h2 class="cartao-titulo"><span class="numero">3</span> Especificações de Impressão</h2>
+        <div class="cartao-corpo grade">
+          <div class="campo">
+            <label for="filamento">Filamento recomendado</label>
+            <select id="filamento" name="filamento" required>
+              <option value="">Selecione</option>
+              <option value="PLA">PLA</option>
+              <option value="PETG">PETG</option>
+              <option value="TPU">TPU (flexível)</option>
+              <option value="ABS">ABS</option>
+              <option value="ASA">ASA</option>
+              <option value="Nylon">Nylon</option>
+            </select>
+            <small class="erro">Selecione o filamento recomendado.</small>
+          </div>
+          <div class="campo">
+            <label for="bico">Diâmetro do bico (mm)</label>
+            <select id="bico" name="bico" required>
+              <option value="">Selecione</option>
+              <option value="0.2">0,2 mm</option>
+              <option value="0.4">0,4 mm</option>
+              <option value="0.6">0,6 mm</option>
+              <option value="0.8">0,8 mm</option>
+              <option value="1.0">1,0 mm</option>
+            </select>
+            <small class="erro">Selecione o diâmetro do bico.</small>
+          </div>
+
+          <div class="campo-inteiro grade-tres">
+            <div class="campo">
+              <label for="largura">Largura necessária (mm)</label>
+              <input type="number" id="largura" name="largura" placeholder="Ex: 85" min="0.1" step="0.1" required>
+              <small class="erro">Informe a largura (maior que 0).</small>
+            </div>
+            <div class="campo">
+              <label for="profundidade">Profundidade necessária (mm)</label>
+              <input type="number" id="profundidade" name="profundidade" placeholder="Ex: 60" min="0.1" step="0.1" required>
+              <small class="erro">Informe a profundidade (maior que 0).</small>
+            </div>
+            <div class="campo">
+              <label for="altura">Altura necessária (mm)</label>
+              <input type="number" id="altura" name="altura" placeholder="Ex: 140" min="0.1" step="0.1" required>
+              <small class="erro">Informe a altura (maior que 0).</small>
+            </div>
+          </div>
+
+          <div class="campo campo-inteiro">
+            <label for="tempoHoras">Tempo estimado de impressão (por unidade)</label>
+            <div class="duplo">
+              <input type="number" id="tempoHoras" name="tempoHoras" placeholder="Horas" min="0" step="1">
+              <span>h</span>
+              <input type="number" id="tempoMinutos" name="tempoMinutos" placeholder="Minutos" min="0" max="59" step="1">
+              <span>min</span>
+            </div>
+            <small class="erro">Informe o tempo estimado (minutos de 0 a 59).</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ETAPA 4: ENTREGA ===== -->
+      <section class="cartao passo" data-passo="3">
+        <h2 class="cartao-titulo"><span class="numero">4</span> Entrega</h2>
         <div class="cartao-corpo grade">
           <div class="campo">
             <label for="prazo">Prazo de entrega</label>
@@ -181,9 +241,9 @@
             <small class="erro">Selecione a forma de entrega.</small>
           </div>
           <div class="campo">
-            <label for="unidade">Unidade de entrega</label>
+            <label for="unidade">Local de entrega</label>
             <input type="text" id="unidade" name="unidade" placeholder="Ex: AACD Ibirapuera" required>
-            <small class="erro">Informe a unidade de entrega.</small>
+            <small class="erro">Informe o local de entrega.</small>
           </div>
           <div class="campo">
             <label for="responsavel">Responsável pelo recebimento</label>
