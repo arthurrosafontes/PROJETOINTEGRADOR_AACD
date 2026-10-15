@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const fichaTecnicaImpressoraSchema = new mongoose.Schema({
-    voluntario_id: { 
+    id_voluntario: { 
         type: Number, 
         required: [true, 'O ID do voluntário é obrigatório'] 
     },
@@ -26,25 +26,55 @@ const fichaTecnicaImpressoraSchema = new mongoose.Schema({
         trim: true,
         uppercase: true
     },
+    filamentos_compativeis: [{ 
+        type: String, 
+        trim: true, 
+        uppercase: true
+    }],
+    diametro_bico_mm: { 
+        type: Number, 
+        required: true 
+    },
     volume_impressao: {
         largura_mm: { type: Number, required: true },
         profundidade_mm: { type: Number, required: true },
         altura_mm: { type: Number, required: true }
     },
-    materiais_compativeis: [{ 
+    diametro_filamento_mm: { 
+        type: Number, 
+        required: true 
+    },
+    temperatura_maxima_bico: { 
+        type: Number 
+    },
+    temperatura_maxima_mesa: { 
+        type: Number 
+    },
+    horas_disponiveis_semana: { 
+        type: Number 
+    },
+    dias_disponiveis: [{ 
+        type: String, 
+        trim: true 
+    }],
+    status: { 
         type: String, 
         trim: true, 
-        uppercase: true
-    }],
-    diametro_bico_mm: { type: Number, required: true },
-    diametro_filamento_mm: { type: Number, required: true },
+        default: 'Disponível' 
+    },
     localizacao: {
         endereco: {
             logradouro: { type: String, required: true, trim: true },
             numero: { type: String, required: true, trim: true },
             cep: { type: String, required: true, trim: true },
-            complemento: { type: String, required: false, trim: true, default: '' } // <-- Novo campo opcional adicionado aqui
+            complemento: { type: String, required: false, trim: true, default: '' },
+            cidade: { type: String, required: false, trim: true },
+            estado: { type: String, required: false, trim: true, uppercase: true }
         }
+    },
+    observacoes: { 
+        type: String, 
+        trim: true 
     },
     informacoes_adicionais: {
         foto_impressora_url: { type: String },
@@ -52,7 +82,14 @@ const fichaTecnicaImpressoraSchema = new mongoose.Schema({
         experiencia_voluntario: { type: String },
         materiais_atuais: [{ type: String }]
     },
-    data_cadastro: { type: Date, default: Date.now }
+    data_cadastro: { 
+        type: Date, 
+        default: Date.now 
+    },
+    data_atualizacao: { 
+        type: Date, 
+        default: Date.now 
+    }
 });
 
 module.exports = mongoose.model('FichaTecnicaImpressora', fichaTecnicaImpressoraSchema, 'fichas_tecnicas_impressoras');
