@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Em Produção</title>
+  <title>Produção</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="em_producao.css">
@@ -13,7 +13,7 @@
   <header class="navbar">
     <a href="#" class="logo">
       <!-- Usa o mesmo logo da pasta PEDIDOS_DISPONIVEIS -->
-      <img src="img/logo-aacd2.png" alt="" class="logo-img" onerror="this.style.display='none'">
+      <img src="../PEDIDOS_DISPONIVEIS/img/logo-aacd2.png" alt="" class="logo-img" onerror="this.style.display='none'">
     </a>
 
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">☰</button>
@@ -23,20 +23,20 @@
         <button class="menu-link">Pedidos <span class="seta">▼</span></button>
         <ul class="dropdown-lista">
           <li><a href="/frontend/PEDIDOS_DISPONIVEIS/tela_pedidos_disponiveis.html" class="ativo">Pedidos disponíveis</a></li>
-          <li><a href="/frontend/PEDIDOS_ACEITOS/tela_pedidos_aceitos.html" class="ativo">pedidos aceito e recusados</a></li>
+          <li><a href="/frontend/PEDIDOS_ACEITOS/tela_pedidos_aceitos.html" class="ativo">Pedidos aceito e recusados</a></li>
         </ul>
       </div>
       <div class="menu-item dropdown">
         <button class="menu-link">Impressora <span class="seta">▼</span></button>
         <ul class="dropdown-lista">
           <li><a href="/frontend/CADASTRAR_IMPRESSORA/tela_cadastrar_impressora.html" class="ativo">cadastrar impressora</a></li>
-          <li><a href="#" class="ativo">editar impressora cadastrada</a></li>
+          <li><a href="#" class="ativo">Editar impressora cadastrada</a></li>
         </ul>
       </div>
       <div class="menu-item dropdown">
         <button class="menu-link">Produção <span class="seta">▼</span></button>
         <ul class="dropdown-lista">
-          <li><a href="/frontend/EM_PRODUÇAO/tela_em_producao.html" class="ativo">Em produção</a></li>
+          <li><a href="/frontend/EM_PRODUÇAO/tela_em_producao.html#em-producao" class="ativo">Status produção</a></li>
         </ul>
       </div>
       <div class="menu-item">
@@ -56,7 +56,7 @@
       <ul class="dropdown-lista dropdown-direita">
         <li><a href="#">Meu perfil</a></li>
         <li><a href="#">Configurações</a></li>
-        <li><a href="/frontend/TELA_INICIAL/Tela.html">Sair</a></li>
+        <li><a href="/frontend/TELAS_INICIAIS/">Sair</a></li>
       </ul>
     </div>
   </header>
@@ -70,12 +70,21 @@
   <!-- ===== CONTEÚDO DA PÁGINA ===== -->
   <main class="conteudo">
     <div class="cabecalho-pagina">
-      <h1>Em Produção</h1>
-      <p>Peças que você está imprimindo agora.</p>
+      <!-- O título e o texto mudam conforme a aba escolhida (ver JS) -->
+      <h1 id="titulo">Em Produção</h1>
+      <p id="subtitulo">Peças que você está imprimindo agora.</p>
     </div>
 
     <div class="filtros">
       <input type="search" id="busca" placeholder="Buscar pelo nome do paciente...">
+    </div>
+
+    <!-- Filtro por status (os números são preenchidos pelo JS) -->
+    <div class="abas-status" id="abasStatus">
+      <button class="aba" data-status="todos">Todos <span class="aba-num" data-contador="todos">0</span></button>
+      <button class="aba ativa" data-status="Em produção">Em produção <span class="aba-num" data-contador="Em produção">0</span></button>
+      <button class="aba" data-status="Aguardando validação">Aguardando validação <span class="aba-num" data-contador="Aguardando validação">0</span></button>
+      <button class="aba" data-status="Concluída">Concluídas <span class="aba-num" data-contador="Concluída">0</span></button>
     </div>
 
     <ul class="lista-producao" id="listaProducao"></ul>

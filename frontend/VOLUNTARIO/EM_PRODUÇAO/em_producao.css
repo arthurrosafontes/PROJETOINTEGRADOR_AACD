@@ -7,6 +7,12 @@
   --borda: #e2e8e8;
   --branco: #fff;
   --atrasado: #d32f2f;
+  --producao-fundo: #e3edfb;
+  --producao-texto: #2b5aa8;
+  --validacao-fundo: #fdf3cf;
+  --validacao-texto: #8a6400;
+  --concluido-fundo: #dff3e6;
+  --concluido-texto: #237a46;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -114,7 +120,7 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
 .cabecalho-pagina h1 { font-size: 30px; font-weight: 700; color: var(--teal-escuro); }
 .cabecalho-pagina p { font-size: 16px; color: #444; margin-top: 6px; }
 
-.filtros { display: flex; margin-bottom: 20px; }
+.filtros { display: flex; margin-bottom: 14px; }
 .filtros input {
   flex: 1;
   font: inherit;
@@ -126,6 +132,21 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
   outline: none;
 }
 .filtros input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-claro); }
+
+/* Abas de status */
+.abas-status { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.aba {
+  padding: 8px 14px;
+  border: 1px solid #cfd6d6;
+  border-radius: 20px;
+  font-size: 15px;
+  background: var(--branco);
+  transition: .2s;
+}
+.aba:hover { border-color: var(--teal); }
+.aba-num { font-size: 13px; color: var(--texto-suave); margin-left: 4px; }
+.aba.ativa { background: var(--teal-escuro); border-color: var(--teal-escuro); color: var(--branco); font-weight: 700; }
+.aba.ativa .aba-num { color: var(--branco); font-weight: 400; }
 
 /* Lista */
 .lista-producao { list-style: none; display: flex; flex-direction: column; gap: 12px; }
@@ -146,10 +167,19 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
 .item-info h3 { font-size: 19px; font-weight: 700; }
 .item-info p { font-size: 15px; color: #555; margin-top: 4px; }
 
+.item-titulo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.badge.producao { background: var(--producao-fundo); color: var(--producao-texto); }
+.badge.validacao { background: var(--validacao-fundo); color: var(--validacao-texto); }
+.badge.concluida { background: var(--concluido-fundo); color: var(--concluido-texto); }
+
 .item-prazo { text-align: right; font-size: 15px; }
 .item-status { display: block; font-size: 14px; font-weight: 700; margin-top: 4px; color: var(--teal-escuro); }
 .item-status.atrasado { color: var(--atrasado); }
 .item-status.hoje { color: #e8a317; }
+.item-status.validacao { color: var(--validacao-texto); }
+.item-status.concluida { color: var(--concluido-texto); }
 
 .btn { padding: 10px 16px; border-radius: 8px; font-size: 15px; font-weight: 700; transition: .2s; }
 .btn-secundario { border: 1px solid var(--teal); color: var(--teal-escuro); min-width: 122px; }
