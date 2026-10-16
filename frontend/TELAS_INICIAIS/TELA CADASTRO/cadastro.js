@@ -12,7 +12,7 @@ UFS.forEach(uf => ufSelect.add(new Option(uf, uf)));
 /* ---------- Máscaras ---------- */
 const digits = v => v.replace(/\D/g, "");
 const masks = {
-  cnpj: v => digits(v).slice(0,14)
+  documento: v => digits(v).slice(0,14)
     .replace(/^(\d{2})(\d)/, "$1.$2")
     .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
     .replace(/\.(\d{3})(\d)/, ".$1/$2")
@@ -24,9 +24,52 @@ const masks = {
   },
   cep: v => digits(v).slice(0,8).replace(/^(\d{5})(\d)/, "$1-$2"),
 };
-Object.keys(masks).forEach(id => {
-  $(id).addEventListener("input", e => { e.target.value = masks[id](e.target.value); });
+masks.cpf = v => {
+  const d = digits(v).slice(0, 11);
+  if (d.length <= 3) return d;
+  if (d.length <= 6) return `${d.slice(0,3)}.${d.slice(3)}`;
+  if (d.length <= 9) return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6)}`;
+  return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`;
+};
+
+Object.keys(masks).filter(id => id !== 'cpf').forEach(id => {
+  $(id).addEventListener("input", e => {
+    if (id === 'documento') {
+      e.target.value = $("tipo_voluntario").value === 'Pessoa fisica'
+        ? masks.cpf(e.target.value) : masks.documento(e.target.value);
+    } else {
+      e.target.value = masks[id](e.target.value);
+    }
+  });
 });
+
+/* ---------- CPF / CNPJ conforme tipo de voluntário ---------- */
+const tipoVoluntario = $("tipo_voluntario");
+const documentoInput = $("documento");
+
+tipoVoluntario.addEventListener("change", () => {
+  const tipo = tipoVoluntario.value;
+  documentoInput.disabled = !tipo;
+  documentoInput.value = "";
+  documentoInput.maxLength = tipo === "Pessoa fisica" ? 14 : 18;
+  documentoInput.placeholder = tipo === "Pessoa fisica"
+    ? "CPF: 000.000.000-00"
+    : tipo ? "CNPJ: 00.000.000/0000-00" : "Selecione o tipo de voluntário";
+  documentoInput.setAttribute("aria-label", tipo === "Pessoa fisica" ? "CPF" : "CNPJ");
+  setError(tipoVoluntario, "");
+  setError(documentoInput, "");
+});
+
+function cpfValido(valor) {
+  const cpf = digits(valor);
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  const digito = tamanho => {
+    const soma = [...cpf.slice(0, tamanho)].reduce((acc, d, i) => acc + Number(d) * (tamanho + 1 - i), 0);
+    const resto = (soma * 10) % 11;
+    return resto === 10 ? 0 : resto;
+  };
+  return digito(9) === Number(cpf[9]) && digito(10) === Number(cpf[10]);
+}
 
 /* ---------- Preenchimento do endereço pelo CEP ---------- */
 const cepStatus = $("cepStatus");
@@ -77,7 +120,13 @@ const rules = {
   0: [
     ["nome", v => v.trim().length >= 3 || "Informe o nome do voluntário."],
     ["email", v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || "Email inválido."],
-    ["cnpj", v => cnpjValido(v) || "CNPJ inválido."],
+    ["tipo_voluntario", v => v !== "" || "Selecione o tipo de voluntário."],
+    ["documento", v => {
+      if (!tipoVoluntario.value) return "Selecione primeiro o tipo de voluntário.";
+      return tipoVoluntario.value === "Pessoa fisica"
+        ? (cpfValido(v) || "CPF inválido.")
+        : (cnpjValido(v) || "CNPJ inválido.");
+    }],
     ["telefone", v => digits(v).length >= 10 || "Telefone inválido."],
   ],
   1: [
@@ -141,7 +190,6 @@ $("form").addEventListener("submit", async e => {
 
   const dados = Object.fromEntries(
     [...$("form").querySelectorAll("input, select")]
-      .filter(el => el.id !== "confirmarSenha")
       .map(el => [el.id, el.value])
   );
 

@@ -185,3 +185,9 @@ input[readonly] { background: #f2f2f2; }
   input, .btn { height: 54px; font-size: 17px; }
   .logo { display: none; }
 }
+/* Etapa 1: tipo em cima, quatro campos em 2 colunas x 2 linhas */
+.grid-dados { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 32px; }
+.grid-dados .nome input { max-width: none; margin: 0; text-align: left; }
+@media (max-width: 800px) {
+  .grid-dados { grid-template-columns: 1fr; }
+}
