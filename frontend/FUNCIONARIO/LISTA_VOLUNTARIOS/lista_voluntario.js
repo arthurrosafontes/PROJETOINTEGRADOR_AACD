@@ -1,19 +1,23 @@
-// ===== DADOS DE EXEMPLO =====
-// Depois você pode trocar isso por um fetch() para a sua API.
-const voluntarios = [
-  { id: 301, nome: "Rafael Martins", cidade: "São Paulo - SP", status: "Ativo", impressoras: "Ender 3 V2, Bambu Lab P1S", materiais: "PLA, PETG, TPU", entregues: 14, emProducao: 2, email: "rafael.martins@email.com", telefone: "(11) 98765-4321", cadastro: "2026-03-12" },
-  { id: 302, nome: "Juliana Costa", cidade: "Campinas - SP", status: "Ativo", impressoras: "Prusa MK4", materiais: "PLA, PETG", entregues: 9, emProducao: 1, email: "juliana.costa@email.com", telefone: "(19) 99876-5432", cadastro: "2026-05-02" },
-  { id: 303, nome: "Pedro Almeida", cidade: "Santos - SP", status: "Pendente", impressoras: "Ender 3 S1", materiais: "PLA", entregues: 0, emProducao: 0, email: "pedro.almeida@email.com", telefone: "(13) 99123-4567", cadastro: "2026-10-10" },
-  { id: 304, nome: "Fernanda Lopes", cidade: "Guarulhos - SP", status: "Ativo", impressoras: "Bambu Lab A1", materiais: "PLA, TPU", entregues: 21, emProducao: 3, email: "fernanda.lopes@email.com", telefone: "(11) 97654-3210", cadastro: "2026-01-20" },
-  { id: 305, nome: "Lucas Ferreira", cidade: "Sorocaba - SP", status: "Inativo", impressoras: "Anycubic Kobra 2", materiais: "PLA", entregues: 4, emProducao: 0, email: "lucas.ferreira@email.com", telefone: "(15) 98888-1122", cadastro: "2026-02-08" },
-  { id: 306, nome: "Camila Ribeiro", cidade: "São Paulo - SP", status: "Pendente", impressoras: "Elegoo Saturn 3 (resina)", materiais: "Resina", entregues: 0, emProducao: 0, email: "camila.ribeiro@email.com", telefone: "(11) 96543-2109", cadastro: "2026-10-12" },
-];
+// =====================================================
+// TELA: Voluntários (frontend)
+// Este arquivo só cuida da tela. Os dados vêm da API
+// (backend/server.js), que lê e grava no banco de dados.
+// =====================================================
 
-// Botão de ação de cada status: texto e novo status depois do clique
+// Endereço da API. Troque se o backend rodar em outra porta/servidor.
+const API_URL = "http://localhost:3000/api";
+
+// Lista que vem da API. Formato de cada voluntário:
+// { id, nome, cidade, status, impressoras, materiais, entregues, emProducao, email, telefone, cadastro }
+// status: "Pendente" | "Ativo" | "Inativo"
+let voluntarios = [];
+
+// Texto do botão e do aviso de cada status.
+// (Qual é o próximo status quem decide é a API.)
 const acaoPorStatus = {
-  Pendente: { texto: "Aprovar", novoStatus: "Ativo", aviso: "aprovado(a)" },
-  Ativo: { texto: "Desativar", novoStatus: "Inativo", aviso: "desativado(a)" },
-  Inativo: { texto: "Reativar", novoStatus: "Ativo", aviso: "reativado(a)" },
+  Pendente: { texto: "Aprovar", aviso: "aprovado(a)" },
+  Ativo: { texto: "Desativar", aviso: "desativado(a)" },
+  Inativo: { texto: "Reativar", aviso: "reativado(a)" },
 };
 
 // ===== ELEMENTOS =====
@@ -25,10 +29,32 @@ const contador = document.getElementById("contador");
 const vazio = document.getElementById("vazio");
 const toast = document.getElementById("toast");
 
-// ===== FUNÇÕES =====
+// ===== CHAMADAS À API =====
+async function buscarVoluntarios() {
+  const resposta = await fetch(`${API_URL}/voluntarios`);
+  if (!resposta.ok) throw new Error("Não foi possível carregar os voluntários.");
+  return resposta.json();
+}
+
+async function mudarStatus(id) {
+  const resposta = await fetch(`${API_URL}/voluntarios/${id}/status`, { method: "PATCH" });
+  const dados = await resposta.json();
+  if (!resposta.ok) throw new Error(dados.erro || "Não foi possível mudar o status.");
+  return dados; // voluntário já atualizado
+}
+
+// ===== FUNÇÕES DA TELA =====
 function formatarData(iso) {
-  const [ano, mes, dia] = iso.split("-");
+  if (!iso) return "-";
+  const [ano, mes, dia] = iso.slice(0, 10).split("-");
   return `${dia}/${mes}/${ano}`;
+}
+
+// Evita que textos do banco virem HTML na tela
+function escapar(texto) {
+  const div = document.createElement("div");
+  div.textContent = texto ?? "";
+  return div.innerHTML;
 }
 
 // "Rafael Martins" -> "RM"
@@ -42,7 +68,7 @@ function filtrarVoluntarios() {
   const status = filtroStatus.value;
 
   let resultado = voluntarios.filter(v => {
-    const bateTexto = v.nome.toLowerCase().includes(termo) || v.cidade.toLowerCase().includes(termo);
+    const bateTexto = v.nome.toLowerCase().includes(termo) || (v.cidade || "").toLowerCase().includes(termo);
     const bateStatus = status === "todos" || v.status === status;
     return bateTexto && bateStatus;
   });
@@ -64,15 +90,15 @@ function renderizar() {
     li.className = `voluntario ${v.status}`;
     li.dataset.id = v.id;
     li.innerHTML = `
-      <div class="voluntario-iniciais">${iniciais(v.nome)}</div>
+      <div class="voluntario-iniciais">${escapar(iniciais(v.nome))}</div>
       <div class="voluntario-info">
         <div class="voluntario-titulo">
-          <h3>${v.nome}</h3>
-          <span class="badge ${v.status}">${v.status}</span>
+          <h3>${escapar(v.nome)}</h3>
+          <span class="badge ${v.status}">${escapar(v.status)}</span>
           <span class="voluntario-codigo">#${v.id}</span>
         </div>
         <div class="voluntario-detalhes">
-          <span>Cidade: <strong>${v.cidade}</strong></span>
+          <span>Cidade: <strong>${escapar(v.cidade)}</strong></span>
           <span>Peças entregues: <strong>${v.entregues}</strong></span>
           <span>Em produção: <strong>${v.emProducao}</strong></span>
           <span>Desde: <strong>${formatarData(v.cadastro)}</strong></span>
@@ -87,6 +113,7 @@ function renderizar() {
   });
 
   contador.textContent = `${itens.length} voluntário(s) encontrado(s)`;
+  vazio.textContent = "Nenhum voluntário encontrado.";
   vazio.hidden = itens.length > 0;
 }
 
@@ -99,7 +126,7 @@ function mostrarToast(mensagem) {
 }
 
 // ===== EVENTOS DA LISTA =====
-lista.addEventListener("click", e => {
+lista.addEventListener("click", async e => {
   const botao = e.target.closest("button[data-acao]");
   if (!botao) return;
 
@@ -117,10 +144,10 @@ lista.addEventListener("click", e => {
       div.className = "voluntario-extra";
       div.innerHTML = `
         <dl>
-          <dt>E-mail:</dt><dd>${voluntario.email}</dd>
-          <dt>Telefone:</dt><dd>${voluntario.telefone}</dd>
-          <dt>Impressoras:</dt><dd>${voluntario.impressoras}</dd>
-          <dt>Materiais:</dt><dd>${voluntario.materiais}</dd>
+          <dt>E-mail:</dt><dd>${escapar(voluntario.email) || "-"}</dd>
+          <dt>Telefone:</dt><dd>${escapar(voluntario.telefone) || "-"}</dd>
+          <dt>Impressoras:</dt><dd>${escapar(voluntario.impressoras) || "-"}</dd>
+          <dt>Materiais:</dt><dd>${escapar(voluntario.materiais) || "-"}</dd>
         </dl>
       `;
       item.appendChild(div);
@@ -130,9 +157,19 @@ lista.addEventListener("click", e => {
 
   if (botao.dataset.acao === "status") {
     const acao = acaoPorStatus[voluntario.status];
-    voluntario.status = acao.novoStatus;
-    renderizar();
-    mostrarToast(`${voluntario.nome} foi ${acao.aviso}.`);
+    const textoOriginal = botao.textContent;
+    botao.disabled = true;
+    botao.textContent = "Salvando...";
+    try {
+      const atualizado = await mudarStatus(id);
+      Object.assign(voluntario, atualizado);
+      renderizar();
+      mostrarToast(`${voluntario.nome} foi ${acao.aviso}.`);
+    } catch (erro) {
+      botao.disabled = false;
+      botao.textContent = textoOriginal;
+      mostrarToast(erro.message);
+    }
   }
 });
 
@@ -163,4 +200,15 @@ document.getElementById("menuToggle").addEventListener("click", e => {
 });
 
 // ===== INICIAR =====
-renderizar();
+async function iniciar() {
+  try {
+    voluntarios = await buscarVoluntarios();
+    renderizar();
+  } catch (erro) {
+    contador.textContent = "";
+    vazio.textContent = "Erro ao carregar os voluntários. Verifique se o backend está rodando.";
+    vazio.hidden = false;
+  }
+}
+
+iniciar();
