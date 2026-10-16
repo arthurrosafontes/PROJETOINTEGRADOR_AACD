@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impressoras cadastradas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="vizualizar_impressora_cadastrada.css">
+</head>
+<body>
+  <!-- ===== BARRA DE NAVEGAÇÃO ===== -->
+  <header class="navbar">
+    <a href="#" class="logo">
+      <!-- Usa o mesmo logo da pasta HUB_FUNCIONARIO -->
+      <img src="img/logo-aacd2.png" alt="" class="logo-img" onerror="this.style.display='none'">
+    </a>
+
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">☰</button>
+
+    <nav class="menu" id="menu">
+      <div class="menu-item dropdown">
+        <button class="menu-link">demanda <span class="seta">▼</span></button>
+        <ul class="dropdown-lista">
+          <li><a href="/frontend/FUNCIONARIO/PROTESE_DEMANDA/tela_cadastrar_protese.html" class="ativo">cadastrar demanda</a></li>
+          <li><a href="#" class="ativo">status demandas</a></li>
+        </ul>
+      </div>
+      <div class="menu-item dropdown">
+        <button class="menu-link">voluntarios <span class="seta">▼</span></button>
+        <ul class="dropdown-lista">
+          <li><a href="/frontend/FUNCIONARIO/LISTA_VOLUNTARIOS/tela_lista_voluntario.html" class="ativo">lista de voluntarios</a></li>
+          <li><a href="/frontend/FUNCIONARIO/IMPRESSORAS_CADASTRADAS/tela_impressoras_cadastradas.html" class="ativo"> vizualizar impressoras cadastradas</a></li>
+        </ul>
+      </div>
+      <div class="menu-item dropdown">
+        <button class="menu-link">proteses <span class="seta">▼</span></button>
+        <ul class="dropdown-lista">
+          <li><a href="#" class="ativo">Status produçao</a></li>
+          <li><a href="#" class="ativo">modelos 3D</a></li>
+        </ul>
+      </div>
+      <div class="menu-item">
+        <a href="#" class="menu-link">sobre</a>
+      </div>
+    </nav>
+
+    <div class="usuario dropdown">
+      <button class="usuario-btn">
+        <span class="avatar"></span>
+        <span class="usuario-info">
+          <span class="usuario-nome">user</span>
+          <span class="usuario-cargo">Funcionário</span>
+        </span>
+        <span class="seta">▼</span>
+      </button>
+      <ul class="dropdown-lista dropdown-direita">
+        <li><a href="#">Meu perfil</a></li>
+        <li><a href="#">Configurações</a></li>
+        <li><a href="/frontend/TELAS_INICIAIS/TELA_INICIAL/Tela.html">Sair</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Decoração do canto superior direito -->
+  <div class="decoracao" aria-hidden="true">
+    <span class="circulo-externo"></span>
+    <span class="circulo-interno"></span>
+  </div>
+
+  <!-- ===== CONTEÚDO DA PÁGINA ===== -->
+  <main class="conteudo">
+    <div class="cabecalho-pagina">
+      <h1>Impressoras cadastradas</h1>
+      <p>Impressoras 3D que os voluntários cadastraram para produzir as peças.</p>
+    </div>
+
+    <div class="filtros">
+      <input type="search" id="busca" placeholder="Buscar por modelo, voluntário ou cidade...">
+      <select id="filtroTecnologia" aria-label="Filtrar por tecnologia">
+        <option value="todas">Todas as tecnologias</option>
+        <option value="FDM">FDM (filamento)</option>
+        <option value="Resina">Resina</option>
+      </select>
+      <select id="ordenar" aria-label="Ordenar">
+        <option value="recentes">Mais recentes</option>
+        <option value="modelo">Modelo (A-Z)</option>
+        <option value="voluntario">Voluntário (A-Z)</option>
+      </select>
+    </div>
+
+    <p class="contador" id="contador"></p>
+
+    <ul class="lista-impressoras" id="listaImpressoras"></ul>
+
+    <p class="vazio" id="vazio" hidden>Nenhuma impressora encontrada.</p>
+  </main>
+
+  <!-- Aviso (toast) -->
+  <div class="toast" id="toast"></div>
+
+  <script src="vizualizar_impressora_cadastrada.js"></script>
+</body>
+</html>
