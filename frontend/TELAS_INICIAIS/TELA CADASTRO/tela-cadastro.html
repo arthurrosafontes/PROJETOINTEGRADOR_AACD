@@ -21,8 +21,17 @@
   <form id="form" novalidate>
     <!-- Etapa 1: Dados -->
     <section class="step active" data-step="0">
-      <div class="grid">
-        <div class="field full nome">
+      <div class="grid grid-dados">
+        <div class="field full">
+          <select id="tipo_voluntario" aria-label="Tipo de voluntário">
+            <option value="">Selecione o tipo de voluntário</option>
+            <option value="Pessoa fisica">Pessoa física</option>
+            <option value="Empresa">Empresa</option>
+            <option value="Universidade">Universidade</option>
+          </select>
+          <span class="error"></span>
+        </div>
+        <div class="field nome">
           <input id="nome" placeholder="Nome do voluntário:" autocomplete="name">
           <span class="error"></span>
         </div>
@@ -31,10 +40,10 @@
           <span class="error"></span>
         </div>
         <div class="field">
-          <input id="cnpj" placeholder="CNPJ: AA.AAA.AAA/AAAA-DV" maxlength="18">
+          <input id="documento" placeholder="Selecione o tipo de voluntário" maxlength="18" inputmode="numeric" disabled aria-label="CPF ou CNPJ">
           <span class="error"></span>
         </div>
-        <div class="field full" style="max-width:560px;justify-self:center;width:100%">
+        <div class="field">
           <input id="telefone" placeholder="Telefone: (XX) XXXXX-XXXX" maxlength="15" autocomplete="tel">
           <span class="error"></span>
         </div>
@@ -98,6 +107,7 @@
       <p class="sucesso">Cadastro realizado com sucesso!</p>
     </section>
 
+    <p id="erroEnvio" class="error" role="alert" aria-live="polite"></p>
     <div class="actions" id="actions">
       <button type="button" class="btn secondary" id="btnAnterior">Anterior</button>
       <button type="submit" class="btn" id="btnProximo">Próximo</button>
@@ -109,6 +119,7 @@
 
 <div class="logo">Hospital<br>Ortopédico</div>
 
+<script src="api.js"></script>
 <script src="cadastro.js"></script>
 </body>
 </html>
