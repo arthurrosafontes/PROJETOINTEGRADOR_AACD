@@ -1,3 +1,9 @@
+/* =========================================================
+   tela.js — comportamento da tela de cadastro
+   (breadcrumb, máscaras, validações e navegação entre etapas)
+   Depende de api.js, que precisa ser carregado antes.
+   ========================================================= */
+
 const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const $ = id => document.getElementById(id);
 const ufSelect = $("uf");
@@ -22,20 +28,19 @@ Object.keys(masks).forEach(id => {
   $(id).addEventListener("input", e => { e.target.value = masks[id](e.target.value); });
 });
 
-/* ---------- Busca de CEP (ViaCEP) ---------- */
+/* ---------- Preenchimento do endereço pelo CEP ---------- */
 const cepStatus = $("cepStatus");
 $("cep").addEventListener("input", async e => {
   const cep = digits(e.target.value);
   if (cep.length !== 8) { cepStatus.textContent = ""; return; }
   cepStatus.textContent = "Buscando...";
   try {
-    const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-    const data = await res.json();
-    if (data.erro) throw new Error();
-    $("rua").value = data.logradouro || "";
-    $("bairro").value = data.bairro || "";
-    $("cidade").value = data.localidade || "";
-    $("uf").value = data.uf || "";
+    const endereco = await Api.buscarCep(cep);
+    if (!endereco) throw new Error();
+    $("rua").value = endereco.rua;
+    $("bairro").value = endereco.bairro;
+    $("cidade").value = endereco.cidade;
+    $("uf").value = endereco.uf;
     cepStatus.textContent = "✓";
     setError($("cep"), "");
     $("numero").focus();
@@ -106,6 +111,7 @@ const crumbs = document.querySelectorAll("#breadcrumb li");
 
 function irPara(n) {
   etapa = n;
+  $("erroEnvio").textContent = "";
   steps.forEach(s => s.classList.toggle("active", +s.dataset.step === n));
   crumbs.forEach(li => {
     const i = +li.dataset.step;
@@ -127,7 +133,8 @@ crumbs.forEach(li => li.querySelector("button").addEventListener("click", () => 
 
 $("btnAnterior").addEventListener("click", () => irPara(etapa - 1));
 
-$("form").addEventListener("submit", e => {
+/* ---------- Envio ---------- */
+$("form").addEventListener("submit", async e => {
   e.preventDefault();
   if (!validarEtapa(etapa)) return;
   if (etapa < total - 1) return irPara(etapa + 1);
@@ -137,14 +144,25 @@ $("form").addEventListener("submit", e => {
       .filter(el => el.id !== "confirmarSenha")
       .map(el => [el.id, el.value])
   );
-  console.log("Enviar para o backend:", dados); // troque por um fetch para sua API
-  irPara(total);
-});
 
-irPara(0);
+  const btn = $("btnProximo");
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+  try {
+    await Api.cadastrarVoluntario(dados);
+    irPara(total);
+  } catch (err) {
+    $("erroEnvio").textContent = err.message || "Erro ao cadastrar. Tente novamente.";
+  } finally {
+    btn.disabled = false;
+    if (etapa !== total) btn.textContent = "Cadastrar";
+  }
+});
 
 /* ---------- Link voltar ---------- */
 $("linkVoltar").addEventListener("click", e => {
   e.preventDefault();
   history.back();
 });
+
+irPara(0);
