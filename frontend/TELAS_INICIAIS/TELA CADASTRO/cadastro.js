@@ -1,152 +1,150 @@
-const form = document.getElementById("form-cadastro");
-const mensagem = document.getElementById("mensagem");
-
-const campos = {
-  nome: document.getElementById("nome"),
-  email: document.getElementById("email"),
-  cnpj: document.getElementById("cnpj"),
-  endereco: document.getElementById("endereco"),
-  telefone: document.getElementById("telefone"),
-  senha: document.getElementById("senha"),
-  confirmarSenha: document.getElementById("confirmarSenha"),
-};
+const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+const $ = id => document.getElementById(id);
+const ufSelect = $("uf");
+UFS.forEach(uf => ufSelect.add(new Option(uf, uf)));
 
 /* ---------- Máscaras ---------- */
-
-const soDigitos = (valor) => valor.replace(/\D/g, "");
-
-function mascaraCNPJ(valor) {
-  return soDigitos(valor)
-    .slice(0, 14)
+const digits = v => v.replace(/\D/g, "");
+const masks = {
+  cnpj: v => digits(v).slice(0,14)
     .replace(/^(\d{2})(\d)/, "$1.$2")
     .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
     .replace(/\.(\d{3})(\d)/, ".$1/$2")
-    .replace(/(\d{4})(\d)/, "$1-$2");
-}
+    .replace(/(\d{4})(\d)/, "$1-$2"),
+  telefone: v => {
+    const d = digits(v).slice(0,11);
+    if (d.length <= 10) return d.replace(/^(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d)/, "$1-$2");
+    return d.replace(/^(\d{2})(\d{5})(\d)/, "($1) $2-$3");
+  },
+  cep: v => digits(v).slice(0,8).replace(/^(\d{5})(\d)/, "$1-$2"),
+};
+Object.keys(masks).forEach(id => {
+  $(id).addEventListener("input", e => { e.target.value = masks[id](e.target.value); });
+});
 
-function mascaraTelefone(valor) {
-  const d = soDigitos(valor).slice(0, 11);
-  if (d.length <= 10) {
-    return d
-      .replace(/^(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{4})(\d)/, "$1-$2");
+/* ---------- Busca de CEP (ViaCEP) ---------- */
+const cepStatus = $("cepStatus");
+$("cep").addEventListener("input", async e => {
+  const cep = digits(e.target.value);
+  if (cep.length !== 8) { cepStatus.textContent = ""; return; }
+  cepStatus.textContent = "Buscando...";
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const data = await res.json();
+    if (data.erro) throw new Error();
+    $("rua").value = data.logradouro || "";
+    $("bairro").value = data.bairro || "";
+    $("cidade").value = data.localidade || "";
+    $("uf").value = data.uf || "";
+    cepStatus.textContent = "✓";
+    setError($("cep"), "");
+    $("numero").focus();
+  } catch {
+    cepStatus.textContent = "";
+    setError($("cep"), "CEP não encontrado. Preencha o endereço manualmente.");
   }
-  return d
-    .replace(/^(\d{2})(\d)/, "($1) $2")
-    .replace(/(\d{5})(\d)/, "$1-$2");
+});
+
+/* ---------- Validação ---------- */
+function setError(input, msg) {
+  const span = input.closest(".field").querySelector(".error");
+  span.textContent = msg;
+  input.classList.toggle("invalid", !!msg);
+  return !msg;
 }
 
-campos.cnpj.addEventListener("input", (e) => {
-  e.target.value = mascaraCNPJ(e.target.value);
-});
-
-campos.telefone.addEventListener("input", (e) => {
-  e.target.value = mascaraTelefone(e.target.value);
-});
-
-/* ---------- Validações ---------- */
-
-function cnpjValido(cnpj) {
-  const n = soDigitos(cnpj);
-  if (n.length !== 14 || /^(\d)\1+$/.test(n)) return false;
-
-  const calcDigito = (base) => {
-    let pesos = base.length === 12
-      ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-      : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-    const soma = base.split("").reduce((acc, dig, i) => acc + dig * pesos[i], 0);
-    const resto = soma % 11;
-    return resto < 2 ? 0 : 11 - resto;
+function cnpjValido(c) {
+  c = digits(c);
+  if (c.length !== 14 || /^(\d)\1+$/.test(c)) return false;
+  const calc = n => {
+    let soma = 0, pos = n - 7;
+    for (let i = n; i >= 1; i--) {
+      soma += c[n - i] * pos--;
+      if (pos < 2) pos = 9;
+    }
+    const r = soma % 11;
+    return r < 2 ? 0 : 11 - r;
   };
-
-  const d1 = calcDigito(n.slice(0, 12));
-  const d2 = calcDigito(n.slice(0, 12) + d1);
-  return n.endsWith(`${d1}${d2}`);
+  return calc(12) == c[12] && calc(13) == c[13];
 }
 
-const regras = {
-  nome: (v) => {
-    const nome = v.trim();
-    if (!nome) return "Informe o nome do voluntário.";
-    if (nome.length < 3) return "O nome deve ter pelo menos 3 letras.";
-    if (!/^[A-Za-zÀ-ÿ' -]+$/.test(nome)) return "Use apenas letras no nome.";
-    return "";
-  },
-  email: (v) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? "" : "Informe um email válido.",
-  cnpj: (v) => (cnpjValido(v) ? "" : "CNPJ inválido."),
-  endereco: (v) => (v.trim().length >= 5 ? "" : "Informe o endereço."),
-  telefone: (v) => {
-    const d = soDigitos(v).length;
-    return d === 10 || d === 11 ? "" : "Telefone incompleto.";
-  },
-  senha: (v) => (v.length >= 6 ? "" : "A senha deve ter pelo menos 6 caracteres."),
-  confirmarSenha: (v) =>
-    v && v === campos.senha.value ? "" : "As senhas não conferem.",
+const rules = {
+  0: [
+    ["nome", v => v.trim().length >= 3 || "Informe o nome do voluntário."],
+    ["email", v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || "Email inválido."],
+    ["cnpj", v => cnpjValido(v) || "CNPJ inválido."],
+    ["telefone", v => digits(v).length >= 10 || "Telefone inválido."],
+  ],
+  1: [
+    ["cep", v => digits(v).length === 8 || "CEP inválido."],
+    ["rua", v => v.trim() !== "" || "Informe a rua."],
+    ["numero", v => v.trim() !== "" || "Informe o número."],
+    ["bairro", v => v.trim() !== "" || "Informe o bairro."],
+    ["cidade", v => v.trim() !== "" || "Informe a cidade."],
+    ["uf", v => v !== "" || "Selecione a UF."],
+  ],
+  2: [
+    ["senha", v => v.length >= 8 || "A senha precisa ter ao menos 8 caracteres."],
+    ["confirmarSenha", v => v === $("senha").value || "As senhas não coincidem."],
+  ],
 };
 
-function validarCampo(nomeCampo) {
-  const input = campos[nomeCampo];
-  const erro = regras[nomeCampo](input.value);
-  const span = document.querySelector(`[data-erro-de="${nomeCampo}"]`);
-  span.textContent = erro;
-  input.classList.toggle("invalido", Boolean(erro));
-  return !erro;
+function validarEtapa(n) {
+  let ok = true;
+  (rules[n] || []).forEach(([id, fn]) => {
+    const r = fn($(id).value);
+    if (!setError($(id), r === true ? "" : r)) ok = false;
+  });
+  return ok;
 }
 
-// Valida ao sair do campo e limpa o erro enquanto digita
-Object.keys(campos).forEach((nomeCampo) => {
-  campos[nomeCampo].addEventListener("blur", () => validarCampo(nomeCampo));
-  campos[nomeCampo].addEventListener("input", () => {
-    if (campos[nomeCampo].classList.contains("invalido")) validarCampo(nomeCampo);
+/* ---------- Navegação / breadcrumb ---------- */
+let etapa = 0;
+const total = 3;
+const steps = document.querySelectorAll(".step");
+const crumbs = document.querySelectorAll("#breadcrumb li");
+
+function irPara(n) {
+  etapa = n;
+  steps.forEach(s => s.classList.toggle("active", +s.dataset.step === n));
+  crumbs.forEach(li => {
+    const i = +li.dataset.step;
+    li.classList.toggle("active", i === n);
+    li.classList.toggle("done", i < n && n < total);
+    li.querySelector("button").setAttribute("aria-current", i === n ? "step" : "false");
   });
-});
+  $("btnAnterior").style.visibility = n > 0 && n < total ? "visible" : "hidden";
+  $("btnProximo").textContent = n === total - 1 ? "Cadastrar" : "Próximo";
+  $("actions").style.display = n === total ? "none" : "flex";
+  const first = steps[n].querySelector("input, select");
+  if (first) first.focus();
+}
 
-/* ---------- Envio ---------- */
+crumbs.forEach(li => li.querySelector("button").addEventListener("click", () => {
+  const i = +li.dataset.step;
+  if (i < etapa) irPara(i); // só volta para etapas já concluídas
+}));
 
-form.addEventListener("submit", async (e) => {
+$("btnAnterior").addEventListener("click", () => irPara(etapa - 1));
+
+$("form").addEventListener("submit", e => {
   e.preventDefault();
-  mensagem.textContent = "";
+  if (!validarEtapa(etapa)) return;
+  if (etapa < total - 1) return irPara(etapa + 1);
 
-  const tudoValido = Object.keys(campos)
-    .map(validarCampo)
-    .every(Boolean);
-
-  if (!tudoValido) {
-    mensagem.textContent = "Corrija os campos destacados.";
-    return;
-  }
-
-  const dados = {
-    nome: campos.nome.value.trim(),
-    email: campos.email.value.trim(),
-    cnpj: soDigitos(campos.cnpj.value),
-    endereco: campos.endereco.value.trim(),
-    telefone: soDigitos(campos.telefone.value),
-    senha: campos.senha.value,
-  };
-
-  // TODO: trocar pela URL da sua API
-  // try {
-  //   const resp = await fetch("/api/voluntarios", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify(dados),
-  //   });
-  //   if (!resp.ok) throw new Error();
-  // } catch {
-  //   mensagem.textContent = "Erro ao cadastrar. Tente novamente.";
-  //   return;
-  // }
-
-  console.log("Cadastro enviado:", { ...dados, senha: "***" });
-  mensagem.textContent = `Cadastro de ${dados.nome} realizado com sucesso!`;
-  form.reset();
+  const dados = Object.fromEntries(
+    [...$("form").querySelectorAll("input, select")]
+      .filter(el => el.id !== "confirmarSenha")
+      .map(el => [el.id, el.value])
+  );
+  console.log("Enviar para o backend:", dados); // troque por um fetch para sua API
+  irPara(total);
 });
 
-/* ---------- Voltar ---------- */
+irPara(0);
 
-document.getElementById("voltar").addEventListener("click", (e) => {
+/* ---------- Link voltar ---------- */
+$("linkVoltar").addEventListener("click", e => {
   e.preventDefault();
   history.back();
 });
