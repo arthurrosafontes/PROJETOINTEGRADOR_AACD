@@ -1,20 +1,16 @@
-// ===== DADOS DE EXEMPLO =====
-// Depois você pode trocar isso por um fetch() para a sua API.
+// =====================================================
+// TELA: Em Produção (frontend)
+// Este arquivo só cuida da tela. Os dados vêm da API
+// (backend/server.js), que lê e grava no banco de dados.
+// =====================================================
+
+// Endereço da API. Troque se o backend rodar em outra porta/servidor.
+const API_URL = "http://localhost:3000/api";
+
+// Lista que vem da API. Formato de cada peça:
+// { id, paciente, peca, status, entrega, enviado, concluido, material, impressora, progresso, obs }
 // status: "Em produção" | "Aguardando validação" | "Concluída"
-// enviado: data em que a peça foi enviada para a equipe validar
-// concluido: data em que a equipe aprovou a peça
-const producao = [
-  { id: 1018, paciente: "Ana Lima", peca: "Prótese de dedo", status: "Em produção", entrega: "2026-10-05", material: "PLA", impressora: "Ender 3 V2", progresso: 70, obs: "Tamanho P, mão esquerda." },
-  { id: 1015, paciente: "Beatriz Rocha", peca: "Prótese de mão", status: "Em produção", entrega: "2026-10-08", material: "PETG", impressora: "Bambu Lab P1S", progresso: 45, obs: "Escala 105%." },
-  { id: 1012, paciente: "João Pereira", peca: "Prótese de antebraço", status: "Em produção", entrega: "2026-10-12", material: "PLA", impressora: "Ender 3 V2", progresso: 85, obs: "Imprimir em duas partes." },
-  { id: 1010, paciente: "Maria Souza", peca: "Prótese de mão", status: "Em produção", entrega: "2026-10-30", material: "PLA", impressora: "Bambu Lab P1S", progresso: 20, obs: "Cor azul, se possível." },
-  { id: 1008, paciente: "Lucas Oliveira", peca: "Prótese de braço", status: "Em produção", entrega: "2026-11-02", material: "PETG", impressora: "Ender 3 V2", progresso: 10, obs: "Arquivo STL anexado ao pedido." },
-  { id: 1005, paciente: "Carlos Mendes", peca: "Órtese de punho", status: "Em produção", entrega: "2026-11-15", material: "TPU", impressora: "Bambu Lab P1S", progresso: 0, obs: "Material flexível obrigatório." },
-  { id: 1003, paciente: "Paula Nunes", peca: "Adaptador de talher", status: "Aguardando validação", entrega: "2026-10-20", enviado: "2026-10-13", material: "PETG", impressora: "Ender 3 V2", progresso: 100, obs: "Três unidades, cor azul." },
-  { id: 1001, paciente: "Rodrigo Silva", peca: "Órtese de dedo", status: "Aguardando validação", entrega: "2026-10-22", enviado: "2026-10-14", material: "PLA", impressora: "Bambu Lab P1S", progresso: 100, obs: "Tamanhos P e M." },
-  { id: 998, paciente: "Mariana Alves", peca: "Palmilha ortopédica", status: "Concluída", entrega: "2026-10-10", enviado: "2026-10-06", concluido: "2026-10-09", material: "TPU", impressora: "Ender 3 V2", progresso: 100, obs: "Par completo, tamanho 38." },
-  { id: 995, paciente: "Tiago Santos", peca: "Engrossador de lápis", status: "Concluída", entrega: "2026-10-03", enviado: "2026-09-29", concluido: "2026-10-01", material: "TPU", impressora: "Bambu Lab P1S", progresso: 100, obs: "Cinco unidades." },
-];
+let producao = [];
 
 // Título, texto e classe CSS de cada status
 const infoStatus = {
@@ -43,16 +39,32 @@ const subtitulo = document.getElementById("subtitulo");
 const vazio = document.getElementById("vazio");
 const toast = document.getElementById("toast");
 
-// ===== FUNÇÕES =====
+// ===== CHAMADAS À API =====
+async function buscarProducao() {
+  const resposta = await fetch(`${API_URL}/producao`);
+  if (!resposta.ok) throw new Error("Não foi possível carregar as peças.");
+  return resposta.json();
+}
+
+async function enviarParaValidacao(id) {
+  const resposta = await fetch(`${API_URL}/producao/${id}/enviar`, { method: "PATCH" });
+  const dados = await resposta.json();
+  if (!resposta.ok) throw new Error(dados.erro || "Não foi possível enviar a peça.");
+  return dados; // peça já atualizada
+}
+
+// ===== FUNÇÕES DA TELA =====
 function formatarData(iso) {
-  const [ano, mes, dia] = iso.split("-");
+  if (!iso) return "-";
+  const [ano, mes, dia] = iso.slice(0, 10).split("-");
   return `${dia}/${mes}/${ano}`;
 }
 
-function hojeISO() {
-  const hoje = new Date();
-  hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset());
-  return hoje.toISOString().slice(0, 10);
+// Evita que textos do banco virem HTML na tela
+function escapar(texto) {
+  const div = document.createElement("div");
+  div.textContent = texto ?? "";
+  return div.innerHTML;
 }
 
 // Diferença em dias entre hoje e a data de entrega (negativo = atrasado)
@@ -112,10 +124,10 @@ function renderizar() {
     li.innerHTML = `
       <div class="item-info">
         <div class="item-titulo">
-          <h3>${p.paciente}</h3>
-          <span class="badge ${infoStatus[p.status].classe}">${p.status}</span>
+          <h3>${escapar(p.paciente)}</h3>
+          <span class="badge ${infoStatus[p.status].classe}">${escapar(p.status)}</span>
         </div>
-        <p>${p.peca}</p>
+        <p>${escapar(p.peca)}</p>
       </div>
       <div class="item-prazo">
         ${prazo.linha}
@@ -129,6 +141,7 @@ function renderizar() {
   titulo.textContent = infoStatus[statusSelecionado].titulo;
   subtitulo.textContent = infoStatus[statusSelecionado].subtitulo;
   atualizarContadores();
+  vazio.textContent = "Nenhuma peça encontrada.";
   vazio.hidden = itens.length > 0;
 }
 
@@ -148,7 +161,7 @@ function mostrarToast(mensagem) {
 }
 
 // ===== EVENTOS DA LISTA =====
-lista.addEventListener("click", e => {
+lista.addEventListener("click", async e => {
   const botao = e.target.closest("button[data-acao]");
   if (!botao) return;
 
@@ -171,11 +184,11 @@ lista.addEventListener("click", e => {
       div.innerHTML = `
         <dl>
           <dt>Pedido:</dt><dd>#${peca.id}</dd>
-          <dt>Material:</dt><dd>${peca.material}</dd>
-          <dt>Impressora:</dt><dd>${peca.impressora}</dd>
+          <dt>Material:</dt><dd>${escapar(peca.material) || "-"}</dd>
+          <dt>Impressora:</dt><dd>${escapar(peca.impressora) || "-"}</dd>
           <dt>Progresso:</dt><dd>${peca.progresso}%</dd>
           <dt>Prazo:</dt><dd>${formatarData(peca.entrega)}</dd>
-          <dt>Observações:</dt><dd>${peca.obs}</dd>
+          <dt>Observações:</dt><dd>${escapar(peca.obs) || "-"}</dd>
         </dl>
         ${botaoEnviar}
       `;
@@ -185,11 +198,18 @@ lista.addEventListener("click", e => {
   }
 
   if (botao.dataset.acao === "enviar") {
-    peca.status = "Aguardando validação";
-    peca.enviado = hojeISO();
-    peca.progresso = 100;
-    renderizar();
-    mostrarToast(`Peça de ${peca.paciente} enviada para validação.`);
+    botao.disabled = true;
+    botao.textContent = "Enviando...";
+    try {
+      const atualizada = await enviarParaValidacao(id);
+      Object.assign(peca, atualizada);
+      renderizar();
+      mostrarToast(`Peça de ${peca.paciente} enviada para validação.`);
+    } catch (erro) {
+      botao.disabled = false;
+      botao.textContent = "Enviar para validação";
+      mostrarToast(erro.message);
+    }
   }
 });
 
@@ -229,4 +249,14 @@ document.getElementById("menuToggle").addEventListener("click", e => {
 });
 
 // ===== INICIAR =====
-selecionarStatus(statusDoEndereco());
+async function iniciar() {
+  try {
+    producao = await buscarProducao();
+    selecionarStatus(statusDoEndereco());
+  } catch (erro) {
+    vazio.textContent = "Erro ao carregar as peças. Verifique se o backend está rodando.";
+    vazio.hidden = false;
+  }
+}
+
+iniciar();
