@@ -1,76 +1,114 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cadastro de Voluntário</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="cadastro.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro de Voluntário</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cadastro.css">
 </head>
 <body>
-  <!-- Onda de fundo -->
-  <svg class="onda" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M520 900 C 640 640, 820 420, 1100 330 C 1250 285, 1360 270, 1440 280 L 1440 900 Z" />
-  </svg>
 
-  <main class="cartao">
-    <form id="form-cadastro" novalidate>
-      <div class="grade">
-        <!-- NOVO: campo de nome do voluntário -->
-        <div class="grupo grupo-nome">
-          <input type="text" id="nome" name="nome" class="campo"
-                 placeholder="Nome do voluntário:" autocomplete="name" required />
-          <span class="erro" data-erro-de="nome"></span>
+<main class="card">
+  <nav aria-label="Etapas do cadastro">
+    <ol class="breadcrumb" id="breadcrumb">
+      <li data-step="0"><button type="button">1. Dados do voluntário</button></li>
+      <li data-step="1"><button type="button">2. Endereço</button></li>
+      <li data-step="2"><button type="button">3. Acesso</button></li>
+    </ol>
+  </nav>
+
+  <form id="form" novalidate>
+    <!-- Etapa 1: Dados -->
+    <section class="step active" data-step="0">
+      <div class="grid">
+        <div class="field full nome">
+          <input id="nome" placeholder="Nome do voluntário:" autocomplete="name">
+          <span class="error"></span>
         </div>
-
-        <div class="grupo">
-          <input type="email" id="email" name="email" class="campo"
-                 placeholder="Email:" autocomplete="email" required />
-          <span class="erro" data-erro-de="email"></span>
+        <div class="field">
+          <input id="email" type="email" placeholder="Email:" autocomplete="email">
+          <span class="error"></span>
         </div>
-
-        <div class="grupo">
-          <input type="text" id="cnpj" name="cnpj" class="campo"
-                 placeholder="CNPJ: AA.AAA.AAA/AAAA-DV" inputmode="numeric" maxlength="18" required />
-          <span class="erro" data-erro-de="cnpj"></span>
+        <div class="field">
+          <input id="cnpj" placeholder="CNPJ: AA.AAA.AAA/AAAA-DV" maxlength="18">
+          <span class="error"></span>
         </div>
-
-        <div class="grupo">
-          <input type="text" id="endereco" name="endereco" class="campo"
-                 placeholder="Endereço" autocomplete="street-address" required />
-          <span class="erro" data-erro-de="endereco"></span>
-        </div>
-
-        <div class="grupo">
-          <input type="tel" id="telefone" name="telefone" class="campo"
-                 placeholder="Telefone: (XX) XXXXX-XXXX" inputmode="numeric" maxlength="15" required />
-          <span class="erro" data-erro-de="telefone"></span>
-        </div>
-
-        <div class="grupo">
-          <input type="password" id="senha" name="senha" class="campo"
-                 placeholder="Senha" autocomplete="new-password" required />
-          <span class="erro" data-erro-de="senha"></span>
-        </div>
-
-        <div class="grupo">
-          <input type="password" id="confirmarSenha" name="confirmarSenha" class="campo"
-                 placeholder="Confirmar Senha:" autocomplete="new-password" required />
-          <span class="erro" data-erro-de="confirmarSenha"></span>
+        <div class="field full" style="max-width:560px;justify-self:center;width:100%">
+          <input id="telefone" placeholder="Telefone: (XX) XXXXX-XXXX" maxlength="15" autocomplete="tel">
+          <span class="error"></span>
         </div>
       </div>
+    </section>
 
-      <button type="submit" class="botao">Cadastrar</button>
-      <p id="mensagem" class="mensagem" role="status"></p>
+    <!-- Etapa 2: Endereço -->
+    <section class="step" data-step="1">
+      <div class="grid-endereco">
+        <div class="field">
+          <div class="cep-wrap">
+            <input id="cep" placeholder="CEP: 00000-000" maxlength="9" autocomplete="postal-code">
+            <span class="cep-status" id="cepStatus"></span>
+          </div>
+          <span class="error"></span>
+        </div>
+        <div class="field span-2">
+          <input id="rua" placeholder="Rua / Logradouro" autocomplete="address-line1">
+          <span class="error"></span>
+        </div>
+        <div class="field">
+          <input id="numero" placeholder="Número">
+          <span class="error"></span>
+        </div>
+        <div class="field span-2">
+          <input id="complemento" placeholder="Complemento (opcional)" autocomplete="address-line2">
+          <span class="error"></span>
+        </div>
+        <div class="field">
+          <input id="bairro" placeholder="Bairro">
+          <span class="error"></span>
+        </div>
+        <div class="field">
+          <input id="cidade" placeholder="Cidade" autocomplete="address-level2">
+          <span class="error"></span>
+        </div>
+        <div class="field">
+          <select id="uf" autocomplete="address-level1">
+            <option value="">UF</option>
+          </select>
+          <span class="error"></span>
+        </div>
+      </div>
+    </section>
 
-      <a href="/frontend/LOGIN_VOLUNTARIOS/login_voluntarios.html" id="voltar" class="link-voltar">Voltar para tela anterior</a>
-    </form>
-  </main>
+    <!-- Etapa 3: Acesso -->
+    <section class="step" data-step="2">
+      <div class="grid">
+        <div class="field">
+          <input id="senha" type="password" placeholder="Senha" autocomplete="new-password">
+          <span class="error"></span>
+        </div>
+        <div class="field">
+          <input id="confirmarSenha" type="password" placeholder="Confirmar Senha:" autocomplete="new-password">
+          <span class="error"></span>
+        </div>
+      </div>
+    </section>
 
-  <!-- Troque pelo caminho do logo do hospital -->
-  <img src="img/logo-aacd2.png" alt="Hospital Ortopédico" class="logo" />
+    <section class="step" data-step="3">
+      <p class="sucesso">Cadastro realizado com sucesso! 🎉</p>
+    </section>
 
-  <script src="cadastro.js"></script>
+    <div class="actions" id="actions">
+      <button type="button" class="btn secondary" id="btnAnterior">Anterior</button>
+      <button type="submit" class="btn" id="btnProximo">Próximo</button>
+    </div>
+  </form>
+
+  <a href="#" class="voltar" id="linkVoltar">Voltar para tela anterior</a>
+</main>
+
+<div class="logo">Hospital<br>Ortopédico</div>
+
+<script src="cadastro.js"></script>
 </body>
 </html>
