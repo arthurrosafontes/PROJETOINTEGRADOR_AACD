@@ -1,12 +1,18 @@
+// =====================================================
+// TELA: Cadastro de demanda (frontend)
+// Este arquivo só cuida da tela. As próteses cadastradas e a
+// publicação da demanda passam pela API (backend/server.js).
+// O rascunho continua no navegador (localStorage), porque é
+// só de quem está preenchendo.
+// =====================================================
+
+// Endereço da API. Troque se o backend rodar em outra porta/servidor.
+const API_URL = "http://localhost:3000/api";
+
 // ===== PRÓTESES JÁ CADASTRADAS =====
-// Por enquanto é uma lista de exemplo. Depois troque por um fetch() para a sua API, por exemplo:
-// fetch("/api/proteses").then(r => r.json()).then(lista => { protesesCadastradas = lista; carregarProteses(); });
-let protesesCadastradas = [
-  { id: "PRT-001", nome: "Mão infantil articulada", tipo: "Prótese", regiao: "Mão", filamento: "PLA", bico: "0.4", largura: 85, profundidade: 60, altura: 140, horas: 6, minutos: 30 },
-  { id: "PRT-002", nome: "Órtese de punho", tipo: "Órtese", regiao: "Membro superior", filamento: "PETG", bico: "0.6", largura: 110, profundidade: 80, altura: 95, horas: 8, minutos: 0 },
-  { id: "PRT-003", nome: "Adaptador de talher", tipo: "Adaptador", regiao: "Mão", filamento: "TPU", bico: "0.4", largura: 45, profundidade: 30, altura: 120, horas: 2, minutos: 15 },
-  { id: "PRT-004", nome: "Palmilha ortopédica M", tipo: "Palmilha", regiao: "Pé", filamento: "TPU", bico: "0.6", largura: 100, profundidade: 270, altura: 25, horas: 5, minutos: 45 },
-];
+// Vêm da API. Formato de cada uma:
+// { id, nome, tipo, regiao, filamento, bico, largura, profundidade, altura, horas, minutos }
+let protesesCadastradas = [];
 
 // ===== CONFIGURAÇÃO DAS ETAPAS =====
 // Cada etapa lista os campos obrigatórios que precisam ser validados antes de avançar.
@@ -30,6 +36,7 @@ const camposMedida = ["largura", "profundidade", "altura"];
 
 let etapaAtual = 0;
 let etapaMaxima = 0; // etapa mais avançada que o usuário já alcançou
+let publicando = false;
 
 // ===== ELEMENTOS =====
 const form = document.getElementById("formDemanda");
@@ -40,6 +47,24 @@ const btnRascunho = document.getElementById("btnRascunho");
 const btnCancelar = document.getElementById("btnCancelar");
 const toast = document.getElementById("toast");
 const selectProtese = document.getElementById("protese");
+
+// ===== CHAMADAS À API =====
+async function buscarProteses() {
+  const resposta = await fetch(`${API_URL}/proteses`);
+  if (!resposta.ok) throw new Error("Não foi possível carregar as próteses.");
+  return resposta.json();
+}
+
+async function enviarDemanda(demanda) {
+  const resposta = await fetch(`${API_URL}/demandas`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(demanda),
+  });
+  const dados = await resposta.json();
+  if (!resposta.ok) throw new Error(dados.erro || "Não foi possível publicar a demanda.");
+  return dados; // demanda salva, já com id
+}
 
 // ===== FUNÇÕES =====
 function valor(id) {
@@ -142,10 +167,10 @@ function preencherComProtese(id) {
   mostrarToast(`Dados de "${p.nome}" preenchidos.`);
 }
 
+// Junta os dados do formulário. O id e a data de criação quem define é a API.
 function montarDemanda() {
   const arquivo = document.getElementById("arquivo").files[0];
   return {
-    id: Date.now(),
     nome: valor("nome"),
     proteseId: valor("protese"),
     quantidade: Number(valor("quantidade")),
@@ -170,10 +195,10 @@ function montarDemanda() {
       responsavel: valor("responsavel"),
       instrucoes: valor("instrucoes"),
     },
-    criado: hojeISO(),
   };
 }
 
+// ===== RASCUNHO (fica só neste navegador) =====
 function salvarRascunho() {
   const rascunho = { etapa: etapaMaxima };
   camposRascunho.forEach(id => rascunho[id] = document.getElementById(id).value);
@@ -203,25 +228,29 @@ function apagarRascunho() {
   try { localStorage.removeItem("rascunhoDemanda"); } catch (e) {}
 }
 
-function publicar() {
-  const demanda = montarDemanda();
+// ===== PUBLICAR =====
+async function publicar() {
+  if (publicando) return;
+  publicando = true;
+  btnProximo.disabled = true;
+  btnProximo.textContent = "Publicando...";
 
-  // Depois você pode trocar isso por um fetch() para a sua API, por exemplo:
-  // fetch("/api/demandas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(demanda) })
   try {
-    const salvas = JSON.parse(localStorage.getItem("demandas") || "[]");
-    salvas.push(demanda);
-    localStorage.setItem("demandas", JSON.stringify(salvas));
-  } catch (e) {
-    console.warn("Não foi possível salvar no navegador.", e);
-  }
+    const salva = await enviarDemanda(montarDemanda());
 
-  apagarRascunho();
-  mostrarToast(`Demanda "${demanda.nome}" publicada para os voluntários!`);
-  form.reset();
-  document.querySelectorAll(".invalido").forEach(c => c.classList.remove("invalido"));
-  etapaMaxima = 0;
-  irParaEtapa(0);
+    apagarRascunho();
+    mostrarToast(`Demanda "${salva.nome}" publicada para os voluntários!`);
+    form.reset();
+    document.querySelectorAll(".invalido").forEach(c => c.classList.remove("invalido"));
+    etapaMaxima = 0;
+    irParaEtapa(0);
+  } catch (erro) {
+    mostrarToast(erro.message);
+    btnProximo.textContent = "Publicar demanda";
+  } finally {
+    publicando = false;
+    btnProximo.disabled = false;
+  }
 }
 
 // Mostra um aviso rápido na parte de baixo da tela. Ex: mostrarToast("Salvo!");
@@ -307,6 +336,15 @@ document.getElementById("menuToggle").addEventListener("click", e => {
 });
 
 // ===== INICIAR =====
-carregarProteses();
-carregarRascunho();
-irParaEtapa(0);
+async function iniciar() {
+  try {
+    protesesCadastradas = await buscarProteses();
+  } catch (erro) {
+    mostrarToast("Não foi possível carregar as próteses cadastradas.");
+  }
+  carregarProteses();   // o rascunho pode ter uma prótese escolhida, então carrega antes
+  carregarRascunho();
+  irParaEtapa(0);
+}
+
+iniciar();

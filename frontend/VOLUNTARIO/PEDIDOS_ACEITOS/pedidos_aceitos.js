@@ -1,16 +1,24 @@
-// ===== DADOS DE EXEMPLO =====
-// Depois você pode trocar isso por um fetch() para a sua API.
-// O paciente aparece só pelo código, para proteger a privacidade.
-const pedidosAceitos = [
-  { id: 1024, produto: "Órtese de punho", regiao: "Membro superior", aceito: "2026-10-09", status: "Pendente", paciente: "PAC-0842", material: "PLA", quantidade: 1, prazo: "2026-10-20", obs: "Tamanho M, lado direito." },
-  { id: 1025, produto: "Prótese ortopédica", regiao: "Membro inferior", aceito: "2026-10-08", status: "Em produção", paciente: "PAC-0517", material: "PETG", quantidade: 1, prazo: "2026-10-25", obs: "Imprimir em duas partes." },
-  { id: 1026, produto: "Palmilha ortopédica", regiao: "Apoio plantar", aceito: "2026-10-06", status: "Concluído", paciente: "PAC-0233", material: "TPU", quantidade: 2, prazo: "2026-10-12", obs: "Par completo, tamanho 38." },
-];
+// =====================================================
+// TELA: Pedidos Aceitos (frontend)
+// Este arquivo só cuida da tela. Os dados vêm da API
+// (backend/), que lê e grava no banco de dados.
+// =====================================================
 
-// Classe CSS de cada status
-const classeStatus = { "Pendente": "pendente", "Em produção": "producao", "Concluído": "concluido" };
+// Endereço da API. Troque se o backend rodar em outra porta/servidor.
+const API_URL = "http://localhost:3000/api";
 
+// Lista que vem da API. Formato de cada pedido:
+// { id, produto, categoria, status, aceito_em, material, prazo, obs }
+// status: "Pendente" | "Em produção" | "Concluído"
+let pedidos = [];
 let statusSelecionado = "todos";
+
+// Classe CSS do badge de cada status
+const classeStatus = {
+  "Pendente": "pendente",
+  "Em produção": "producao",
+  "Concluído": "concluido",
+};
 
 // ===== ELEMENTOS =====
 const lista = document.getElementById("listaPedidos");
@@ -19,30 +27,52 @@ const abas = document.querySelectorAll(".aba");
 const vazio = document.getElementById("vazio");
 const toast = document.getElementById("toast");
 
-// ===== FUNÇÕES =====
+// ===== CHAMADAS À API =====
+async function buscarPedidos() {
+  const resposta = await fetch(`${API_URL}/pedidos`);
+  if (!resposta.ok) throw new Error("Não foi possível carregar os pedidos.");
+  return resposta.json();
+}
+
+async function aceitarPedido(id) {
+  const resposta = await fetch(`${API_URL}/pedidos/${id}/aceitar`, { method: "PATCH" });
+  const dados = await resposta.json();
+  if (!resposta.ok) throw new Error(dados.erro || "Não foi possível aceitar o pedido.");
+  return dados; // pedido já atualizado
+}
+
+// ===== FUNÇÕES DA TELA =====
 function formatarData(iso) {
-  const [ano, mes, dia] = iso.split("-");
+  if (!iso) return "-";
+  const [ano, mes, dia] = iso.slice(0, 10).split("-");
   return `${dia}/${mes}/${ano}`;
 }
 
-function filtrarPedidos() {
-  const termo = busca.value.trim().toLowerCase().replace("#", "");
+// Evita que textos do banco virem HTML na tela
+function escapar(texto) {
+  const div = document.createElement("div");
+  div.textContent = texto ?? "";
+  return div.innerHTML;
+}
 
-  return pedidosAceitos
-    .filter(p => {
-      const bateTexto = String(p.id).includes(termo) || p.produto.toLowerCase().includes(termo);
-      const bateStatus = statusSelecionado === "todos" || p.status === statusSelecionado;
-      return bateTexto && bateStatus;
-    })
-    .sort((a, b) => b.aceito.localeCompare(a.aceito)); // aceitos mais recentes primeiro
+function filtrarPedidos() {
+  const termo = busca.value.trim().toLowerCase();
+  return pedidos.filter(p => {
+    const bateTexto =
+      String(p.id).includes(termo) ||
+      p.produto.toLowerCase().includes(termo) ||
+      p.categoria.toLowerCase().includes(termo);
+    const bateStatus = statusSelecionado === "todos" || p.status === statusSelecionado;
+    return bateTexto && bateStatus;
+  });
 }
 
 function atualizarContadores() {
   document.querySelectorAll("[data-contador]").forEach(span => {
     const status = span.dataset.contador;
     span.textContent = status === "todos"
-      ? pedidosAceitos.length
-      : pedidosAceitos.filter(p => p.status === status).length;
+      ? pedidos.length
+      : pedidos.filter(p => p.status === status).length;
   });
 }
 
@@ -51,58 +81,90 @@ function renderizar() {
   lista.innerHTML = "";
 
   itens.forEach(p => {
+    // O botão "Aceitar" só aparece nos pedidos pendentes
+    const botaoAceitar = p.status === "Pendente"
+      ? `<button class="btn btn-primario" data-acao="aceitar">Aceitar</button>`
+      : "";
+
     const li = document.createElement("li");
-    li.className = "pedido";
+    li.className = "item-pedido";
     li.dataset.id = p.id;
     li.innerHTML = `
-      <div class="pedido-info">
+      <div class="item-info">
         <h3>Pedido #${p.id}</h3>
-        <p>${p.produto} · ${p.regiao}</p>
+        <p>${escapar(p.produto)} · ${escapar(p.categoria)}</p>
       </div>
-      <div class="pedido-data">
-        <span>Aceito em ${formatarData(p.aceito)}</span>
-        <span class="badge ${classeStatus[p.status]}">${p.status}</span>
+      <div class="item-data">
+        Aceito em ${formatarData(p.aceito_em)}
+        <span class="badge ${classeStatus[p.status]}">${escapar(p.status)}</span>
       </div>
-      <button class="btn btn-secundario" data-acao="detalhes">Ver detalhes</button>
+      <div class="item-acoes">
+        ${botaoAceitar}
+        <button class="btn btn-secundario" data-acao="detalhes">Ver detalhes</button>
+      </div>
     `;
     lista.appendChild(li);
   });
 
-  atualizarContadores();
+  vazio.classList.remove("erro");
+  vazio.textContent = "Nenhum pedido encontrado.";
   vazio.hidden = itens.length > 0;
+  atualizarContadores();
 }
 
-function mostrarToast(mensagem) {
+function selecionarStatus(status) {
+  statusSelecionado = status;
+  abas.forEach(a => a.classList.toggle("ativa", a.dataset.status === status));
+  renderizar();
+}
+
+function mostrarToast(mensagem, erro = false) {
   toast.textContent = mensagem;
+  toast.classList.toggle("erro", erro);
   toast.classList.add("visivel");
   clearTimeout(toast._timer);
   toast._timer = setTimeout(() => toast.classList.remove("visivel"), 2500);
 }
 
 // ===== EVENTOS DA LISTA =====
-lista.addEventListener("click", e => {
+lista.addEventListener("click", async e => {
   const botao = e.target.closest("button[data-acao]");
   if (!botao) return;
 
-  const item = botao.closest(".pedido");
+  const item = botao.closest(".item-pedido");
   const id = Number(item.dataset.id);
-  const pedido = pedidosAceitos.find(p => p.id === id);
+  const pedido = pedidos.find(p => p.id === id);
+
+  if (botao.dataset.acao === "aceitar") {
+    botao.disabled = true;
+    botao.textContent = "Aceitando...";
+    try {
+      const atualizado = await aceitarPedido(id);
+      Object.assign(pedido, atualizado);
+      renderizar();
+      mostrarToast(`Pedido #${id} aceito.`);
+    } catch (erro) {
+      botao.disabled = false;
+      botao.textContent = "Aceitar";
+      mostrarToast(erro.message, true);
+    }
+  }
 
   if (botao.dataset.acao === "detalhes") {
-    const extra = item.querySelector(".pedido-extra");
+    const extra = item.querySelector(".item-extra");
     if (extra) {
       extra.remove();
       botao.textContent = "Ver detalhes";
     } else {
       const div = document.createElement("div");
-      div.className = "pedido-extra";
+      div.className = "item-extra";
       div.innerHTML = `
         <dl>
-          <dt>Paciente:</dt><dd>${pedido.paciente}</dd>
-          <dt>Material:</dt><dd>${pedido.material}</dd>
-          <dt>Quantidade:</dt><dd>${pedido.quantidade}</dd>
+          <dt>Produto:</dt><dd>${escapar(pedido.produto)}</dd>
+          <dt>Categoria:</dt><dd>${escapar(pedido.categoria)}</dd>
+          <dt>Material:</dt><dd>${escapar(pedido.material) || "-"}</dd>
           <dt>Prazo:</dt><dd>${formatarData(pedido.prazo)}</dd>
-          <dt>Observações:</dt><dd>${pedido.obs}</dd>
+          <dt>Observações:</dt><dd>${escapar(pedido.obs) || "-"}</dd>
         </dl>
       `;
       item.appendChild(div);
@@ -113,15 +175,7 @@ lista.addEventListener("click", e => {
 
 // ===== FILTROS =====
 busca.addEventListener("input", renderizar);
-
-abas.forEach(aba => {
-  aba.addEventListener("click", () => {
-    abas.forEach(a => a.classList.remove("ativa"));
-    aba.classList.add("ativa");
-    statusSelecionado = aba.dataset.status;
-    renderizar();
-  });
-});
+abas.forEach(aba => aba.addEventListener("click", () => selecionarStatus(aba.dataset.status)));
 
 // ===== DROPDOWNS DA NAVBAR =====
 document.querySelectorAll(".dropdown > button").forEach(botao => {
@@ -138,11 +192,21 @@ document.addEventListener("click", () => {
   document.querySelectorAll(".dropdown.aberto").forEach(d => d.classList.remove("aberto"));
 });
 
-// Menu mobile
 document.getElementById("menuToggle").addEventListener("click", e => {
   e.stopPropagation();
   document.getElementById("menu").classList.toggle("aberto");
 });
 
 // ===== INICIAR =====
-renderizar();
+async function iniciar() {
+  try {
+    pedidos = await buscarPedidos();
+    renderizar();
+  } catch (erro) {
+    vazio.textContent = "Erro ao carregar os pedidos. Verifique se o backend está rodando.";
+    vazio.classList.add("erro");
+    vazio.hidden = false;
+  }
+}
+
+iniciar();

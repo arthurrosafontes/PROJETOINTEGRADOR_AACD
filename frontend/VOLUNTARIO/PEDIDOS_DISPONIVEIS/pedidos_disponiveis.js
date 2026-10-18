@@ -1,13 +1,15 @@
-// ===== DADOS DE EXEMPLO =====
-// Depois você pode trocar isso por um fetch() para a sua API.
-const pedidos = [
-  { id: 1024, peca: "Órtese de punho", material: "PLA", quantidade: 1, prazo: "2026-10-15", criado: "2026-10-08", prioridade: "Alta", tempo: "4h", obs: "Tamanho M, lado direito." },
-  { id: 1023, peca: "Adaptador de talher", material: "PETG", quantidade: 3, prazo: "2026-10-20", criado: "2026-10-07", prioridade: "Média", tempo: "1h30", obs: "Cor azul, se possível." },
-  { id: 1022, peca: "Mão protética infantil", material: "PLA", quantidade: 1, prazo: "2026-10-14", criado: "2026-10-06", prioridade: "Alta", tempo: "12h", obs: "Escala 110%. Arquivo STL anexado ao pedido." },
-  { id: 1021, peca: "Engrossador de lápis", material: "TPU", quantidade: 5, prazo: "2026-10-30", criado: "2026-10-05", prioridade: "Baixa", tempo: "45min", obs: "Material flexível obrigatório." },
-  { id: 1020, peca: "Suporte para celular adaptado", material: "PLA", quantidade: 2, prazo: "2026-10-25", criado: "2026-10-04", prioridade: "Média", tempo: "3h", obs: "Para uso em cadeira de rodas." },
-  { id: 1019, peca: "Órtese de dedo", material: "PETG", quantidade: 2, prazo: "2026-11-02", criado: "2026-10-02", prioridade: "Baixa", tempo: "40min", obs: "Tamanhos P e M." },
-];
+// =====================================================
+// TELA: Pedidos Disponíveis (frontend)
+// Este arquivo só cuida da tela. Os dados vêm da API
+// (backend/server.js), que lê e grava no banco de dados.
+// =====================================================
+
+// Endereço da API. Troque se o backend rodar em outra porta/servidor.
+const API_URL = "http://localhost:3000/api";
+
+// Lista que vem da API. Formato de cada pedido:
+// { id, peca, material, quantidade, prazo, criado, prioridade, tempo, obs }
+let pedidos = [];
 
 const pesoPrioridade = { Alta: 3, Média: 2, Baixa: 1 };
 
@@ -20,10 +22,32 @@ const contador = document.getElementById("contador");
 const vazio = document.getElementById("vazio");
 const toast = document.getElementById("toast");
 
-// ===== FUNÇÕES =====
+// ===== CHAMADAS À API =====
+async function buscarDisponiveis() {
+  const resposta = await fetch(`${API_URL}/disponiveis`);
+  if (!resposta.ok) throw new Error("Não foi possível carregar os pedidos.");
+  return resposta.json();
+}
+
+async function aceitarPedido(id) {
+  const resposta = await fetch(`${API_URL}/disponiveis/${id}/aceitar`, { method: "PATCH" });
+  const dados = await resposta.json();
+  if (!resposta.ok) throw new Error(dados.erro || "Não foi possível aceitar o pedido.");
+  return dados;
+}
+
+// ===== FUNÇÕES DA TELA =====
 function formatarData(iso) {
-  const [ano, mes, dia] = iso.split("-");
+  if (!iso) return "-";
+  const [ano, mes, dia] = iso.slice(0, 10).split("-");
   return `${dia}/${mes}/${ano}`;
+}
+
+// Evita que textos do banco virem HTML na tela
+function escapar(texto) {
+  const div = document.createElement("div");
+  div.textContent = texto ?? "";
+  return div.innerHTML;
 }
 
 function filtrarPedidos() {
@@ -54,14 +78,14 @@ function renderizar() {
     li.innerHTML = `
       <div class="pedido-info">
         <div class="pedido-titulo">
-          <h3>${p.peca}</h3>
-          <span class="badge ${p.prioridade}">${p.prioridade}</span>
+          <h3>${escapar(p.peca)}</h3>
+          <span class="badge ${escapar(p.prioridade)}">${escapar(p.prioridade)}</span>
           <span class="pedido-codigo">#${p.id}</span>
         </div>
         <div class="pedido-detalhes">
-          <span>Material: <strong>${p.material}</strong></span>
+          <span>Material: <strong>${escapar(p.material)}</strong></span>
           <span>Qtd: <strong>${p.quantidade}</strong></span>
-          <span>Tempo estimado: <strong>${p.tempo}</strong></span>
+          <span>Tempo estimado: <strong>${escapar(p.tempo)}</strong></span>
           <span>Prazo: <strong>${formatarData(p.prazo)}</strong></span>
         </div>
       </div>
@@ -74,6 +98,7 @@ function renderizar() {
   });
 
   contador.textContent = `${itens.length} pedido(s) disponível(is)`;
+  vazio.textContent = "Nenhum pedido encontrado.";
   vazio.hidden = itens.length > 0;
 }
 
@@ -85,7 +110,7 @@ function mostrarToast(mensagem) {
 }
 
 // ===== EVENTOS DA LISTA =====
-lista.addEventListener("click", e => {
+lista.addEventListener("click", async e => {
   const botao = e.target.closest("button[data-acao]");
   if (!botao) return;
 
@@ -101,20 +126,28 @@ lista.addEventListener("click", e => {
     } else {
       const div = document.createElement("div");
       div.className = "pedido-extra";
-      div.innerHTML = `<strong>Observações:</strong> ${pedido.obs}<br><strong>Criado em:</strong> ${formatarData(pedido.criado)}`;
+      div.innerHTML = `<strong>Observações:</strong> ${escapar(pedido.obs) || "-"}<br><strong>Criado em:</strong> ${formatarData(pedido.criado)}`;
       item.appendChild(div);
       botao.textContent = "Fechar";
     }
   }
 
   if (botao.dataset.acao === "aceitar") {
-    item.classList.add("saindo");
-    setTimeout(() => {
-      const indice = pedidos.findIndex(p => p.id === id);
-      pedidos.splice(indice, 1);
-      renderizar();
-      mostrarToast(`Pedido #${id} aceito! Veja em "Meus pedidos".`);
-    }, 300);
+    botao.disabled = true;
+    botao.textContent = "Aceitando...";
+    try {
+      await aceitarPedido(id);
+      item.classList.add("saindo");
+      setTimeout(() => {
+        pedidos = pedidos.filter(p => p.id !== id);
+        renderizar();
+        mostrarToast(`Pedido #${id} aceito! Veja em "Meus pedidos".`);
+      }, 300);
+    } catch (erro) {
+      botao.disabled = false;
+      botao.textContent = "Aceitar";
+      mostrarToast(erro.message);
+    }
   }
 });
 
@@ -145,4 +178,15 @@ document.getElementById("menuToggle").addEventListener("click", e => {
 });
 
 // ===== INICIAR =====
-renderizar();
+async function iniciar() {
+  try {
+    pedidos = await buscarDisponiveis();
+    renderizar();
+  } catch (erro) {
+    contador.textContent = "";
+    vazio.textContent = "Erro ao carregar os pedidos. Verifique se o backend está rodando.";
+    vazio.hidden = false;
+  }
+}
+
+iniciar();
