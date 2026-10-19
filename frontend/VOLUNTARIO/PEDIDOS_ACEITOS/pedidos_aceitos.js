@@ -9,7 +9,7 @@ const API_URL = "http://localhost:3000/api";
 
 // Lista que vem da API. Formato de cada pedido:
 // { id, produto, categoria, status, aceito_em, material, prazo, obs }
-// status: "Pendente" | "Em produção" | "Concluído"
+// status: "Pendente" | "Em produção" | "Concluído" | "Recusado"
 let pedidos = [];
 let statusSelecionado = "todos";
 
@@ -18,6 +18,7 @@ const classeStatus = {
   "Pendente": "pendente",
   "Em produção": "producao",
   "Concluído": "concluido",
+  "Recusado": "recusado",
 };
 
 // ===== ELEMENTOS =====
@@ -38,6 +39,13 @@ async function aceitarPedido(id) {
   const resposta = await fetch(`${API_URL}/pedidos/${id}/aceitar`, { method: "PATCH" });
   const dados = await resposta.json();
   if (!resposta.ok) throw new Error(dados.erro || "Não foi possível aceitar o pedido.");
+  return dados; // pedido já atualizado
+}
+
+async function recusarPedido(id) {
+  const resposta = await fetch(`${API_URL}/pedidos/${id}/recusar`, { method: "PATCH" });
+  const dados = await resposta.json();
+  if (!resposta.ok) throw new Error(dados.erro || "Não foi possível recusar o pedido.");
   return dados; // pedido já atualizado
 }
 
@@ -81,9 +89,10 @@ function renderizar() {
   lista.innerHTML = "";
 
   itens.forEach(p => {
-    // O botão "Aceitar" só aparece nos pedidos pendentes
-    const botaoAceitar = p.status === "Pendente"
-      ? `<button class="btn btn-primario" data-acao="aceitar">Aceitar</button>`
+    // Os botões "Aceitar" e "Recusar" só aparecem nos pedidos pendentes
+    const botoesDecisao = p.status === "Pendente"
+      ? `<button class="btn btn-primario" data-acao="aceitar">Aceitar</button>
+         <button class="btn btn-recusar" data-acao="recusar">Recusar</button>`
       : "";
 
     const li = document.createElement("li");
@@ -96,10 +105,10 @@ function renderizar() {
       </div>
       <div class="item-data">
         Aceito em ${formatarData(p.aceito_em)}
-        <span class="badge ${classeStatus[p.status]}">${escapar(p.status)}</span>
+        <span class="badge ${classeStatus[p.status] || ""}">${escapar(p.status)}</span>
       </div>
       <div class="item-acoes">
-        ${botaoAceitar}
+        ${botoesDecisao}
         <button class="btn btn-secundario" data-acao="detalhes">Ver detalhes</button>
       </div>
     `;
@@ -146,6 +155,23 @@ lista.addEventListener("click", async e => {
     } catch (erro) {
       botao.disabled = false;
       botao.textContent = "Aceitar";
+      mostrarToast(erro.message, true);
+    }
+  }
+
+  if (botao.dataset.acao === "recusar") {
+    if (!confirm(`Tem certeza que deseja recusar o pedido #${id}?`)) return;
+
+    botao.disabled = true;
+    botao.textContent = "Recusando...";
+    try {
+      const atualizado = await recusarPedido(id);
+      Object.assign(pedido, atualizado);
+      renderizar();
+      mostrarToast(`Pedido #${id} recusado.`);
+    } catch (erro) {
+      botao.disabled = false;
+      botao.textContent = "Recusar";
       mostrarToast(erro.message, true);
     }
   }
