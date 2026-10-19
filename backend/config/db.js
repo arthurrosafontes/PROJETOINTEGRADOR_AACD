@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
-require('dotenv').config();
+const path = require('path');
+
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 const conectarBanco = async () => {
     try {
@@ -9,10 +11,12 @@ const conectarBanco = async () => {
         }
         await mongoose.connect(uri);
         console.log('Conectado ao MongoDB Atlas (Nuvem) com sucesso!');
+        mongoose.connection.on('disconnected', () => {
+            console.warn('Aviso: Conexão com o MongoDB Atlas foi encerrada.');
+        });
     } catch (erro) {
         console.error('Erro ao conectar ao MongoDB:', erro.message);
         process.exit(1);
     }
 };
-
 module.exports = conectarBanco;
