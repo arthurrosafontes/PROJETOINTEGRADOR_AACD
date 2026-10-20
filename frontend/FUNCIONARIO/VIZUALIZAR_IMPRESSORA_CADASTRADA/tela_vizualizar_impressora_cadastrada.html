@@ -93,6 +93,70 @@
     <p class="vazio" id="vazio" hidden>Nenhuma impressora encontrada.</p>
   </main>
 
+  <!-- ===== MODAL: EDITAR IMPRESSORA ===== -->
+  <dialog class="modal" id="modalEditar" aria-labelledby="modalTitulo">
+    <form id="formEditar" class="modal-form" novalidate>
+      <div class="modal-cabecalho">
+        <h2 id="modalTitulo">Editar impressora</h2>
+        <button type="button" class="modal-fechar" data-fechar aria-label="Fechar">✕</button>
+      </div>
+
+      <p class="modal-sub" id="modalVoluntario"></p>
+
+      <div class="campos">
+        <label class="campo campo-largo">
+          <span>Modelo *</span>
+          <input type="text" name="modelo" required maxlength="100">
+        </label>
+
+        <label class="campo">
+          <span>Tecnologia *</span>
+          <select name="tecnologia" required>
+            <option value="FDM">FDM (filamento)</option>
+            <option value="Resina">Resina</option>
+          </select>
+        </label>
+
+        <label class="campo">
+          <span>Bico (mm)</span>
+          <input type="number" name="bico" step="0.05" min="0.1" max="2" placeholder="Ex: 0.4">
+        </label>
+
+        <label class="campo">
+          <span>Largura (mm)</span>
+          <input type="number" name="largura" min="1" step="1">
+        </label>
+
+        <label class="campo">
+          <span>Profundidade (mm)</span>
+          <input type="number" name="profundidade" min="1" step="1">
+        </label>
+
+        <label class="campo">
+          <span>Altura (mm)</span>
+          <input type="number" name="altura" min="1" step="1">
+        </label>
+
+        <label class="campo campo-largo">
+          <span>Materiais</span>
+          <input type="text" name="materiais" maxlength="200" placeholder="Ex: PLA, PETG, TPU">
+        </label>
+
+        <label class="campo campo-largo">
+          <span>Observações</span>
+          <textarea name="obs" rows="3" maxlength="500"></textarea>
+        </label>
+      </div>
+
+      <p class="modal-erro" id="modalErro" hidden></p>
+
+      <div class="modal-acoes">
+        <button type="button" class="btn btn-secundario" data-fechar>Cancelar</button>
+        <button type="submit" class="btn btn-primario" id="btnSalvar">Salvar alterações</button>
+      </div>
+    </form>
+  </dialog>
+
   <!-- Aviso (toast) -->
   <div class="toast" id="toast"></div>
   <script src="api.js"></script>
