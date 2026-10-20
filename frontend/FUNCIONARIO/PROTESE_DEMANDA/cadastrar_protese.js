@@ -11,7 +11,8 @@ const API_URL = "http://localhost:3000/api";
 
 // ===== PRÓTESES JÁ CADASTRADAS =====
 // Vêm da API. Formato de cada uma:
-// { id, nome, tipo, regiao, filamento, bico, largura, profundidade, altura, horas, minutos }
+// { id, codigo, nome, tipo, regiao, filamento, bico, largura, profundidade, altura, horas, minutos }
+// (bico, horas e minutos podem vir null: o banco ainda não guarda esses dados)
 let protesesCadastradas = [];
 
 // ===== CONFIGURAÇÃO DAS ETAPAS =====
@@ -45,6 +46,8 @@ const botoesEtapa = document.querySelectorAll(".etapa");
 const btnProximo = document.getElementById("btnProximo");
 const btnRascunho = document.getElementById("btnRascunho");
 const btnCancelar = document.getElementById("btnCancelar");
+const btnVoltar = document.getElementById("btnVoltar");
+const tituloEtapa = document.getElementById("tituloEtapa");
 const toast = document.getElementById("toast");
 const selectProtese = document.getElementById("protese");
 
@@ -128,8 +131,9 @@ function irParaEtapa(indice) {
   });
 
   const ultima = indice === etapasConfig.length - 1;
-  btnProximo.textContent = ultima ? "Publicar demanda" : "Próximo";
-  btnCancelar.textContent = indice === 0 ? "Cancelar" : "Voltar";
+  btnProximo.textContent = ultima ? "Publicar demanda" : "Próximo →";
+  btnVoltar.hidden = indice === 0;            // "Voltar" só aparece a partir da etapa 2
+  tituloEtapa.textContent = etapasConfig[indice].nome; // título dentro do cartão
 
   const primeiroCampo = passos[indice].querySelector("input, select, textarea");
   if (primeiroCampo) primeiroCampo.focus();
@@ -142,29 +146,54 @@ function carregarProteses() {
   protesesCadastradas.forEach(p => {
     const opcao = document.createElement("option");
     opcao.value = p.id;
-    opcao.textContent = `${p.id} — ${p.nome}`;
+    opcao.textContent = `${p.codigo || p.id} — ${p.nome}`;
     selectProtese.appendChild(opcao);
   });
   selectProtese.value = atual;
 }
 
+// Coloca um valor num campo. Se for um <select> que não tem essa opção
+// (ex: região "Cotovelo" vinda do banco), a opção é criada na hora.
+function definirCampo(id, valorNovo) {
+  const campo = document.getElementById(id);
+  const texto = valorNovo === null || valorNovo === undefined ? "" : String(valorNovo);
+
+  if (campo.tagName === "SELECT" && texto !== "" &&
+      ![...campo.options].some(o => o.value === texto)) {
+    const opcao = document.createElement("option");
+    opcao.value = texto;
+    opcao.textContent = texto;
+    campo.appendChild(opcao);
+  }
+
+  campo.value = texto;
+  campo.closest(".campo").classList.remove("invalido");
+}
+
 // Preenche os campos da peça com os dados da prótese escolhida (tudo continua editável)
 function preencherComProtese(id) {
-  const p = protesesCadastradas.find(item => item.id === id);
+  const p = protesesCadastradas.find(item => String(item.id) === String(id));
   if (!p) return;
 
-  const dados = {
-    tipo: p.tipo, regiao: p.regiao, filamento: p.filamento, bico: p.bico,
-    largura: p.largura, profundidade: p.profundidade, altura: p.altura,
-    tempoHoras: p.horas, tempoMinutos: p.minutos,
-  };
-  Object.keys(dados).forEach(campo => {
-    document.getElementById(campo).value = dados[campo];
-    document.getElementById(campo).closest(".campo").classList.remove("invalido");
-  });
+  definirCampo("tipo", p.tipo);
+  definirCampo("regiao", p.regiao);
+  definirCampo("filamento", p.filamento);
+  definirCampo("bico", p.bico);
+  definirCampo("largura", p.largura);
+  definirCampo("profundidade", p.profundidade);
+  definirCampo("altura", p.altura);
+  definirCampo("tempoHoras", p.horas);
+  definirCampo("tempoMinutos", p.minutos);
 
   if (!valor("nome")) document.getElementById("nome").value = `Demanda – ${p.nome}`;
-  mostrarToast(`Dados de "${p.nome}" preenchidos.`);
+
+  // O banco ainda não guarda bico nem tempo de impressão: avisa o que falta preencher
+  const faltam = [];
+  if (p.bico === null || p.bico === undefined) faltam.push("bico");
+  if (p.horas === null || p.horas === undefined) faltam.push("tempo de impressão");
+  mostrarToast(faltam.length
+    ? `Dados de "${p.nome}" preenchidos. Falta informar: ${faltam.join(" e ")}.`
+    : `Dados de "${p.nome}" preenchidos.`);
 }
 
 // Junta os dados do formulário. O id e a data de criação quem define é a API.
@@ -270,10 +299,13 @@ btnProximo.addEventListener("click", () => {
 
 btnRascunho.addEventListener("click", salvarRascunho);
 
-// Na primeira etapa "Cancelar" volta para o hub; nas outras vira "Voltar"
+// "Cancelar" sempre volta para o hub; "Voltar" volta uma etapa
 btnCancelar.addEventListener("click", () => {
+  window.location.href = "/frontend/HUB_FUNCIONARIO/tela_hub_funcionario.html";
+});
+
+btnVoltar.addEventListener("click", () => {
   if (etapaAtual > 0) irParaEtapa(etapaAtual - 1);
-  else window.location.href = "/frontend/HUB_FUNCIONARIO/tela_hub_funcionario.html";
 });
 
 // Clicar no nome da etapa (só nas que já foram alcançadas)
