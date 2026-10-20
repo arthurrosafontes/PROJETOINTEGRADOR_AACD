@@ -2,68 +2,64 @@ const form = document.getElementById("formLogin");
 const campoEmail = document.getElementById("email");
 const campoSenha = document.getElementById("senha");
 const mensagem = document.getElementById("mensagem");
-const botaoEntrar = form.querySelector(".botao-entrar");
-const esqueciSenha = document.getElementById("esqueciSenha");
+const botaoEntrar = form.querySelector(".card-form__botao");
 
-// Página para onde o funcionário vai depois de entrar (ajuste conforme seu projeto)
-const PAGINA_APOS_LOGIN = "painel-funcionario.html";
+const API_LOGIN = "http://localhost:3000/api/auth/login";
+const PAGINA_APOS_LOGIN = "/frontend/FUNCIONARIO/HUB_FUNCIONARIO/tela_hub_funcionario.html";
 
-function mostrarErro(texto, campo) {
+function mostrarErro(texto) {
   mensagem.textContent = texto;
-  if (campo) {
-    campo.classList.add("erro");
-    campo.focus();
-  }
 }
 
-function limparErros() {
-  mensagem.textContent = "";
-  campoEmail.classList.remove("erro");
-  campoSenha.classList.remove("erro");
-}
-
-// Limpa o erro assim que a pessoa volta a digitar
-[campoEmail, campoSenha].forEach((campo) => {
-  campo.addEventListener("input", () => {
-    campo.classList.remove("erro");
-    mensagem.textContent = "";
-  });
+[campoEmail, campoSenha].forEach(campo => {
+  campo.addEventListener("input", () => mostrarErro(""));
 });
 
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  limparErros();
+form.addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+  mostrarErro("");
 
-  const email = campoEmail.value.trim();
+  const email = campoEmail.value.trim().toLowerCase();
   const senha = campoSenha.value;
 
-  if (!email) {
-    return mostrarErro("Informe seu email AACD.", campoEmail);
-  }
-  if (!campoEmail.checkValidity()) {
-    return mostrarErro("Digite um email válido.", campoEmail);
+  if (!email || !campoEmail.checkValidity()) {
+    mostrarErro("Informe um e-mail válido.");
+    campoEmail.focus();
+    return;
   }
   if (!senha) {
-    return mostrarErro("Digite sua senha.", campoSenha);
+    mostrarErro("Informe sua senha.");
+    campoSenha.focus();
+    return;
   }
 
-  // Aqui entra a chamada ao seu servidor para validar o login.
-  // Por enquanto, apenas simula o envio e redireciona.
   botaoEntrar.disabled = true;
   botaoEntrar.textContent = "Entrando...";
 
-  setTimeout(() => {
-    window.location.href = "../HUB_FUNCIONARIO/tela_hub_funcionario.html";
-  }, 800);
-});
+  try {
+    const resposta = await fetch(API_LOGIN, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, senha, perfil: "funcionario" })
+    });
 
-esqueciSenha.addEventListener("click", (e) => {
-  e.preventDefault();
-  const email = campoEmail.value.trim();
+    const resultado = await resposta.json().catch(() => ({}));
+    if (!resposta.ok) {
+      throw new Error(resultado.erro || "Não foi possível fazer login.");
+    }
 
-  if (!email || !campoEmail.checkValidity()) {
-    return mostrarErro("Digite seu email acima para recuperar a senha.", campoEmail);
+    // A verificação de permissões precisa acontecer também no servidor.
+    const usuario = resultado.usuario;
+if (!usuario || usuario.perfil !== "funcionario") {
+    mostrarErro("Esta conta não possui acesso de funcionário AACD.");
+    return;
+}
+    window.location.href = PAGINA_APOS_LOGIN;
+  } catch (erro) {
+    mostrarErro(erro.message || "Erro ao conectar ao servidor.");
+  } finally {
+    botaoEntrar.disabled = false;
+    botaoEntrar.textContent = "Entrar";
   }
-
-  mensagem.textContent = `Enviamos as instruções de recuperação para ${email}.`;
 });

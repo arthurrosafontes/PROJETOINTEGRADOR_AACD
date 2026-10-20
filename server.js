@@ -3,18 +3,26 @@ const express = require('express');
 const cors = require('cors');
 const conectarBanco = require('./backend/config/db');
 const FichaImpressora = require('./backend/models/FichaTecnicaImpressora');
-<<<<<<< HEAD
 const voluntariosRoutes = require('./backend/routes/voluntarios');
+const authRoutes = require('./backend/routes/auth');
+const cookieParser = require('cookie-parser');
 
-=======
->>>>>>> 48281288b664fe24e426c5e9e662e2c3b909fd0b
 const app = express();
 app.use(express.json());
-app.use(cors());
+const origensPermitidas = new Set([
+    'http://localhost:5500', 'http://127.0.0.1:5500',
+    'http://localhost:5501', 'http://127.0.0.1:5501'
+]);
+app.use(cors({
+    origin: (origin, callback) => callback(null, !origin || origensPermitidas.has(origin)),
+    credentials: true
+}));
+app.use(cookieParser());
 
 conectarBanco();
 
 app.use('/api/voluntarios', voluntariosRoutes);
+app.use('/api/auth', authRoutes);
 
 app.get('/', (req, res) => {
     res.send('API do Projeto AACD rodando com sucesso!');
@@ -89,47 +97,6 @@ app.put('/api/impressoras/:id', async (req, res) => {
         res.status(400).json({ 
             erro: 'Erro ao atualizar impressora', 
             detalhes: erro.message 
-        });
-    }
-});
-
-app.get('/api/impressoras/:id', async (req, res) => {
-    try {
-        const impressora = await FichaImpressora.findById(req.params.id);
-        if (!impressora) {
-            return res.status(404).json({ erro: 'Impressora não encontrada' });
-        }
-        res.status(200).json(impressora);
-    } catch (erro) {
-        res.status(400).json({
-            erro: 'ID inválido ou erro ao buscar impressora',
-            detalhes: erro.message
-        });
-    }
-});
-
-app.put('/api/impressoras/:id', async (req, res) => {
-    try {
-        const dadosAtualizados = {
-            ...req.body,
-            data_atualizacao: Date.now()
-        };
-        const impressoraAtualizada = await FichaImpressora.findByIdAndUpdate(
-            req.params.id,
-            dadosAtualizados,
-            { new: true, runValidators: true }
-        );
-        if (!impressoraAtualizada) {
-            return res.status(404).json({ erro: 'Impressora não encontrada' });
-        }
-        res.status(200).json({
-            mensagem: 'Impressora atualizada com sucesso!',
-            impressora: impressoraAtualizada
-        });
-    } catch (erro) {
-        res.status(400).json({
-            erro: 'Erro ao atualizar impressora',
-            detalhes: erro.message
         });
     }
 });
