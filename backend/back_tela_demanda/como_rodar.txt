@@ -1,0 +1,3 @@
+Coloque a pasta backend no projeto e rode npm install dentro dela.
+Copie .env.example para .env e preencha usuário, senha e nome do banco.
+Rode npm start. A API sobe em http://localhost:3000, o mesmo endereço que o seu JS já usa.  
