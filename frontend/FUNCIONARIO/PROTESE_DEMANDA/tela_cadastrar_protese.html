@@ -25,7 +25,7 @@
           <ul class="dropdown-lista">
             <li><a href="/frontend/FUNCIONARIO/CADASTRAR_DEMANDA/tela_cadastrar_demanda.html" class="ativo">cadastrar demanda</a></li>
             <li><a href="#" class="ativo">demandas status</a></li>
-
+            
           </ul>
         </div>
         <div class="menu-item dropdown">
@@ -41,6 +41,9 @@
             <li><a href="#" class="ativo">protese status</a></li>
             <li><a href="#" class="ativo">modelos 3D</a></li>
           </ul>
+        </div>
+        <div class="menu-item">
+          <a href="#" class="menu-link">Sobre</a>
         </div>
       </nav>
 
@@ -63,23 +66,23 @@
 
   <!-- ===== CONTEÚDO DA PÁGINA ===== -->
   <main class="conteudo">
-    <!-- Etapas do cadastro -->
-    <ol class="etapas" id="etapas">
-      <li><button type="button" class="etapa ativa" data-etapa="0">Identificação da Demanda</button></li>
-      <li><button type="button" class="etapa" data-etapa="1" disabled>Informações Gerais</button></li>
-      <li><button type="button" class="etapa" data-etapa="2" disabled>Especificações de Impressão</button></li>
-      <li><button type="button" class="etapa" data-etapa="3" disabled>Entrega</button></li>
-    </ol>
-
     <div class="cabecalho-pagina">
       <h1>Nova Demanda</h1>
     </div>
 
-    <form id="formDemanda" novalidate>
+    <!-- Etapas do cadastro -->
+    <ol class="etapas" id="etapas">
+      <li><button type="button" class="etapa ativa" data-etapa="0">Identificação</button></li>
+      <li><button type="button" class="etapa" data-etapa="1" disabled>Informações Gerais</button></li>
+      <li><button type="button" class="etapa" data-etapa="2" disabled>Especificações</button></li>
+      <li><button type="button" class="etapa" data-etapa="3" disabled>Entrega</button></li>
+    </ol>
 
-      <!-- ===== ETAPA 1: IDENTIFICAÇÃO ===== -->
-      <section class="cartao passo ativo" data-passo="0">
-        <h2 class="cartao-titulo"><span class="numero">1</span> Identificação da Demanda</h2>
+    <form id="formDemanda" novalidate>
+      <section class="cartao">
+        <h2 class="cartao-titulo" id="tituloEtapa">Identificação da Demanda</h2>
+
+      <div class="passo ativo" data-passo="0">
         <div class="cartao-corpo grade">
           <div class="campo campo-inteiro">
             <label for="nome">Nome da Demanda</label>
@@ -100,11 +103,9 @@
             <small class="erro">Informe a quantidade de unidades (mínimo 1).</small>
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- ===== ETAPA 2: INFORMAÇÕES GERAIS ===== -->
-      <section class="cartao passo" data-passo="1">
-        <h2 class="cartao-titulo"><span class="numero">2</span> Informações Gerais</h2>
+      <div class="passo" data-passo="1">
         <div class="cartao-corpo grade">
           <div class="campo">
             <label for="tipo">Tipo de peça</label>
@@ -154,11 +155,9 @@
             <textarea id="observacoes" name="observacoes" rows="3" placeholder="Ex: Tamanho M, lado direito, escala 110%."></textarea>
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- ===== ETAPA 3: ESPECIFICAÇÕES DE IMPRESSÃO ===== -->
-      <section class="cartao passo" data-passo="2">
-        <h2 class="cartao-titulo"><span class="numero">3</span> Especificações de Impressão</h2>
+      <div class="passo" data-passo="2">
         <div class="cartao-corpo grade">
           <div class="campo">
             <label for="filamento">Filamento recomendado</label>
@@ -215,11 +214,9 @@
             <small class="erro">Informe o tempo estimado (minutos de 0 a 59).</small>
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- ===== ETAPA 4: ENTREGA ===== -->
-      <section class="cartao passo" data-passo="3">
-        <h2 class="cartao-titulo"><span class="numero">4</span> Entrega</h2>
+      <div class="passo" data-passo="3">
         <div class="cartao-corpo grade">
           <div class="campo">
             <label for="prazo">Prazo de entrega</label>
@@ -251,20 +248,21 @@
             <textarea id="instrucoes" name="instrucoes" rows="3" placeholder="Ex: Entregar na recepção do bloco B, das 8h às 17h."></textarea>
           </div>
         </div>
+      </div>
+
+        <!-- ===== BOTÕES (dentro do cartão) ===== -->
+        <div class="acoes">
+          <button type="button" class="btn btn-cancelar" id="btnCancelar">Cancelar</button>
+          <div class="acoes-direita">
+            <button type="button" class="btn btn-voltar" id="btnVoltar" hidden>← Voltar</button>
+            <button type="button" class="btn btn-secundario" id="btnRascunho">Salvar rascunho</button>
+            <button type="button" class="btn btn-primario" id="btnProximo">Próximo →</button>
+          </div>
+        </div>
       </section>
     </form>
   </main>
 
-  <!-- ===== BOTÕES DO RODAPÉ ===== -->
-  <footer class="rodape-acoes">
-    <div class="rodape-conteudo">
-      <button type="button" class="btn btn-cancelar" id="btnCancelar">Cancelar</button>
-      <div class="rodape-direita">
-        <button type="button" class="btn btn-secundario" id="btnRascunho">Salvar rascunho</button>
-        <button type="button" class="btn btn-primario" id="btnProximo">Próximo</button>
-      </div>
-    </div>
-  </footer>
 
   <!-- Aviso (toast) -->
   <div class="toast" id="toast"></div>

@@ -4,7 +4,7 @@
 //   POST /api/demandas  -> recebe a demanda publicada pela tela "Nova Demanda"
 // Para rodar:  npm install  ->  copiar .env.example para .env  ->  npm start
 // =====================================================
-require(".env.example").config();
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql2/promise");
@@ -22,6 +22,8 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
 });
+
+module.exports = pool;
 
 // O ENUM do banco não tem acento; a tela usa "Prótese" / "Órtese"
 const TIPOS = { Protese: "Prótese", Ortese: "Órtese" };
