@@ -295,6 +295,47 @@ function removerImpressora(id) {
   db.prepare("DELETE FROM impressoras WHERE id = ?").run(id);
 }
 
+// Confere os dados da impressora antes de salvar. Devolve a lista de erros (vazia = tudo certo).
+// A tela já valida, mas a API confere de novo porque qualquer um pode chamar a API direto.
+function validarImpressora(d) {
+  const erros = [];
+  const preenchido = v => v !== undefined && v !== null && String(v).trim() !== "";
+
+  if (!preenchido(d.modelo)) erros.push('O campo "modelo" é obrigatório.');
+  if (!["FDM", "Resina"].includes(d.tecnologia)) erros.push('A tecnologia deve ser "FDM" ou "Resina".');
+
+  ["largura", "profundidade", "altura", "bico"].forEach(campo => {
+    if (preenchido(d[campo]) && !(Number(d[campo]) > 0)) {
+      erros.push(`O campo "${campo}" deve ser um número maior que zero.`);
+    }
+  });
+
+  return erros;
+}
+
+function atualizarImpressora(id, d) {
+  const numeroOuNulo = v => (v === undefined || v === null || v === "" ? null : Number(v));
+  const textoOuNulo = v => (v === undefined || v === null || String(v).trim() === "" ? null : String(v).trim());
+
+  db.prepare(`
+    UPDATE impressoras
+       SET modelo = ?, tecnologia = ?, largura = ?, profundidade = ?, altura = ?,
+           bico = ?, materiais = ?, obs = ?
+     WHERE id = ?
+  `).run(
+    String(d.modelo).trim(),
+    d.tecnologia,
+    numeroOuNulo(d.largura),
+    numeroOuNulo(d.profundidade),
+    numeroOuNulo(d.altura),
+    d.tecnologia === "Resina" ? null : textoOuNulo(d.bico),   // resina não tem bico
+    textoOuNulo(d.materiais),
+    textoOuNulo(d.obs),
+    id
+  );
+  return buscarImpressora(id);
+}
+
 // ----- Consultas: Voluntários -----
 // Regra de troca de status: status atual -> próximo status
 const proximoStatusVoluntario = {
@@ -402,6 +443,7 @@ app.post("/api/demandas", (req, res) => {
 // ----- Impressoras cadastradas -----
 //   GET    /api/impressoras      -> todas as impressoras, com o voluntário dono
 //   GET    /api/impressoras/:id  -> uma impressora
+//   PUT    /api/impressoras/:id  -> edita a impressora
 //   DELETE /api/impressoras/:id  -> remove a impressora
 app.get("/api/impressoras", (req, res) => {
   res.json(listarImpressoras());
@@ -411,6 +453,17 @@ app.get("/api/impressoras/:id", (req, res) => {
   const impressora = buscarImpressora(Number(req.params.id));
   if (!impressora) return res.status(404).json({ erro: "Impressora não encontrada." });
   res.json(impressora);
+});
+
+app.put("/api/impressoras/:id", (req, res) => {
+  const id = Number(req.params.id);
+  if (!buscarImpressora(id)) return res.status(404).json({ erro: "Impressora não encontrada." });
+
+  const dados = req.body || {};
+  const erros = validarImpressora(dados);
+  if (erros.length) return res.status(400).json({ erro: erros[0], erros });
+
+  res.json(atualizarImpressora(id, dados));
 });
 
 app.delete("/api/impressoras/:id", (req, res) => {

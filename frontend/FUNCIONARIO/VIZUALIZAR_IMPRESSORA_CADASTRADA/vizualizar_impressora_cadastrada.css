@@ -158,6 +158,11 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
 }
 .impressora:hover { box-shadow: 0 6px 18px rgba(19, 132, 130, .12); transform: translateY(-2px); }
 .impressora.saindo { opacity: 0; transform: translateX(30px); }
+.impressora.atualizada { animation: destaque 1.2s ease; }
+@keyframes destaque {
+  0%   { background: var(--teal-claro); }
+  100% { background: var(--branco); }
+}
 
 .impressora-titulo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .impressora-titulo h3 { font-size: 19px; font-weight: 700; }
@@ -170,15 +175,19 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
 .badge.FDM { background: var(--fdm-fundo); color: var(--fdm-texto); }
 .badge.Resina { background: var(--resina-fundo); color: var(--resina-texto); }
 
-/* Botões do card (Detalhes + Remover) */
-.impressora-acoes { display: flex; gap: 8px; }
+/* Botões do card (Detalhes + Editar + Remover) */
+.impressora-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
 
 .btn { padding: 10px 16px; border-radius: 8px; font-size: 15px; font-weight: 700; transition: .2s; }
 .btn:disabled { opacity: .6; cursor: wait; }
 .btn-secundario { border: 1px solid var(--teal); color: var(--teal-escuro); min-width: 110px; }
 .btn-secundario:hover { background: var(--teal-claro); }
+.btn-editar { border: 1px solid var(--teal-escuro); background: var(--teal-escuro); color: var(--branco); }
+.btn-editar:hover { background: var(--teal); border-color: var(--teal); }
 .btn-perigo { border: 1px solid var(--perigo); color: var(--perigo); }
 .btn-perigo:hover { background: var(--perigo); color: var(--branco); }
+.btn-primario { border: 1px solid var(--teal-escuro); background: var(--teal-escuro); color: var(--branco); }
+.btn-primario:hover { background: var(--teal); border-color: var(--teal); }
 
 /* Detalhes que abrem dentro do card */
 .impressora-extra {
@@ -192,6 +201,65 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
 .impressora-extra dd { color: var(--texto); font-weight: 700; }
 
 .vazio { text-align: center; color: var(--texto-suave); padding: 40px 0; }
+
+/* ===== MODAL DE EDIÇÃO ===== */
+.modal {
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100vh - 32px);
+  margin: auto;
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
+  color: var(--texto);
+}
+.modal::backdrop { background: rgba(0, 0, 0, .45); }
+.modal[open] { animation: abrirModal .2s ease; }
+@keyframes abrirModal {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modal-form { padding: 22px 24px 20px; }
+.modal-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.modal-cabecalho h2 { font-size: 21px; font-weight: 700; }
+.modal-fechar { font-size: 18px; width: 34px; height: 34px; border-radius: 50%; color: var(--texto-suave); }
+.modal-fechar:hover { background: var(--teal-claro); color: var(--teal-escuro); }
+.modal-sub { font-size: 14px; color: var(--texto-suave); margin: 2px 0 18px; }
+
+.campos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.campo { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 700; }
+.campo-largo { grid-column: 1 / -1; }
+.campo input,
+.campo select,
+.campo textarea {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  padding: 10px 12px;
+  border: 1px solid #cfd6d6;
+  border-radius: 8px;
+  background: var(--branco);
+  outline: none;
+  width: 100%;
+}
+.campo textarea { resize: vertical; }
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-claro); }
+.campo input:disabled { background: #f3f5f5; color: #999; }
+.campo .invalido { border-color: var(--perigo); box-shadow: 0 0 0 3px var(--perigo-claro); }
+
+.modal-erro {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--perigo-claro);
+  color: var(--perigo);
+  font-size: 14px;
+}
+
+.modal-acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
 /* Toast */
 .toast {
@@ -241,5 +309,10 @@ button { font: inherit; background: none; border: none; cursor: pointer; color: 
   /* Impressoras cadastradas */
   .filtros select { flex: 1; }
   .impressora { grid-template-columns: 1fr; }
-  .impressora-acoes .btn { flex: 1; }
+  .impressora-acoes .btn { flex: 1; min-width: 0; }
+
+  /* Modal */
+  .modal-form { padding: 18px 16px; }
+  .campos { grid-template-columns: 1fr 1fr; }
+  .modal-acoes .btn { flex: 1; }
 }

@@ -1,16 +1,17 @@
 // =====================================================
 // TELA: Impressoras cadastradas (frontend)
-// Este arquivo só cuida da tela. Os dados vêm da API
-// (backend/server.js), que lê e grava no banco de dados.
+// Este arquivo só cuida da tela: lista, filtros, modal,
+// botões e avisos. Toda a comunicação com o backend/banco
+// fica no api.js (carregado antes deste no HTML), que
+// fornece: buscarImpressoras(), atualizarImpressora(id, campos)
+// e removerImpressora(id).
 // =====================================================
 
-// Endereço da API. Troque se o backend rodar em outra porta/servidor.
-const API_URL = "http://localhost:3000/api";
-
-// Lista que vem da API. Formato de cada impressora:
-// { id, modelo, tecnologia, largura, profundidade, altura, bico, materiais, obs, cadastro,
-//   voluntarioId, voluntarioNome, voluntarioCidade, voluntarioStatus, voluntarioEmail, voluntarioTelefone }
+// Lista de impressoras que veio da API (formato descrito no api.js)
 let impressoras = [];
+
+// Id da impressora que está sendo editada no modal
+let idEmEdicao = null;
 
 // ===== ELEMENTOS =====
 const lista = document.getElementById("listaImpressoras");
@@ -21,19 +22,11 @@ const contador = document.getElementById("contador");
 const vazio = document.getElementById("vazio");
 const toast = document.getElementById("toast");
 
-// ===== CHAMADAS À API =====
-async function buscarImpressoras() {
-  const resposta = await fetch(`${API_URL}/impressoras`);
-  if (!resposta.ok) throw new Error("Não foi possível carregar as impressoras.");
-  return resposta.json();
-}
-
-async function removerImpressora(id) {
-  const resposta = await fetch(`${API_URL}/impressoras/${id}`, { method: "DELETE" });
-  const dados = await resposta.json();
-  if (!resposta.ok) throw new Error(dados.erro || "Não foi possível remover a impressora.");
-  return dados;
-}
+const modal = document.getElementById("modalEditar");
+const form = document.getElementById("formEditar");
+const modalVoluntario = document.getElementById("modalVoluntario");
+const modalErro = document.getElementById("modalErro");
+const btnSalvar = document.getElementById("btnSalvar");
 
 // ===== FUNÇÕES =====
 function formatarData(iso) {
@@ -66,20 +59,21 @@ function filtrarImpressoras() {
     return bateTexto && bateTecnologia;
   });
 
-  if (ordenar.value === "recentes") resultado.sort((a, b) => b.cadastro.localeCompare(a.cadastro));
-  if (ordenar.value === "modelo") resultado.sort((a, b) => a.modelo.localeCompare(b.modelo));
-  if (ordenar.value === "voluntario") resultado.sort((a, b) => a.voluntarioNome.localeCompare(b.voluntarioNome));
+  if (ordenar.value === "recentes") resultado.sort((a, b) => (b.cadastro || "").localeCompare(a.cadastro || ""));
+  if (ordenar.value === "modelo") resultado.sort((a, b) => (a.modelo || "").localeCompare(b.modelo || ""));
+  if (ordenar.value === "voluntario") resultado.sort((a, b) => (a.voluntarioNome || "").localeCompare(b.voluntarioNome || ""));
 
   return resultado;
 }
 
-function renderizar() {
+function renderizar(idDestaque = null) {
   const itens = filtrarImpressoras();
   lista.innerHTML = "";
 
   itens.forEach(i => {
     const li = document.createElement("li");
     li.className = "impressora";
+    if (i.id === idDestaque) li.classList.add("atualizada");
     li.dataset.id = i.id;
     li.innerHTML = `
       <div class="impressora-info">
@@ -97,6 +91,7 @@ function renderizar() {
       </div>
       <div class="impressora-acoes">
         <button class="btn btn-secundario" data-acao="detalhes">Detalhes</button>
+        <button class="btn btn-editar" data-acao="editar">Editar</button>
         <button class="btn btn-perigo" data-acao="remover">Remover</button>
       </div>
     `;
@@ -117,6 +112,132 @@ function mostrarToast(mensagem, erro = false) {
   toast._timer = setTimeout(() => toast.classList.remove("visivel"), 2500);
 }
 
+// ===== MODAL DE EDIÇÃO =====
+
+// O bico só faz sentido em impressoras FDM
+function atualizarCampoBico() {
+  const ehResina = form.tecnologia.value === "Resina";
+  form.bico.disabled = ehResina;
+  if (ehResina) form.bico.value = "";
+}
+
+function abrirModalEdicao(impressora) {
+  idEmEdicao = impressora.id;
+
+  form.modelo.value = impressora.modelo ?? "";
+  form.tecnologia.value = impressora.tecnologia === "Resina" ? "Resina" : "FDM";
+  form.bico.value = impressora.bico ?? "";
+  form.largura.value = impressora.largura ?? "";
+  form.profundidade.value = impressora.profundidade ?? "";
+  form.altura.value = impressora.altura ?? "";
+  form.materiais.value = impressora.materiais ?? "";
+  form.obs.value = impressora.obs ?? "";
+
+  modalVoluntario.textContent = `#${impressora.id} · Voluntário: ${impressora.voluntarioNome || "-"}`;
+  modalErro.hidden = true;
+  form.querySelectorAll(".invalido").forEach(c => c.classList.remove("invalido"));
+  atualizarCampoBico();
+
+  modal.showModal();
+  form.modelo.focus();
+}
+
+function fecharModal() {
+  modal.close();
+  idEmEdicao = null;
+}
+
+function mostrarErroModal(mensagem, campo = null) {
+  modalErro.textContent = mensagem;
+  modalErro.hidden = false;
+  if (campo) {
+    campo.classList.add("invalido");
+    campo.focus();
+  }
+}
+
+// Converte "" -> null e texto -> número
+function numeroOuNulo(valor) {
+  if (valor === "" || valor == null) return null;
+  const n = Number(valor);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+// Lê e valida o formulário. Retorna os campos ou null se algo estiver errado.
+function lerFormulario() {
+  form.querySelectorAll(".invalido").forEach(c => c.classList.remove("invalido"));
+  modalErro.hidden = true;
+
+  const campos = {
+    modelo: form.modelo.value.trim(),
+    tecnologia: form.tecnologia.value,
+    bico: numeroOuNulo(form.bico.value),
+    largura: numeroOuNulo(form.largura.value),
+    profundidade: numeroOuNulo(form.profundidade.value),
+    altura: numeroOuNulo(form.altura.value),
+    materiais: form.materiais.value.trim(),
+    obs: form.obs.value.trim()
+  };
+
+  if (!campos.modelo) {
+    mostrarErroModal("Informe o modelo da impressora.", form.modelo);
+    return null;
+  }
+
+  for (const nome of ["largura", "profundidade", "altura", "bico"]) {
+    const valor = campos[nome];
+    if (Number.isNaN(valor) || (valor !== null && valor <= 0)) {
+      mostrarErroModal(`O campo "${nome}" precisa ser um número maior que zero.`, form[nome]);
+      return null;
+    }
+  }
+
+  if (campos.tecnologia === "Resina") campos.bico = null;
+  return campos;
+}
+
+form.tecnologia.addEventListener("change", atualizarCampoBico);
+
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  if (idEmEdicao == null) return;
+
+  const campos = lerFormulario();
+  if (!campos) return;
+
+  const id = idEmEdicao;
+  btnSalvar.disabled = true;
+  btnSalvar.textContent = "Salvando...";
+
+  try {
+    const resposta = await atualizarImpressora(id, campos);
+
+    // Se a API devolver a impressora atualizada, usa ela; senão usa o que foi enviado
+    const atualizada = resposta && resposta.id ? resposta : campos;
+    impressoras = impressoras.map(i => (i.id === id ? { ...i, ...atualizada, id } : i));
+
+    fecharModal();
+    renderizar(id);
+    mostrarToast(`Impressora "${campos.modelo}" atualizada.`);
+  } catch (erro) {
+    mostrarErroModal(erro.message);
+  } finally {
+    btnSalvar.disabled = false;
+    btnSalvar.textContent = "Salvar alterações";
+  }
+});
+
+// Botões "Cancelar" e "✕"
+modal.querySelectorAll("[data-fechar]").forEach(b => b.addEventListener("click", fecharModal));
+
+// Clicar fora da caixa fecha o modal
+modal.addEventListener("click", e => {
+  if (e.target === modal) fecharModal();
+});
+
+// Tecla Esc também limpa o estado
+modal.addEventListener("cancel", () => { idEmEdicao = null; });
+
 // ===== EVENTOS DA LISTA =====
 lista.addEventListener("click", async e => {
   const botao = e.target.closest("button[data-acao]");
@@ -125,6 +246,7 @@ lista.addEventListener("click", async e => {
   const item = botao.closest(".impressora");
   const id = Number(item.dataset.id);
   const impressora = impressoras.find(i => i.id === id);
+  if (!impressora) return;
 
   if (botao.dataset.acao === "detalhes") {
     const extra = item.querySelector(".impressora-extra");
@@ -152,11 +274,16 @@ lista.addEventListener("click", async e => {
     }
   }
 
+  if (botao.dataset.acao === "editar") {
+    abrirModalEdicao(impressora);
+  }
+
   if (botao.dataset.acao === "remover") {
     const ok = confirm(`Remover a impressora "${impressora.modelo}" de ${impressora.voluntarioNome}?\nEssa ação não pode ser desfeita.`);
     if (!ok) return;
 
-    botao.disabled = true;
+    // Trava os botões do card enquanto remove
+    item.querySelectorAll("button").forEach(b => (b.disabled = true));
     botao.textContent = "Removendo...";
     try {
       await removerImpressora(id);
@@ -167,7 +294,7 @@ lista.addEventListener("click", async e => {
         mostrarToast(`Impressora "${impressora.modelo}" removida.`);
       }, 300);
     } catch (erro) {
-      botao.disabled = false;
+      item.querySelectorAll("button").forEach(b => (b.disabled = false));
       botao.textContent = "Remover";
       mostrarToast(erro.message, true);
     }
@@ -175,9 +302,9 @@ lista.addEventListener("click", async e => {
 });
 
 // ===== FILTROS =====
-busca.addEventListener("input", renderizar);
-filtroTecnologia.addEventListener("change", renderizar);
-ordenar.addEventListener("change", renderizar);
+busca.addEventListener("input", () => renderizar());
+filtroTecnologia.addEventListener("change", () => renderizar());
+ordenar.addEventListener("change", () => renderizar());
 
 // ===== DROPDOWNS DA NAVBAR =====
 document.querySelectorAll(".dropdown > button").forEach(botao => {
