@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#1cb0b0">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="format-detection" content="telephone=no, email=no, address=no">
+  <meta name="application-name" content="Hub AACD">
+
+  <title>Hub de Manufatura Aditiva para Saúde — AACD</title>
+
+  <link rel="icon" href="img/favicon.png" type="image/png" sizes="64x64">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Lato:wght@400;700&amp;display=swap">
+  <link rel="stylesheet" href="css/estilos.css">
+
+  <script src="js/utilitarios.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/telas/acesso.js" defer></script>
+  <script src="js/telas/hub-funcionario.js" defer></script>
+  <script src="js/telas/cadastro-voluntario.js" defer></script>
+  <script src="js/telas/pedidos-disponiveis.js" defer></script>
+  <script src="js/telas/pedidos-aceitos.js" defer></script>
+  <script src="js/telas/producao.js" defer></script>
+  <script src="js/telas/cadastrar-impressora.js" defer></script>
+  <script src="js/telas/cadastrar-demanda.js" defer></script>
+  <script src="js/telas/lista-voluntarios.js" defer></script>
+  <script src="js/telas/impressoras.js" defer></script>
+  <script src="js/roteador.js" defer></script>
+</head>
+<body data-area="publica">
+
+  <a class="pular-conteudo" href="#conteudo" id="pular-conteudo">Pular para o conteúdo</a>
+
+  <noscript>
+    <p class="aviso-noscript">Este sistema precisa do JavaScript ativado para funcionar.</p>
+  </noscript>
+
+  <!-- =====================================================
+       BARRA DE NAVEGAÇÃO DAS ÁREAS LOGADAS
+       (escondida nas telas públicas pelo roteador)
+       ===================================================== -->
+  <header class="barra" id="barra" aria-label="Barra do sistema" hidden>
+    <a class="barra__logo" href="#/voluntario" id="barra-logo">
+      <picture>
+        <source srcset="img/logo-aacd.webp" type="image/webp">
+        <img src="img/logo-aacd.png" alt="Hospital Ortopédico AACD — início da área" width="480" height="210">
+      </picture>
+    </a>
+
+    <button class="barra__alternar-menu" type="button" id="alternar-menu"
+            aria-expanded="false" aria-controls="menu-principal">
+      <span aria-hidden="true">☰</span>
+      <span class="visualmente-oculto">Abrir menu principal</span>
+    </button>
+
+    <nav class="barra__menu" id="menu-principal" aria-label="Menu principal">
+      <!-- Menu do voluntário -->
+      <ul class="menu" data-perfil="voluntario">
+        <li class="menu__item">
+          <button class="menu__botao" type="button" aria-expanded="false" aria-controls="sub-vol-pedidos">Pedidos</button>
+          <ul class="submenu" id="sub-vol-pedidos" hidden>
+            <li><a href="#/voluntario/pedidos-disponiveis">Pedidos disponíveis</a></li>
+            <li><a href="#/voluntario/pedidos-aceitos">Pedidos aceitos e recusados</a></li>
+          </ul>
+        </li>
+        <li class="menu__item">
+          <button class="menu__botao" type="button" aria-expanded="false" aria-controls="sub-vol-impressora">Impressora</button>
+          <ul class="submenu" id="sub-vol-impressora" hidden>
+            <li><a href="#/voluntario/impressora/cadastrar">Cadastrar impressora</a></li>
+            <li><a href="#/voluntario/em-construcao">Editar impressora cadastrada</a></li>
+          </ul>
+        </li>
+        <li class="menu__item">
+          <button class="menu__botao" type="button" aria-expanded="false" aria-controls="sub-vol-producao">Produção</button>
+          <ul class="submenu" id="sub-vol-producao" hidden>
+            <li><a href="#/voluntario/producao">Status da produção</a></li>
+          </ul>
+        </li>
+        <li class="menu__item">
+          <a class="menu__link" href="#/voluntario/em-construcao">Sobre</a>
+        </li>
+      </ul>
+
+      <!-- Menu do funcionário -->
+      <ul class="menu" data-perfil="funcionario" hidden>
+        <li class="menu__item">
+          <button class="menu__botao" type="button" aria-expanded="false" aria-controls="sub-func-demandas">Demandas</button>
+          <ul class="submenu" id="sub-func-demandas" hidden>
+            <li><a href="#/funcionario/demandas/cadastrar">Cadastrar demanda</a></li>
+            <li><a href="#/funcionario/em-construcao">Demandas abertas</a></li>
+          </ul>
+        </li>
+        <li class="menu__item">
+          <button class="menu__botao" type="button" aria-expanded="false" aria-controls="sub-func-voluntarios">Voluntários</button>
+          <ul class="submenu" id="sub-func-voluntarios" hidden>
+            <li><a href="#/funcionario/voluntarios">Lista de voluntários</a></li>
+            <li><a href="#/funcionario/impressoras">Impressoras cadastradas</a></li>
+          </ul>
+        </li>
+        <li class="menu__item">
+          <button class="menu__botao" type="button" aria-expanded="false" aria-controls="sub-func-proteses">Próteses</button>
+          <ul class="submenu" id="sub-func-proteses" hidden>
+            <li><a href="#/funcionario/em-construcao">Status da produção</a></li>
+            <li><a href="#/funcionario/em-construcao">Modelos 3D</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="usuario menu__item">
+      <button class="usuario__botao menu__botao" type="button" aria-expanded="false" aria-controls="sub-usuario">
+        <span class="usuario__avatar" aria-hidden="true"></span>
+        <span class="usuario__info">
+          <span class="usuario__nome" id="usuario-nome">Usuário</span>
+          <span class="usuario__cargo" id="usuario-cargo">Voluntário</span>
+        </span>
+        <span class="visualmente-oculto">— menu da conta</span>
+      </button>
+      <ul class="submenu submenu--direita" id="sub-usuario" hidden>
+        <li><a href="#/voluntario/em-construcao" data-link-area>Meu perfil</a></li>
+        <li><a href="#/voluntario/em-construcao" data-link-area>Configurações</a></li>
+        <li><button type="button" id="botao-sair">Sair</button></li>
+      </ul>
+    </div>
+  </header>
+
+
+  <!-- =====================================================
+       TELA: INÍCIO (apresentação do projeto)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-inicio" class="tela tela--inicio" id="tela-inicio"
+        data-rota="/" data-area="publica" data-titulo="Hub de Manufatura Aditiva para Saúde">
+
+    <header class="inicio-hero">
+      <p class="inicio-hero__logo">
+        <picture>
+          <source srcset="img/logo-aacd.webp" type="image/webp">
+          <img src="img/logo-aacd.png" alt="Hospital Ortopédico AACD" width="480" height="210">
+        </picture>
+      </p>
+      <div class="inicio-hero__texto">
+        <h1 id="titulo-tela-inicio" tabindex="-1">Hub de Manufatura Aditiva para Saúde</h1>
+        <a class="botao-aacd" href="https://aacd.org.br" target="_blank" rel="noopener noreferrer">
+          Conhecer a AACD
+          <span class="botao-aacd__seta" aria-hidden="true">→</span>
+          <span class="visualmente-oculto">(abre em nova aba)</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="inicio-conteudo">
+
+      <section class="comparacao" aria-labelledby="titulo-comparacao">
+        <h2 class="visualmente-oculto" id="titulo-comparacao">O problema e a solução</h2>
+
+        <article class="comparacao__bloco comparacao__bloco--desafio" aria-labelledby="titulo-desafio">
+          <p class="rotulo">O desafio atual</p>
+          <h3 id="titulo-desafio">Conexões manuais e isoladas</h3>
+          <ul>
+            <li>A produção de próteses 3D no Brasil depende de contatos feitos caso a caso.</li>
+            <li>Não existe uma plataforma que conecte automaticamente a demanda da AACD às impressoras 3D paradas em universidades, empresas e casas.</li>
+          </ul>
+        </article>
+
+        <span class="comparacao__seta" aria-hidden="true">→</span>
+
+        <article class="comparacao__bloco comparacao__bloco--solucao" aria-labelledby="titulo-solucao">
+          <p class="rotulo">A solução</p>
+          <h3 id="titulo-solucao">Um hub digital centralizado</h3>
+          <ul>
+            <li>Um só lugar onde a AACD registra as demandas e os produtores oferecem a sua capacidade.</li>
+            <li>Os pedidos são distribuídos levando em conta a urgência clínica e a máquina mais adequada.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section aria-labelledby="titulo-fluxo">
+        <h2 class="titulo-secao" id="titulo-fluxo">Como a plataforma funciona</h2>
+        <ol class="passos">
+          <li>
+            <h3>Cadastro e homologação</h3>
+            <p>Voluntários e laboratórios cadastram suas impressoras, os filamentos suportados e a disponibilidade. A plataforma avalia se o equipamento atende às exigências.</p>
+          </li>
+          <li>
+            <h3>Distribuição das demandas</h3>
+            <p>A AACD envia os arquivos de fatiamento já aprovados, e o sistema direciona cada pedido ao produtor mais apto e mais próximo.</p>
+          </li>
+          <li>
+            <h3>Produção acompanhada</h3>
+            <p>Cada prótese é rastreada do pedido à entrega, com prazos e situação visíveis, para que os casos mais urgentes sejam atendidos primeiro.</p>
+          </li>
+          <li>
+            <h3>Controle de qualidade</h3>
+            <p>Regras definidas pela AACD (preenchimento mínimo e parâmetros de fatiamento) e uma validação clínica antes do uso.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section aria-labelledby="titulo-ecossistema">
+        <h2 class="titulo-secao" id="titulo-ecossistema">Quem faz parte</h2>
+        <ul class="ecossistema">
+          <li>
+            <h3>A demanda</h3>
+            <p class="ecossistema__quem">AACD</p>
+            <p>Registra as necessidades de próteses e envia os arquivos de fatiamento aprovados.</p>
+          </li>
+          <li>
+            <h3>A capacidade de produção</h3>
+            <p class="ecossistema__quem">FabLabs, voluntários e empresas</p>
+            <p>Microfábricas espalhadas pela região, articuladas com a União dos Reitores do Grande ABC.</p>
+          </li>
+          <li>
+            <h3>O desenvolvimento</h3>
+            <p class="ecossistema__quem">Instituto Mauá de Tecnologia</p>
+            <p>Alunos de Ciência da Computação, Sistemas de Informação e Ciência de Dados constroem a plataforma.</p>
+          </li>
+          <li>
+            <h3>O apoio financeiro</h3>
+            <p class="ecossistema__quem">Parceiros corporativos</p>
+            <p>Financiamento de insumos e pesquisa por meio de leis de incentivo (<abbr title="Programa Nacional de Apoio à Atenção da Saúde da Pessoa com Deficiência">PRONAS/PCD</abbr>, Lei do Bem, Lei da Informática).</p>
+          </li>
+        </ul>
+      </section>
+
+      <section class="rede" aria-labelledby="titulo-rede">
+        <div>
+          <p class="rotulo rotulo--claro">Produção descentralizada</p>
+          <h2 id="titulo-rede">Uma rede de microfábricas no Grande ABC</h2>
+          <p>Em vez de depender de um único centro, a produção é dividida entre FabLabs universitários
+            dos sete municípios da região, com o Instituto Mauá como hub. Isso agiliza a logística e
+            garante entregas contínuas para a AACD.</p>
+        </div>
+        <ul class="rede__cidades">
+          <li>Santo André</li>
+          <li>São Bernardo</li>
+          <li>São Caetano</li>
+          <li>Diadema</li>
+          <li class="rede__cidade--hub">Mauá</li>
+          <li>Ribeirão Pires</li>
+          <li>Rio Grande da Serra</li>
+        </ul>
+      </section>
+
+      <section aria-labelledby="titulo-perfis">
+        <h2 class="titulo-secao" id="titulo-perfis">Escolha como você vai usar</h2>
+        <ul class="perfis">
+          <li class="perfil perfil--vermelho">
+            <h3>Funcionários AACD</h3>
+            <ul>
+              <li>Cadastrar as demandas de próteses dos pacientes</li>
+              <li>Acompanhar prazos e a situação de cada pedido</li>
+              <li>Ver e aprovar os voluntários e laboratórios</li>
+            </ul>
+            <a href="#/funcionario/login">Entrar como funcionário <span aria-hidden="true">→</span></a>
+          </li>
+          <li class="perfil perfil--teal">
+            <h3>Voluntários e FabLabs</h3>
+            <ul>
+              <li>Cadastrar impressoras e filamentos</li>
+              <li>Receber pedidos compatíveis com o seu equipamento</li>
+              <li>Acompanhar o que está em produção</li>
+            </ul>
+            <a href="#/voluntario/login">Entrar como voluntário <span aria-hidden="true">→</span></a>
+          </li>
+        </ul>
+      </section>
+    </div>
+
+    <footer class="inicio-rodape">
+      <p>Projeto Integrador — Instituto Mauá de Tecnologia &amp; AACD</p>
+      <p><a href="https://aacd.org.br" target="_blank" rel="noopener noreferrer">aacd.org.br<span class="visualmente-oculto"> (abre em nova aba)</span></a></p>
+    </footer>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: LOGIN DO FUNCIONÁRIO
+       ===================================================== -->
+  <main aria-labelledby="titulo-login-funcionario" class="tela tela--acesso tela--acesso-funcionario" id="tela-login-funcionario"
+        data-rota="/funcionario/login" data-area="publica" data-titulo="Login do funcionário" hidden>
+    <form class="cartao-acesso" id="form-login-funcionario" novalidate aria-labelledby="titulo-login-funcionario">
+      <h1 class="visualmente-oculto" id="titulo-login-funcionario" tabindex="-1">Login do funcionário AACD</h1>
+
+      <p class="cartao-acesso__campo">
+        <label for="lf-email">Login</label>
+        <input type="email" id="lf-email" name="email" placeholder="[email AACD]"
+               autocomplete="username" required>
+      </p>
+
+      <p class="cartao-acesso__campo">
+        <label for="lf-senha">Senha</label>
+        <input type="password" id="lf-senha" name="senha" placeholder="Digite sua senha:"
+               autocomplete="current-password" required>
+      </p>
+
+      <a class="cartao-acesso__link" href="#/funcionario/esqueci-senha">Esqueci a senha</a>
+
+      <p class="cartao-acesso__mensagem" id="lf-mensagem" role="alert"></p>
+
+      <button class="cartao-acesso__botao" type="submit">Entrar</button>
+
+      <a class="cartao-acesso__voltar" href="#/">Voltar para tela inicial</a>
+    </form>
+
+    <img class="marca" src="img/logo-aacd.png" alt="Hospital Ortopédico AACD" width="480" height="210">
+  </main>
+
+
+  <!-- =====================================================
+       TELA: LOGIN DO VOLUNTÁRIO
+       ===================================================== -->
+  <main aria-labelledby="titulo-login-voluntario" class="tela tela--acesso tela--acesso-voluntario" id="tela-login-voluntario"
+        data-rota="/voluntario/login" data-area="publica" data-titulo="Login do voluntário" hidden>
+    <form class="cartao-acesso" id="form-login-voluntario" novalidate aria-labelledby="titulo-login-voluntario">
+      <h1 class="visualmente-oculto" id="titulo-login-voluntario" tabindex="-1">Login do voluntário</h1>
+
+      <p class="cartao-acesso__campo">
+        <label for="lv-email">Login</label>
+        <input type="email" id="lv-email" name="email" placeholder="xxxxxx@gmail.com"
+               autocomplete="username" aria-describedby="lv-erro-email" required>
+        <small class="cartao-acesso__erro" id="lv-erro-email"></small>
+      </p>
+      <a class="cartao-acesso__link" href="#/voluntario/cadastro">Não tem conta? Cadastre-se</a>
+
+      <p class="cartao-acesso__campo">
+        <label for="lv-senha">Senha</label>
+        <input type="password" id="lv-senha" name="senha" placeholder="Digite sua senha:"
+               autocomplete="current-password" aria-describedby="lv-erro-senha" required>
+        <small class="cartao-acesso__erro" id="lv-erro-senha"></small>
+      </p>
+      <a class="cartao-acesso__link" href="#/voluntario/esqueci-senha">Esqueci minha senha</a>
+
+      <p class="cartao-acesso__mensagem" id="lv-mensagem" role="alert"></p>
+
+      <button class="cartao-acesso__botao" type="submit">Entrar</button>
+
+      <a class="cartao-acesso__voltar" href="#/">Voltar para tela inicial</a>
+    </form>
+
+    <img class="marca" src="img/logo-aacd.png" alt="Hospital Ortopédico AACD" width="480" height="210">
+  </main>
+
+
+  <!-- =====================================================
+       TELA: ESQUECI A SENHA (funcionário e voluntário)
+       ===================================================== -->
+  <main aria-labelledby="titulo-esqueci-senha" class="tela tela--acesso tela--acesso-senha" id="tela-esqueci-senha"
+        data-rota="/funcionario/esqueci-senha /voluntario/esqueci-senha" data-area="publica"
+        data-titulo="Recuperar senha" hidden>
+    <form class="cartao-acesso" id="form-esqueci-senha" novalidate aria-labelledby="titulo-esqueci-senha">
+      <h1 class="visualmente-oculto" id="titulo-esqueci-senha" tabindex="-1">Recuperar senha</h1>
+
+      <p class="cartao-acesso__campo">
+        <label for="es-email">Coloque seu email:</label>
+        <input type="email" id="es-email" name="email" placeholder="xxxxxx@gmail.com"
+               autocomplete="email" aria-describedby="es-explicacao es-erro" required>
+        <small class="cartao-acesso__erro" id="es-erro"></small>
+      </p>
+
+      <button class="cartao-acesso__botao cartao-acesso__botao--secundario" type="button" id="es-reenviar">Reenviar código</button>
+
+      <p class="cartao-acesso__explicacao" id="es-explicacao">
+        Enviaremos um código para seu email.<br>
+        Use-o para poder trocar a senha.
+      </p>
+
+      <button class="cartao-acesso__botao" type="submit">Enviar</button>
+
+      <a class="cartao-acesso__voltar" href="#/" id="es-voltar">Voltar para tela anterior</a>
+    </form>
+
+    <img class="marca" src="img/logo-aacd.png" alt="Hospital Ortopédico AACD" width="480" height="210">
+  </main>
+
+
+  <!-- =====================================================
+       TELA: MUDANÇA DE SENHA
+       ===================================================== -->
+  <main aria-labelledby="titulo-mudar-senha" class="tela tela--acesso tela--acesso-senha" id="tela-mudar-senha"
+        data-rota="/mudar-senha" data-area="publica" data-titulo="Mudança de senha" hidden>
+    <form class="cartao-acesso" id="form-mudar-senha" novalidate aria-labelledby="titulo-mudar-senha">
+      <h1 class="visualmente-oculto" id="titulo-mudar-senha" tabindex="-1">Mudança de senha</h1>
+
+      <p class="cartao-acesso__campo">
+        <label for="ms-senha">Senha</label>
+        <input type="password" id="ms-senha" name="senha" placeholder="Digite sua senha:"
+               autocomplete="new-password" minlength="8" aria-describedby="ms-erro-senha" required>
+        <small class="cartao-acesso__erro" id="ms-erro-senha"></small>
+      </p>
+
+      <p class="cartao-acesso__campo">
+        <label for="ms-confirmar">Confirmar senha</label>
+        <input type="password" id="ms-confirmar" name="confirmar-senha" placeholder="Confirme sua senha:"
+               autocomplete="new-password" aria-describedby="ms-erro-confirmar" required>
+        <small class="cartao-acesso__erro" id="ms-erro-confirmar"></small>
+      </p>
+
+      <button class="cartao-acesso__botao" type="submit">Trocar senha</button>
+
+      <a class="cartao-acesso__voltar" href="#/">Voltar para tela inicial</a>
+    </form>
+
+    <img class="marca" src="img/logo-aacd.png" alt="Hospital Ortopédico AACD" width="480" height="210">
+  </main>
+
+
+  <!-- =====================================================
+       TELA: CADASTRO DE VOLUNTÁRIO (3 etapas)
+       ===================================================== -->
+  <main aria-labelledby="titulo-cadastro" class="tela tela--cadastro" id="tela-cadastro-voluntario"
+        data-rota="/voluntario/cadastro" data-area="publica" data-titulo="Cadastro de voluntário" hidden>
+    <article class="cartao-cadastro" aria-labelledby="titulo-cadastro">
+      <h1 class="visualmente-oculto" id="titulo-cadastro" tabindex="-1">Cadastro de voluntário</h1>
+
+      <nav aria-label="Etapas do cadastro">
+        <ol class="trilha" id="cad-trilha">
+          <li><button type="button" data-etapa="0">1. Dados do voluntário</button></li>
+          <li><button type="button" data-etapa="1">2. Endereço</button></li>
+          <li><button type="button" data-etapa="2">3. Acesso</button></li>
+        </ol>
+      </nav>
+
+      <form id="form-cadastro" novalidate>
+        <fieldset class="etapa-form" data-etapa="0">
+          <legend class="visualmente-oculto">Dados do voluntário</legend>
+          <div class="grade grade--dados">
+            <div class="campo campo--inteiro">
+              <label class="visualmente-oculto" for="cad-tipo">Tipo de voluntário</label>
+              <select id="cad-tipo" name="tipo_voluntario" aria-describedby="cad-tipo-erro" required>
+                <option value="">Selecione o tipo de voluntário</option>
+                <option value="Pessoa fisica">Pessoa física</option>
+                <option value="Empresa">Empresa</option>
+                <option value="Universidade">Universidade</option>
+              </select>
+              <small class="erro" id="cad-tipo-erro"></small>
+            </div>
+            <div class="campo">
+              <label class="visualmente-oculto" for="cad-nome">Nome do voluntário</label>
+              <input type="text" id="cad-nome" name="nome" placeholder="Nome do voluntário:" autocomplete="name"
+                     aria-describedby="cad-nome-erro" required>
+              <small class="erro" id="cad-nome-erro"></small>
+            </div>
+            <div class="campo">
+              <label class="visualmente-oculto" for="cad-email">E-mail</label>
+              <input id="cad-email" name="email" type="email" placeholder="Email:" autocomplete="email"
+                     aria-describedby="cad-email-erro" required>
+              <small class="erro" id="cad-email-erro"></small>
+            </div>
+            <div class="campo">
+              <label class="visualmente-oculto" for="cad-documento" id="cad-documento-rotulo">CPF ou CNPJ</label>
+              <input type="text" id="cad-documento" name="documento" placeholder="Selecione o tipo de voluntário"
+                     maxlength="18" inputmode="numeric" aria-describedby="cad-documento-erro" disabled required>
+              <small class="erro" id="cad-documento-erro"></small>
+            </div>
+            <div class="campo">
+              <label class="visualmente-oculto" for="cad-telefone">Telefone</label>
+              <input id="cad-telefone" name="telefone" type="tel" placeholder="Telefone: (XX) XXXXX-XXXX"
+                     maxlength="15" autocomplete="tel" aria-describedby="cad-telefone-erro" required>
+              <small class="erro" id="cad-telefone-erro"></small>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="etapa-form" data-etapa="1" hidden>
+          <legend class="visualmente-oculto">Endereço</legend>
+          <div class="grade grade--endereco">
+            <div class="campo">
+              <label class="visualmente-oculto" for="cad-cep">CEP</label>
+              <span class="campo__com-status">
+                <input type="text" id="cad-cep" name="cep" placeholder="CEP: 00000-000" maxlength="9" inputmode="numeric"
+                       autocomplete="postal-code" aria-describedby="cad-cep-status cad-cep-erro" required>
+                <output class="campo__status" id="cad-cep-status" for="cad-cep"></output>
+              </span>
+              <small class="erro" id="cad-cep-erro"></small>
+            </div>
+            <div class="campo campo--duplo">
+              <label class="visualmente-oculto" for="cad-rua">Rua ou logradouro</label>
+              <input type="text" id="cad-rua" name="rua" placeholder="Rua / Logradouro" autocomplete="address-line1"
+                     aria-describedby="cad-rua-erro" required>
+              <small class="erro" id="cad-rua-erro"></small>
+            </div>
+            <div class="campo">
+              <label class="visualmente-oculto" for="cad-numero">Número</label>
+              <input type="text" id="cad-numero" name="numero" placeholder="Número" aria-describedby="cad-numero-erro" required>
+              <small class="erro" id="cad-numero-erro"></small>
+            </div>
+            <div class="campo campo--duplo">
+              <label class="visualmente-oculto" for="cad-complemento">Complemento (opcional)</label>
+              <input type="text" id="cad-complemento" name="complemento" placeholder="Complemento (opcional)" autocomplete="address-line2">
+            </div>
+            <div class="campo">
+              <label class="visualmente-oculto" for="cad-bairro">Bairro</label>
+              <input type="text" id="cad-bairro" name="bairro" placeholder="Bairro" aria-describedby="cad-bairro-erro" required>
+              <small class="erro" id="cad-bairro-erro"></small>
+            </div>
+            <div class="campo">
+              <label class="visualmente-oculto" for="cad-cidade">Cidade</label>
+              <input type="text" id="cad-cidade" name="cidade" placeholder="Cidade" autocomplete="address-level2"
+                     aria-describedby="cad-cidade-erro" required>
+              <small class="erro" id="cad-cidade-erro"></small>
+            </div>
+            <div class="campo">
+              <label class="visualmente-oculto" for="cad-uf">Estado (UF)</label>
+              <select id="cad-uf" name="uf" autocomplete="address-level1" aria-describedby="cad-uf-erro" required>
+                <option value="">UF</option>
+              </select>
+              <small class="erro" id="cad-uf-erro"></small>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="etapa-form" data-etapa="2" hidden>
+          <legend class="visualmente-oculto">Acesso</legend>
+          <div class="grade">
+            <div class="campo">
+              <label class="visualmente-oculto" for="cad-senha">Senha (mínimo de 8 caracteres)</label>
+              <input id="cad-senha" name="senha" type="password" placeholder="Senha" minlength="8"
+                     autocomplete="new-password" aria-describedby="cad-senha-erro" required>
+              <small class="erro" id="cad-senha-erro"></small>
+            </div>
+            <div class="campo">
+              <label class="visualmente-oculto" for="cad-confirmar">Confirmar senha</label>
+              <input id="cad-confirmar" name="confirmarSenha" type="password" placeholder="Confirmar Senha:"
+                     autocomplete="new-password" aria-describedby="cad-confirmar-erro" required>
+              <small class="erro" id="cad-confirmar-erro"></small>
+            </div>
+          </div>
+        </fieldset>
+
+        <section class="etapa-form cadastro-sucesso" data-etapa="3" hidden aria-labelledby="cad-sucesso-titulo">
+          <h2 id="cad-sucesso-titulo" tabindex="-1">Cadastro realizado com sucesso!</h2>
+          <p><a href="#/voluntario/login">Ir para o login</a></p>
+        </section>
+
+        <p class="erro erro--envio" id="cad-erro-envio" role="alert"></p>
+
+        <div class="cadastro-acoes" id="cad-acoes">
+          <button type="button" class="botao-claro botao-claro--contorno" id="cad-anterior">Anterior</button>
+          <button type="submit" class="botao-claro" id="cad-proximo">Próximo</button>
+        </div>
+      </form>
+
+      <a class="cartao-cadastro__voltar" href="#/voluntario/login" id="cad-voltar">Voltar para tela anterior</a>
+    </article>
+
+    <p class="marca-texto" aria-hidden="true">Hospital<br>Ortopédico</p>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: ÁREA DO VOLUNTÁRIO (hub)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-hub-voluntario" class="tela tela--app" id="tela-hub-voluntario"
+        data-rota="/voluntario" data-area="voluntario" data-titulo="Área do voluntário" hidden>
+    <header class="cabecalho-pagina">
+      <h1 id="titulo-tela-hub-voluntario" tabindex="-1">Área do voluntário</h1>
+      <p>Escolha o que você quer fazer agora.</p>
+    </header>
+    <nav aria-label="Atalhos da área do voluntário">
+      <ul class="atalhos">
+        <li><a href="#/voluntario/pedidos-disponiveis"><strong>Pedidos disponíveis</strong> <span>Escolha uma peça para imprimir.</span></a></li>
+        <li><a href="#/voluntario/pedidos-aceitos"><strong>Pedidos aceitos e recusados</strong> <span>Acompanhe suas decisões.</span></a></li>
+        <li><a href="#/voluntario/impressora/cadastrar"><strong>Cadastrar impressora</strong> <span>Informe o equipamento e os filamentos.</span></a></li>
+        <li><a href="#/voluntario/producao"><strong>Status da produção</strong> <span>Veja o que está sendo impresso.</span></a></li>
+      </ul>
+    </nav>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: PEDIDOS DISPONÍVEIS (voluntário)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-pedidos-disponiveis" class="tela tela--app" id="tela-pedidos-disponiveis"
+        data-rota="/voluntario/pedidos-disponiveis" data-area="voluntario" data-titulo="Pedidos disponíveis" hidden>
+    <header class="cabecalho-pagina">
+      <h1 id="titulo-tela-pedidos-disponiveis" tabindex="-1">Pedidos disponíveis</h1>
+      <p>Escolha um pedido para imprimir e ajude um paciente.</p>
+    </header>
+
+    <search class="filtros">
+      <p class="filtros__busca">
+        <label class="visualmente-oculto" for="pd-busca">Buscar por peça ou código</label>
+        <input type="search" id="pd-busca" placeholder="Buscar por peça ou código...">
+      </p>
+      <p>
+        <label class="visualmente-oculto" for="pd-prioridade">Filtrar por prioridade</label>
+        <select id="pd-prioridade">
+          <option value="todas">Todas as prioridades</option>
+          <option value="Alta">Alta</option>
+          <option value="Média">Média</option>
+          <option value="Baixa">Baixa</option>
+        </select>
+      </p>
+      <p>
+        <label class="visualmente-oculto" for="pd-ordenar">Ordenar</label>
+        <select id="pd-ordenar">
+          <option value="recentes">Mais recentes</option>
+          <option value="antigos">Mais antigos</option>
+          <option value="prioridade">Prioridade</option>
+        </select>
+      </p>
+    </search>
+
+    <p class="contador" id="pd-contador" role="status"></p>
+    <ul class="lista-cartoes" id="pd-lista" aria-labelledby="titulo-tela-pedidos-disponiveis"></ul>
+    <p class="vazio" id="pd-vazio" hidden>Nenhum pedido encontrado.</p>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: PEDIDOS ACEITOS E RECUSADOS (voluntário)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-pedidos-aceitos" class="tela tela--app" id="tela-pedidos-aceitos"
+        data-rota="/voluntario/pedidos-aceitos" data-area="voluntario" data-titulo="Pedidos aceitos e recusados" hidden>
+    <header class="cabecalho-pagina">
+      <h1 id="titulo-tela-pedidos-aceitos" tabindex="-1">Pedidos aceitos e recusados</h1>
+      <p>Pedidos que você aceitou e como eles estão andando.</p>
+    </header>
+
+    <search class="filtros">
+      <p class="filtros__busca">
+        <label class="visualmente-oculto" for="pa-busca">Buscar pelo número do pedido ou produto</label>
+        <input type="search" id="pa-busca" placeholder="Buscar pelo número do pedido ou produto...">
+      </p>
+    </search>
+
+    <div class="abas-status" role="group" aria-label="Filtrar por status" id="pa-abas">
+      <button type="button" class="aba" data-status="todos" aria-pressed="true">Todos <span class="aba__numero" data-contador="todos">0</span></button>
+      <button type="button" class="aba" data-status="Pendente" aria-pressed="false">Pendente <span class="aba__numero" data-contador="Pendente">0</span></button>
+      <button type="button" class="aba" data-status="Em produção" aria-pressed="false">Em produção <span class="aba__numero" data-contador="Em produção">0</span></button>
+      <button type="button" class="aba" data-status="Concluído" aria-pressed="false">Concluído <span class="aba__numero" data-contador="Concluído">0</span></button>
+      <button type="button" class="aba" data-status="Recusado" aria-pressed="false">Recusado <span class="aba__numero" data-contador="Recusado">0</span></button>
+    </div>
+
+    <ul class="lista-cartoes" id="pa-lista" aria-labelledby="titulo-tela-pedidos-aceitos"></ul>
+    <p class="vazio" id="pa-vazio" role="status" hidden>Nenhum pedido encontrado.</p>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: PRODUÇÃO (voluntário)
+       ===================================================== -->
+  <main aria-labelledby="pr-titulo" class="tela tela--app tela--estreita" id="tela-producao"
+        data-rota="/voluntario/producao" data-subrotas data-area="voluntario" data-titulo="Produção" hidden>
+    <header class="cabecalho-pagina cabecalho-pagina--destaque">
+      <h1 id="pr-titulo" tabindex="-1">Em produção</h1>
+      <p id="pr-subtitulo">Peças que você está imprimindo agora.</p>
+    </header>
+
+    <search class="filtros">
+      <p class="filtros__busca">
+        <label class="visualmente-oculto" for="pr-busca">Buscar pelo nome do paciente</label>
+        <input type="search" id="pr-busca" placeholder="Buscar pelo nome do paciente...">
+      </p>
+    </search>
+
+    <nav class="abas-status" aria-label="Filtrar por status" id="pr-abas">
+      <a class="aba" href="#/voluntario/producao/todos" data-status="todos">Todos <span class="aba__numero" data-contador="todos">0</span></a>
+      <a class="aba" href="#/voluntario/producao" data-status="Em produção">Em produção <span class="aba__numero" data-contador="Em produção">0</span></a>
+      <a class="aba" href="#/voluntario/producao/aguardando-validacao" data-status="Aguardando validação">Aguardando validação <span class="aba__numero" data-contador="Aguardando validação">0</span></a>
+      <a class="aba" href="#/voluntario/producao/concluidas" data-status="Concluída">Concluídas <span class="aba__numero" data-contador="Concluída">0</span></a>
+    </nav>
+
+    <ul class="lista-cartoes" id="pr-lista" aria-labelledby="pr-titulo"></ul>
+    <p class="vazio" id="pr-vazio" role="status" hidden>Nenhuma peça encontrada.</p>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: CADASTRAR IMPRESSORA (voluntário, 5 etapas)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-cadastrar-impressora" class="tela tela--app" id="tela-cadastrar-impressora"
+        data-rota="/voluntario/impressora/cadastrar" data-area="voluntario" data-titulo="Cadastrar impressora" hidden>
+    <header class="cabecalho-pagina cabecalho-pagina--normal">
+      <h1 id="titulo-tela-cadastrar-impressora" tabindex="-1">Cadastrar impressora</h1>
+    </header>
+
+    <nav aria-label="Etapas do cadastro da impressora">
+      <ol class="etapas" id="ci-etapas">
+        <li><button type="button" class="etapa" data-etapa="0">Identificação</button></li>
+        <li><button type="button" class="etapa" data-etapa="1">Endereço</button></li>
+        <li><button type="button" class="etapa" data-etapa="2">Especificações</button></li>
+        <li><button type="button" class="etapa" data-etapa="3">Filamento</button></li>
+        <li><button type="button" class="etapa" data-etapa="4">Revisão</button></li>
+      </ol>
+    </nav>
+
+    <form class="cartao-form" id="form-impressora" novalidate>
+
+      <fieldset class="passo" data-passo="0">
+        <legend>Identificação</legend>
+        <div class="grade">
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-nome">Nome da impressora</label>
+            <input type="text" id="ci-nome" name="nome" placeholder="Nome da Impressora (Ex: Minha Ender 3)"
+                   aria-describedby="ci-nome-erro" required>
+            <small class="erro" id="ci-nome-erro">Informe o nome da impressora.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-marca">Marca da impressora</label>
+            <input type="text" id="ci-marca" name="marca" placeholder="Marca da Impressora (Ex: Creality, Bambu Lab)"
+                   aria-describedby="ci-marca-erro" required>
+            <small class="erro" id="ci-marca-erro">Informe a marca da impressora.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-modelo">Modelo da impressora</label>
+            <input type="text" id="ci-modelo" name="modelo" placeholder="Modelo da Impressora (Ex: Ender 3 V2, P1S)"
+                   aria-describedby="ci-modelo-erro" required>
+            <small class="erro" id="ci-modelo-erro">Informe o modelo da impressora.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-tecnologia">Tecnologia de impressão</label>
+            <select id="ci-tecnologia" name="tecnologia" aria-describedby="ci-tecnologia-erro" required>
+              <option value="">Tecnologia da Impressão (Ex: FDM, SLA, SLS)</option>
+              <option value="FDM">FDM</option>
+              <option value="SLA">SLA</option>
+              <option value="SLS">SLS</option>
+              <option value="DLP">DLP</option>
+            </select>
+            <small class="erro" id="ci-tecnologia-erro">Selecione a tecnologia de impressão.</small>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="passo" data-passo="1" hidden>
+        <legend>Endereço</legend>
+        <div class="grade">
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-cep">CEP</label>
+            <input type="text" id="ci-cep" name="cep" placeholder="CEP (Ex: 01234-567)" maxlength="9"
+                   inputmode="numeric" autocomplete="postal-code" aria-describedby="ci-cep-erro" required>
+            <small class="erro" id="ci-cep-erro">Informe um CEP válido.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-rua">Rua ou avenida</label>
+            <input type="text" id="ci-rua" name="rua" placeholder="Rua / Avenida" autocomplete="address-line1"
+                   aria-describedby="ci-rua-erro" required>
+            <small class="erro" id="ci-rua-erro">Informe a rua.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-numero">Número</label>
+            <input type="text" id="ci-numero" name="numero" placeholder="Número" aria-describedby="ci-numero-erro" required>
+            <small class="erro" id="ci-numero-erro">Informe o número.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-complemento">Complemento (opcional)</label>
+            <input type="text" id="ci-complemento" name="complemento" placeholder="Complemento (opcional)" autocomplete="address-line2">
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-bairro">Bairro</label>
+            <input type="text" id="ci-bairro" name="bairro" placeholder="Bairro" aria-describedby="ci-bairro-erro" required>
+            <small class="erro" id="ci-bairro-erro">Informe o bairro.</small>
+          </div>
+          <div class="campo-par">
+            <div class="campo">
+              <label class="visualmente-oculto" for="ci-cidade">Cidade</label>
+              <input type="text" id="ci-cidade" name="cidade" placeholder="Cidade" autocomplete="address-level2"
+                     aria-describedby="ci-cidade-erro" required>
+              <small class="erro" id="ci-cidade-erro">Informe a cidade.</small>
+            </div>
+            <div class="campo">
+              <label class="visualmente-oculto" for="ci-estado">Estado (UF)</label>
+              <input type="text" id="ci-estado" name="estado" placeholder="UF" maxlength="2"
+                     autocomplete="address-level1" aria-describedby="ci-estado-erro" required>
+              <small class="erro" id="ci-estado-erro">UF inválida.</small>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="passo" data-passo="2" hidden>
+        <legend>Especificações</legend>
+        <div class="grade">
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-volume-x">Área de impressão X em milímetros</label>
+            <input type="number" id="ci-volume-x" name="volumeX" placeholder="Área de impressão X (mm) (Ex: 220)"
+                   min="1" aria-describedby="ci-volume-x-erro" required>
+            <small class="erro" id="ci-volume-x-erro">Informe a largura (X).</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-volume-y">Área de impressão Y em milímetros</label>
+            <input type="number" id="ci-volume-y" name="volumeY" placeholder="Área de impressão Y (mm) (Ex: 220)"
+                   min="1" aria-describedby="ci-volume-y-erro" required>
+            <small class="erro" id="ci-volume-y-erro">Informe a profundidade (Y).</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-volume-z">Altura de impressão Z em milímetros</label>
+            <input type="number" id="ci-volume-z" name="volumeZ" placeholder="Altura de impressão Z (mm) (Ex: 250)"
+                   min="1" aria-describedby="ci-volume-z-erro" required>
+            <small class="erro" id="ci-volume-z-erro">Informe a altura (Z).</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-bico">Diâmetro do bico</label>
+            <select id="ci-bico" name="bico" aria-describedby="ci-bico-erro" required>
+              <option value="">Diâmetro do bico</option>
+              <option value="0.2">0.2 mm</option>
+              <option value="0.4">0.4 mm</option>
+              <option value="0.6">0.6 mm</option>
+              <option value="0.8">0.8 mm</option>
+            </select>
+            <small class="erro" id="ci-bico-erro">Selecione o diâmetro do bico.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-temp-bico">Temperatura máxima do bico em °C (opcional)</label>
+            <input type="number" id="ci-temp-bico" name="tempBico" placeholder="Temperatura máx. do bico (°C) (Ex: 260)" min="1">
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-velocidade">Velocidade máxima em mm/s (opcional)</label>
+            <input type="number" id="ci-velocidade" name="velocidade" placeholder="Velocidade máx. (mm/s) (Ex: 180)" min="1">
+          </div>
+          <label class="opcao-check">
+            <input type="checkbox" id="ci-mesa-aquecida" name="mesaAquecida">
+            Possui mesa aquecida
+          </label>
+          <label class="opcao-check">
+            <input type="checkbox" id="ci-enclausurada" name="enclausurada">
+            Impressora enclausurada
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="passo" data-passo="3" hidden>
+        <legend>Filamento</legend>
+        <fieldset class="chips" aria-describedby="ci-materiais-erro">
+          <legend class="legenda">Quais materiais sua impressora consegue imprimir?</legend>
+          <label class="chip"><input type="checkbox" name="materiais" value="PLA"><span>PLA</span></label>
+          <label class="chip"><input type="checkbox" name="materiais" value="PETG"><span>PETG</span></label>
+          <label class="chip"><input type="checkbox" name="materiais" value="ABS"><span>ABS</span></label>
+          <label class="chip"><input type="checkbox" name="materiais" value="TPU"><span>TPU</span></label>
+          <label class="chip"><input type="checkbox" name="materiais" value="ASA"><span>ASA</span></label>
+          <label class="chip"><input type="checkbox" name="materiais" value="Nylon"><span>Nylon</span></label>
+          <label class="chip"><input type="checkbox" name="materiais" value="Resina"><span>Resina</span></label>
+        </fieldset>
+        <small class="erro erro--solto" id="ci-materiais-erro">Selecione pelo menos um material.</small>
+
+        <div class="grade grade--espaco">
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-diametro-filamento">Diâmetro do filamento</label>
+            <select id="ci-diametro-filamento" name="diametroFilamento" aria-describedby="ci-diametro-filamento-erro" required>
+              <option value="">Diâmetro do filamento</option>
+              <option value="1.75">1.75 mm</option>
+              <option value="2.85">2.85 mm</option>
+              <option value="Não se aplica">Não se aplica (resina)</option>
+            </select>
+            <small class="erro" id="ci-diametro-filamento-erro">Selecione o diâmetro do filamento.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="ci-cores">Cores disponíveis (opcional)</label>
+            <input type="text" id="ci-cores" name="cores" placeholder="Cores disponíveis (Ex: branco, preto, azul)">
+          </div>
+        </div>
+      </fieldset>
+
+      <section class="passo" data-passo="4" hidden aria-labelledby="ci-revisao-titulo">
+        <h2 id="ci-revisao-titulo">Revisão</h2>
+        <p class="legenda">Confira os dados antes de cadastrar.</p>
+        <div class="revisao" id="ci-revisao"></div>
+      </section>
+
+      <div class="cartao-form__acoes">
+        <button type="button" class="botao-form botao-form--contorno" id="ci-voltar" hidden><span aria-hidden="true">←</span> Voltar</button>
+        <button type="submit" class="botao-form" id="ci-proximo">Próximo <span aria-hidden="true">→</span></button>
+      </div>
+    </form>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: ÁREA DO FUNCIONÁRIO (hub)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-hub-funcionario" class="tela tela--app" id="tela-hub-funcionario"
+        data-rota="/funcionario" data-area="funcionario" data-titulo="Área do funcionário" hidden>
+    <header class="cabecalho-pagina cabecalho-pagina--normal">
+      <h1 id="titulo-tela-hub-funcionario" tabindex="-1">Bem-vindo à área do funcionário<span id="hub-func-nome"></span></h1>
+      <p>Escolha o que você quer fazer agora.</p>
+    </header>
+    <nav aria-label="Atalhos da área do funcionário">
+      <ul class="atalhos">
+        <li><a href="#/funcionario/demandas/cadastrar"><strong>Cadastrar demanda</strong> <span>Publique uma nova demanda de prótese.</span></a></li>
+        <li><a href="#/funcionario/voluntarios"><strong>Lista de voluntários</strong> <span>Aprove e acompanhe os voluntários.</span></a></li>
+        <li><a href="#/funcionario/impressoras"><strong>Impressoras cadastradas</strong> <span>Veja e edite as impressoras da rede.</span></a></li>
+      </ul>
+    </nav>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: NOVA DEMANDA (funcionário, 4 etapas)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-cadastrar-demanda" class="tela tela--app tela--larga" id="tela-cadastrar-demanda"
+        data-rota="/funcionario/demandas/cadastrar" data-area="funcionario" data-titulo="Nova demanda" hidden>
+    <header class="cabecalho-pagina cabecalho-pagina--grande">
+      <h1 id="titulo-tela-cadastrar-demanda" tabindex="-1">Nova demanda</h1>
+    </header>
+
+    <nav aria-label="Etapas do cadastro da demanda">
+      <ol class="etapas etapas--grandes" id="cd-etapas">
+        <li><button type="button" class="etapa" data-etapa="0">Identificação</button></li>
+        <li><button type="button" class="etapa" data-etapa="1">Informações gerais</button></li>
+        <li><button type="button" class="etapa" data-etapa="2">Especificações</button></li>
+        <li><button type="button" class="etapa" data-etapa="3">Entrega</button></li>
+      </ol>
+    </nav>
+
+    <form class="cartao-form cartao-form--grande" id="form-demanda" novalidate>
+
+      <fieldset class="passo" data-passo="0">
+        <legend>Identificação da demanda</legend>
+        <div class="grade">
+          <div class="campo campo--inteiro">
+            <label for="cd-nome">Nome da demanda</label>
+            <input type="text" id="cd-nome" name="nome" placeholder="Nome da Demanda:" aria-describedby="cd-nome-erro" required>
+            <small class="erro" id="cd-nome-erro">Informe o nome da demanda.</small>
+          </div>
+          <div class="campo">
+            <label for="cd-protese">Prótese já cadastrada (opcional)</label>
+            <select id="cd-protese" name="protese" aria-describedby="cd-protese-dica">
+              <option value="">Selecione uma prótese cadastrada</option>
+            </select>
+            <small class="dica" id="cd-protese-dica">Ao selecionar, os dados da peça são preenchidos automaticamente nas próximas etapas.</small>
+          </div>
+          <div class="campo">
+            <label for="cd-quantidade">Unidades solicitadas</label>
+            <input type="number" id="cd-quantidade" name="quantidade" placeholder="Ex: 1" min="1" step="1"
+                   aria-describedby="cd-quantidade-erro" required>
+            <small class="erro" id="cd-quantidade-erro">Informe a quantidade de unidades (mínimo 1).</small>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="passo" data-passo="1" hidden>
+        <legend>Informações gerais</legend>
+        <div class="grade">
+          <div class="campo">
+            <label for="cd-tipo">Tipo de peça</label>
+            <select id="cd-tipo" name="tipo" aria-describedby="cd-tipo-erro" required>
+              <option value="">Selecione</option>
+              <option value="Prótese">Prótese</option>
+              <option value="Órtese">Órtese</option>
+              <option value="Adaptador">Adaptador</option>
+              <option value="Palmilha">Palmilha</option>
+              <option value="Outro">Outro</option>
+            </select>
+            <small class="erro" id="cd-tipo-erro">Selecione o tipo de peça.</small>
+          </div>
+          <div class="campo">
+            <label for="cd-regiao">Região do corpo</label>
+            <select id="cd-regiao" name="regiao" aria-describedby="cd-regiao-erro" required>
+              <option value="">Selecione</option>
+              <option value="Membro superior">Membro superior</option>
+              <option value="Membro inferior">Membro inferior</option>
+              <option value="Mão">Mão</option>
+              <option value="Pé">Pé</option>
+              <option value="Outro">Outro</option>
+            </select>
+            <small class="erro" id="cd-regiao-erro">Selecione a região do corpo.</small>
+          </div>
+          <div class="campo">
+            <label for="cd-paciente">Código do paciente</label>
+            <input type="text" id="cd-paciente" name="paciente" placeholder="Ex: PAC-0842" autocomplete="off"
+                   aria-describedby="cd-paciente-erro" required>
+            <small class="erro" id="cd-paciente-erro">Informe o código do paciente (ex: PAC-0842).</small>
+          </div>
+          <div class="campo">
+            <label for="cd-prioridade">Prioridade</label>
+            <select id="cd-prioridade" name="prioridade" aria-describedby="cd-prioridade-erro" required>
+              <option value="">Selecione</option>
+              <option value="Alta">Alta</option>
+              <option value="Média">Média</option>
+              <option value="Baixa">Baixa</option>
+            </select>
+            <small class="erro" id="cd-prioridade-erro">Selecione a prioridade.</small>
+          </div>
+          <div class="campo campo--inteiro">
+            <label for="cd-arquivo">Arquivo do modelo 3D (opcional)</label>
+            <input type="file" id="cd-arquivo" name="arquivo" accept=".stl,.obj,.3mf">
+          </div>
+          <div class="campo campo--inteiro">
+            <label for="cd-observacoes">Observações</label>
+            <textarea id="cd-observacoes" name="observacoes" rows="3" placeholder="Ex: Tamanho M, lado direito, escala 110%."></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="passo" data-passo="2" hidden>
+        <legend>Especificações de impressão</legend>
+        <div class="grade">
+          <div class="campo">
+            <label for="cd-filamento">Filamento recomendado</label>
+            <select id="cd-filamento" name="filamento" aria-describedby="cd-filamento-erro" required>
+              <option value="">Selecione</option>
+              <option value="PLA">PLA</option>
+              <option value="PETG">PETG</option>
+              <option value="TPU">TPU (flexível)</option>
+              <option value="ABS">ABS</option>
+              <option value="ASA">ASA</option>
+              <option value="Nylon">Nylon</option>
+            </select>
+            <small class="erro" id="cd-filamento-erro">Selecione o filamento recomendado.</small>
+          </div>
+          <div class="campo">
+            <label for="cd-bico">Diâmetro do bico (mm)</label>
+            <select id="cd-bico" name="bico" aria-describedby="cd-bico-erro" required>
+              <option value="">Selecione</option>
+              <option value="0.2">0,2 mm</option>
+              <option value="0.4">0,4 mm</option>
+              <option value="0.6">0,6 mm</option>
+              <option value="0.8">0,8 mm</option>
+              <option value="1.0">1,0 mm</option>
+            </select>
+            <small class="erro" id="cd-bico-erro">Selecione o diâmetro do bico.</small>
+          </div>
+
+          <div class="campo--inteiro grade grade--tres">
+            <div class="campo">
+              <label for="cd-largura">Largura necessária (mm)</label>
+              <input type="number" id="cd-largura" name="largura" placeholder="Ex: 85" min="0.1" step="0.1"
+                     aria-describedby="cd-largura-erro" required>
+              <small class="erro" id="cd-largura-erro">Informe a largura (maior que 0).</small>
+            </div>
+            <div class="campo">
+              <label for="cd-profundidade">Profundidade necessária (mm)</label>
+              <input type="number" id="cd-profundidade" name="profundidade" placeholder="Ex: 60" min="0.1" step="0.1"
+                     aria-describedby="cd-profundidade-erro" required>
+              <small class="erro" id="cd-profundidade-erro">Informe a profundidade (maior que 0).</small>
+            </div>
+            <div class="campo">
+              <label for="cd-altura">Altura necessária (mm)</label>
+              <input type="number" id="cd-altura" name="altura" placeholder="Ex: 140" min="0.1" step="0.1"
+                     aria-describedby="cd-altura-erro" required>
+              <small class="erro" id="cd-altura-erro">Informe a altura (maior que 0).</small>
+            </div>
+          </div>
+
+          <fieldset class="campo campo--inteiro campo--tempo" aria-describedby="cd-tempo-erro">
+            <legend>Tempo estimado de impressão (por unidade)</legend>
+            <span class="duplo">
+              <label class="visualmente-oculto" for="cd-tempo-horas">Horas</label>
+              <input type="number" id="cd-tempo-horas" name="tempoHoras" placeholder="Horas" min="0" step="1">
+              <span aria-hidden="true">h</span>
+              <label class="visualmente-oculto" for="cd-tempo-minutos">Minutos</label>
+              <input type="number" id="cd-tempo-minutos" name="tempoMinutos" placeholder="Minutos" min="0" max="59" step="1">
+              <span aria-hidden="true">min</span>
+            </span>
+            <small class="erro" id="cd-tempo-erro">Informe o tempo estimado (minutos de 0 a 59).</small>
+          </fieldset>
+        </div>
+      </fieldset>
+
+      <fieldset class="passo" data-passo="3" hidden>
+        <legend>Entrega</legend>
+        <div class="grade">
+          <div class="campo">
+            <label for="cd-prazo">Prazo de entrega</label>
+            <input type="date" id="cd-prazo" name="prazo" aria-describedby="cd-prazo-erro" required>
+            <small class="erro" id="cd-prazo-erro">Informe uma data a partir de hoje.</small>
+          </div>
+          <div class="campo">
+            <label for="cd-forma-entrega">Forma de entrega</label>
+            <select id="cd-forma-entrega" name="formaEntrega" aria-describedby="cd-forma-entrega-erro" required>
+              <option value="">Selecione</option>
+              <option value="Voluntário entrega na unidade">Voluntário entrega na unidade</option>
+              <option value="Envio pelos Correios">Envio pelos Correios</option>
+              <option value="Retirada pela equipe">Retirada pela equipe</option>
+            </select>
+            <small class="erro" id="cd-forma-entrega-erro">Selecione a forma de entrega.</small>
+          </div>
+          <div class="campo">
+            <label for="cd-unidade">Local de entrega</label>
+            <input type="text" id="cd-unidade" name="unidade" placeholder="Ex: AACD Ibirapuera"
+                   aria-describedby="cd-unidade-erro" required>
+            <small class="erro" id="cd-unidade-erro">Informe o local de entrega.</small>
+          </div>
+          <div class="campo">
+            <label for="cd-responsavel">Responsável pelo recebimento</label>
+            <input type="text" id="cd-responsavel" name="responsavel" placeholder="Nome do responsável"
+                   autocomplete="off" aria-describedby="cd-responsavel-erro" required>
+            <small class="erro" id="cd-responsavel-erro">Informe o responsável.</small>
+          </div>
+          <div class="campo campo--inteiro">
+            <label for="cd-instrucoes">Instruções de entrega</label>
+            <textarea id="cd-instrucoes" name="instrucoes" rows="3" placeholder="Ex: Entregar na recepção do bloco B, das 8h às 17h."></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="cartao-form__acoes cartao-form__acoes--separadas">
+        <a class="botao-form botao-form--contorno" href="#/funcionario" id="cd-cancelar">Cancelar</a>
+        <span class="cartao-form__acoes-direita">
+          <button type="button" class="botao-form botao-form--contorno" id="cd-voltar" hidden><span aria-hidden="true">←</span> Voltar</button>
+          <button type="button" class="botao-form botao-form--contorno" id="cd-rascunho">Salvar rascunho</button>
+          <button type="submit" class="botao-form" id="cd-proximo">Próximo <span aria-hidden="true">→</span></button>
+        </span>
+      </div>
+    </form>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: LISTA DE VOLUNTÁRIOS (funcionário)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-lista-voluntarios" class="tela tela--app" id="tela-lista-voluntarios"
+        data-rota="/funcionario/voluntarios" data-area="funcionario" data-titulo="Lista de voluntários" hidden>
+    <header class="cabecalho-pagina">
+      <h1 id="titulo-tela-lista-voluntarios" tabindex="-1">Lista de voluntários</h1>
+      <p>Acompanhe os voluntários cadastrados e o que cada um está imprimindo.</p>
+    </header>
+
+    <search class="filtros">
+      <p class="filtros__busca">
+        <label class="visualmente-oculto" for="lvol-busca">Buscar por nome ou cidade</label>
+        <input type="search" id="lvol-busca" placeholder="Buscar por nome ou cidade...">
+      </p>
+      <p>
+        <label class="visualmente-oculto" for="lvol-status">Filtrar por status</label>
+        <select id="lvol-status">
+          <option value="todos">Todos os status</option>
+          <option value="Ativo">Ativo</option>
+          <option value="Pendente">Pendente</option>
+          <option value="Inativo">Inativo</option>
+        </select>
+      </p>
+      <p>
+        <label class="visualmente-oculto" for="lvol-ordenar">Ordenar</label>
+        <select id="lvol-ordenar">
+          <option value="nome">Nome (A-Z)</option>
+          <option value="entregas">Mais peças entregues</option>
+          <option value="recentes">Cadastro mais recente</option>
+        </select>
+      </p>
+    </search>
+
+    <p class="contador" id="lvol-contador" role="status"></p>
+    <ul class="lista-cartoes" id="lvol-lista" aria-labelledby="titulo-tela-lista-voluntarios"></ul>
+    <p class="vazio" id="lvol-vazio" hidden>Nenhum voluntário encontrado.</p>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: IMPRESSORAS CADASTRADAS (funcionário)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-impressoras" class="tela tela--app" id="tela-impressoras"
+        data-rota="/funcionario/impressoras" data-area="funcionario" data-titulo="Impressoras cadastradas" hidden>
+    <header class="cabecalho-pagina">
+      <h1 id="titulo-tela-impressoras" tabindex="-1">Impressoras cadastradas</h1>
+      <p>Impressoras 3D que os voluntários cadastraram para produzir as peças.</p>
+    </header>
+
+    <search class="filtros">
+      <p class="filtros__busca">
+        <label class="visualmente-oculto" for="imp-busca">Buscar por modelo, voluntário ou cidade</label>
+        <input type="search" id="imp-busca" placeholder="Buscar por modelo, voluntário ou cidade...">
+      </p>
+      <p>
+        <label class="visualmente-oculto" for="imp-tecnologia">Filtrar por tecnologia</label>
+        <select id="imp-tecnologia">
+          <option value="todas">Todas as tecnologias</option>
+          <option value="FDM">FDM (filamento)</option>
+          <option value="Resina">Resina</option>
+        </select>
+      </p>
+      <p>
+        <label class="visualmente-oculto" for="imp-ordenar">Ordenar</label>
+        <select id="imp-ordenar">
+          <option value="recentes">Mais recentes</option>
+          <option value="modelo">Modelo (A-Z)</option>
+          <option value="voluntario">Voluntário (A-Z)</option>
+        </select>
+      </p>
+    </search>
+
+    <p class="contador" id="imp-contador" role="status"></p>
+    <ul class="lista-cartoes" id="imp-lista" aria-labelledby="titulo-tela-impressoras"></ul>
+    <p class="vazio" id="imp-vazio" hidden>Nenhuma impressora encontrada.</p>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: EM CONSTRUÇÃO (itens de menu ainda sem tela)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-em-construcao" class="tela tela--app tela--aviso" id="tela-em-construcao"
+        data-rota="/voluntario/em-construcao /funcionario/em-construcao" data-area="auto"
+        data-titulo="Em construção" hidden>
+    <h1 id="titulo-tela-em-construcao" tabindex="-1">Em construção</h1>
+    <p>Esta parte do sistema ainda está sendo desenvolvida.</p>
+    <p><a class="botao-link" href="#/voluntario" id="em-construcao-voltar">Voltar para o início da área</a></p>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: PÁGINA NÃO ENCONTRADA
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-nao-encontrada" class="tela tela--aviso" id="tela-nao-encontrada"
+        data-rota="/404" data-area="publica" data-titulo="Página não encontrada" hidden>
+    <h1 id="titulo-tela-nao-encontrada" tabindex="-1">Página não encontrada</h1>
+    <p>O endereço acessado não existe neste sistema.</p>
+    <p><a class="botao-link" href="#/">Voltar para a tela inicial</a></p>
+  </main>
+
+
+  <!-- =====================================================
+       ELEMENTOS GLOBAIS: modal de edição, confirmação e aviso
+       ===================================================== -->
+  <dialog class="modal" id="modal-impressora" aria-labelledby="modal-impressora-titulo">
+    <form class="modal__form" id="form-editar-impressora" method="dialog" novalidate>
+      <div class="modal__cabecalho">
+        <h2 id="modal-impressora-titulo">Editar impressora</h2>
+        <button type="button" class="modal__fechar" data-fechar>
+          <span aria-hidden="true">✕</span><span class="visualmente-oculto">Fechar</span>
+        </button>
+      </div>
+
+      <p class="modal__sub" id="modal-impressora-voluntario"></p>
+
+      <div class="modal__campos">
+        <p class="campo campo--inteiro">
+          <label for="mi-modelo">Modelo <abbr title="obrigatório">*</abbr></label>
+          <input type="text" id="mi-modelo" name="modelo" required maxlength="100">
+        </p>
+        <p class="campo">
+          <label for="mi-tecnologia">Tecnologia <abbr title="obrigatório">*</abbr></label>
+          <select id="mi-tecnologia" name="tecnologia" required>
+            <option value="FDM">FDM (filamento)</option>
+            <option value="Resina">Resina</option>
+          </select>
+        </p>
+        <p class="campo">
+          <label for="mi-bico">Bico (mm)</label>
+          <input type="number" id="mi-bico" name="bico" step="0.05" min="0.1" max="2" placeholder="Ex: 0.4">
+        </p>
+        <p class="campo">
+          <label for="mi-largura">Largura (mm)</label>
+          <input type="number" id="mi-largura" name="largura" min="1" step="1">
+        </p>
+        <p class="campo">
+          <label for="mi-profundidade">Profundidade (mm)</label>
+          <input type="number" id="mi-profundidade" name="profundidade" min="1" step="1">
+        </p>
+        <p class="campo">
+          <label for="mi-altura">Altura (mm)</label>
+          <input type="number" id="mi-altura" name="altura" min="1" step="1">
+        </p>
+        <p class="campo campo--inteiro">
+          <label for="mi-materiais">Materiais</label>
+          <input type="text" id="mi-materiais" name="materiais" maxlength="200" placeholder="Ex: PLA, PETG, TPU">
+        </p>
+        <p class="campo campo--inteiro">
+          <label for="mi-obs">Observações</label>
+          <textarea id="mi-obs" name="obs" rows="3" maxlength="500"></textarea>
+        </p>
+      </div>
+
+      <p class="modal__erro" id="modal-impressora-erro" role="alert" hidden></p>
+
+      <div class="modal__acoes">
+        <button type="button" class="botao botao--secundario" data-fechar>Cancelar</button>
+        <button type="submit" class="botao botao--escuro" id="modal-impressora-salvar">Salvar alterações</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal modal--confirmacao" id="dialogo-confirmar" aria-labelledby="dialogo-confirmar-titulo" aria-describedby="dialogo-confirmar-texto">
+    <form class="modal__form" method="dialog">
+      <h2 id="dialogo-confirmar-titulo">Confirmar ação</h2>
+      <p id="dialogo-confirmar-texto"></p>
+      <div class="modal__acoes">
+        <button type="submit" class="botao botao--secundario" value="nao">Cancelar</button>
+        <button type="submit" class="botao botao--perigo-cheio" value="sim" id="dialogo-confirmar-ok">Confirmar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <p class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></p>
+
+</body>
+</html>
