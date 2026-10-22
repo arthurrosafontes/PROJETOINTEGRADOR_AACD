@@ -1,0 +1,33 @@
+{
+  "name": "projetointegrador_aacd",
+  "version": "1.0.0",
+  "description": "Projeto da Facul",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "testar-mysql": "node backend/scripts/teste-mysql.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/artxscoding/PROJETOINTEGRADOR_AACD.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/artxscoding/PROJETOINTEGRADOR_AACD/issues"
+  },
+  "homepage": "https://github.com/artxscoding/PROJETOINTEGRADOR_AACD#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.11.0",
+    "mysql2": "^3.24.6"
+  }
+}
