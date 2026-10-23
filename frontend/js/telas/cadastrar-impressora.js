@@ -1,13 +1,12 @@
 /* =========================================================
    telas/cadastrar-impressora.js — cadastro em 5 etapas
-   Por enquanto a impressora é salva no navegador (localStorage),
-   como no projeto original. Para usar a API, troque o trecho
-   marcado em cadastrar() por uma chamada em api.js.
+   A impressora é enviada ao backend e salva no MongoDB Atlas.
+   O proprietário é definido exclusivamente pela sessão autenticada.
    ========================================================= */
 "use strict";
 
 (() => {
-  const { $, escapar, mostrarToast, mascaras, armazenamento } = AACD.util;
+  const { $, escapar, mostrarToast, mascaras } = AACD.util;
 
   // Campos obrigatórios de cada etapa (ids sem o prefixo "ci-")
   const etapasConfig = [
@@ -122,42 +121,71 @@
       ]);
   }
 
+  // Adapta os IDs do formulário para os campos do modelo Mongoose atual.
+  // NÃO envia id_voluntario: o backend obtém o proprietário da sessão.
   function montarImpressora() {
+    const diametro = Number(valor("diametro-filamento"));
     return {
-      id: Date.now(),
-      nome: valor("nome"),
-      marca: valor("marca"),
-      modelo: valor("modelo"),
-      tecnologia: valor("tecnologia"),
-      endereco: {
-        cep: valor("cep"), rua: valor("rua"), numero: valor("numero"), complemento: valor("complemento"),
-        bairro: valor("bairro"), cidade: valor("cidade"), estado: valor("estado").toUpperCase()
+      nome_da_impressora: valor("nome"),
+      marca_da_impressora: valor("marca"),
+      modelo_da_impressora: valor("modelo"),
+      tecnologia_da_impressora: valor("tecnologia"),
+      filamentos_compativeis: materiaisSelecionados(),
+      diametro_bico_mm: Number(valor("bico")),
+      volume_impressao: {
+        largura_mm: Number(valor("volume-x")),
+        profundidade_mm: Number(valor("volume-y")),
+        altura_mm: Number(valor("volume-z"))
       },
-      especificacoes: {
-        volume: { x: Number(valor("volume-x")), y: Number(valor("volume-y")), z: Number(valor("volume-z")) },
-        bico: Number(valor("bico")),
-        tempBico: Number(valor("temp-bico")) || null,
-        velocidade: Number(valor("velocidade")) || null,
-        mesaAquecida: marcado("mesa-aquecida"),
-        enclausurada: marcado("enclausurada")
+      diametro_filamento_mm: diametro,
+      temperatura_maxima_bico: valor("temp-bico") ? Number(valor("temp-bico")) : undefined,
+      localizacao: {
+        endereco: {
+          cep: valor("cep").replace(/\D/g, ""),
+          logradouro: valor("rua"),
+          numero: valor("numero"),
+          complemento: valor("complemento"),
+          cidade: valor("cidade"),
+          estado: valor("estado").toUpperCase()
+        }
       },
-      filamento: { materiais: materiaisSelecionados(), diametro: valor("diametro-filamento"), cores: valor("cores") }
+      observacoes: [
+        valor("bairro") ? `Bairro: ${valor("bairro")}` : "",
+        valor("velocidade") ? `Velocidade máxima: ${valor("velocidade")} mm/s` : "",
+        `Mesa aquecida: ${marcado("mesa-aquecida") ? "Sim" : "Não"}`,
+        `Enclausurada: ${marcado("enclausurada") ? "Sim" : "Não"}`,
+        valor("cores") ? `Cores disponíveis: ${valor("cores")}` : ""
+      ].filter(Boolean).join(" | ")
     };
   }
 
-  function cadastrar() {
-    const impressora = montarImpressora();
-
-    // ----- Salvamento (trocar por AACD.api quando a rota existir) -----
-    const salvas = armazenamento.ler("impressoras") || [];
-    salvas.push(impressora);
-    if (!armazenamento.gravar("impressoras", salvas)) {
-      mostrarToast("Não foi possível salvar a impressora neste navegador.", true);
+  let enviando = false;
+  async function cadastrar() {
+    if (enviando) return;
+    // O schema atual exige filamento e bico. Outras tecnologias exigem
+    // revisão conjunta do formulário e da modelagem antes de habilitar.
+    if (valor("tecnologia") !== "FDM" || materiaisSelecionados().includes("Resina") ||
+        !Number.isFinite(Number(valor("diametro-filamento"))) || Number(valor("diametro-filamento")) <= 0) {
+      mostrarToast("Neste momento, cadastre apenas impressoras FDM com filamento e bico.", true);
       return;
     }
-
-    mostrarToast(`Impressora "${impressora.nome}" cadastrada com sucesso!`);
-    reiniciar();
+    const impressora = montarImpressora();
+    enviando = true;
+    el.btnProximo.disabled = true;
+    el.btnProximo.textContent = "Cadastrando...";
+    try {
+      await AACD.api.cadastrarImpressora(impressora);
+      mostrarToast(`Impressora "${impressora.nome_da_impressora}" cadastrada com sucesso!`);
+      reiniciar();
+    } catch (erro) {
+      mostrarToast(erro.message || "Não foi possível cadastrar a impressora.", true);
+    } finally {
+      enviando = false;
+      el.btnProximo.disabled = false;
+      el.btnProximo.innerHTML = etapaAtual === ULTIMA
+        ? 'Cadastrar <span aria-hidden="true">✓</span>'
+        : 'Próximo <span aria-hidden="true">→</span>';
+    }
   }
 
   function reiniciar() {
