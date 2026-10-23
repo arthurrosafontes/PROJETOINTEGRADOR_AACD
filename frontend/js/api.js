@@ -101,12 +101,51 @@ AACD.api = (() => {
     listarProteses: () => requisitar("/proteses", { erroPadrao: "Não foi possível carregar as próteses." }),
     publicarDemanda: (demanda) => requisitar("/demandas", { metodo: "POST", corpo: demanda, erroPadrao: "Não foi possível publicar a demanda." }),
 
+    // ----- Voluntário: cadastrar impressora -----
+    cadastrarImpressora: (dados) => requisitar("/impressoras", {
+      metodo: "POST", corpo: dados, comCookie: true,
+      erroPadrao: "Não foi possível cadastrar a impressora."
+    }),
+
     // ----- Funcionário: impressoras -----
     // Formato: { id, modelo, tecnologia, bico, largura, profundidade, altura, materiais, obs,
     //            cadastro, voluntarioId, voluntarioNome, voluntarioCidade, voluntarioStatus,
     //            voluntarioEmail, voluntarioTelefone }
-    listarImpressoras: () => requisitar("/impressoras", { erroPadrao: "Não foi possível carregar as impressoras." }),
-    atualizarImpressora: (id, campos) => requisitar(`/impressoras/${id}`, { metodo: "PUT", corpo: campos, erroPadrao: "Não foi possível salvar as alterações." }),
-    removerImpressora: (id) => requisitar(`/impressoras/${id}`, { metodo: "DELETE", erroPadrao: "Não foi possível remover a impressora." })
+    
+listarImpressoras: async () => {
+  const impressoras = await requisitar("/funcionario/impressoras", {
+    comCookie: true,
+    erroPadrao: "Não foi possível carregar as impressoras."
+  });
+
+  return impressoras.map(i => ({
+    id: i._id,
+    modelo: i.modelo_da_impressora || "",
+    tecnologia: i.tecnologia_da_impressora || "",
+    bico: i.diametro_bico_mm ?? null,
+
+    largura: i.volume_impressao?.largura_mm ?? null,
+    profundidade: i.volume_impressao?.profundidade_mm ?? null,
+    altura: i.volume_impressao?.altura_mm ?? null,
+
+    materiais: (i.filamentos_compativeis || []).join(", "),
+    obs: i.observacoes || "",
+    cadastro: i.data_cadastro || "",
+
+    voluntarioId: i.id_voluntario,
+  voluntarioNome: i.voluntarioNome || `Voluntário #${i.id_voluntario}`,
+  voluntarioStatus: i.voluntarioStatus || "",
+  voluntarioEmail: i.voluntarioEmail || "",
+  voluntarioTelefone: i.voluntarioTelefone || ""
+  }));
+},
+    atualizarImpressora: (id, campos) => requisitar(`/funcionario/impressoras/${encodeURIComponent(id)}`, {
+      metodo: "PUT", corpo: campos, comCookie: true,
+      erroPadrao: "Não foi possível salvar as alterações."
+    }),
+    removerImpressora: (id) => requisitar(`/funcionario/impressoras/${encodeURIComponent(id)}`, {
+      metodo: "DELETE", comCookie: true,
+      erroPadrao: "Não foi possível remover a impressora."
+    })
   };
 })();
