@@ -21,6 +21,21 @@
 (() => {
   const { $, sessao } = AACD.util;
   const NOME_SISTEMA = "Hub AACD";
+
+  
+let numeroNavegacao = 0;
+
+async function verificarAutenticacao() {
+  try {
+    return await AACD.api.usuarioLogado();
+
+  } catch (erro) {
+    console.error("Erro ao verificar sessão:", erro);
+    return null;
+  }
+}
+
+
   const telas = [...document.querySelectorAll("main[data-rota]")];
   const iniciadas = new Set();
   let telaAtual = null;
@@ -131,10 +146,71 @@
   }
 
   // ===== Troca de tela =====
-  function navegar() {
+  async function navegar() {
     const caminho = lerEndereco();
     const encontrada = encontrarTela(caminho) || { tela: $("tela-nao-encontrada"), rota: "/404", parametros: [] };
     const { tela, rota, parametros } = encontrada;
+    
+const navegacaoAtual = ++numeroNavegacao;
+
+// Identifica as páginas públicas de autenticação
+const rotasPublicas = [
+  "/",
+  "/voluntario/login",
+  "/funcionario/login",
+  "/voluntario/cadastro",
+  "/voluntario/esqueci-senha",
+  "/funcionario/esqueci-senha",
+  "/404"
+];
+
+const paginaPublica =
+  tela.dataset.area === "publica" ||
+  rotasPublicas.includes(caminho);
+
+// Descobre qual perfil a página exige
+let perfilNecessario = tela.dataset.area;
+
+if (perfilNecessario === "auto") {
+  perfilNecessario = caminho.startsWith("/funcionario")
+    ? "funcionario"
+    : "voluntario";
+}
+
+if (!paginaPublica) {
+  // Não exibe a página restrita durante a verificação
+  telas.forEach(t => {
+    if (t !== telaAtual) t.hidden = true;
+  });
+
+  const usuario = await verificarAutenticacao();
+
+  // Ignora verificações antigas se a rota mudou
+  if (navegacaoAtual !== numeroNavegacao) return;
+
+  if (!usuario) {
+    const rotaLogin = perfilNecessario === "funcionario"
+      ? "#/funcionario/login"
+      : "#/voluntario/login";
+
+    telas.forEach(t => { t.hidden = true; });
+    barra.hidden = true;
+    telaAtual = null;
+    location.hash = rotaLogin;
+    return;
+  }
+
+  if (usuario.perfil !== perfilNecessario) {
+    alert("Você não possui permissão para acessar esta página.");
+
+    location.hash = usuario.perfil === "funcionario"
+      ? "#/funcionario"
+      : "#/voluntario";
+
+    return;
+  }
+}
+
     const mesmaTela = tela === telaAtual;
     parametros.trocaInterna = mesmaTela;
 
