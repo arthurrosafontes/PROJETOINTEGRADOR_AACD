@@ -30,3 +30,32 @@
     }
   };
 })();
+
+
+(() => {
+  const { $, sessao } = AACD.util;
+
+  function mostrarNomev(nome) {
+    $("hub-volu-nome").textContent = nome ? `, ${nome}` : "";
+    if (nome) $("usuario-nome").textContent = nome; // nome também na barra do topo
+  }
+
+  AACD.telas["tela-hub-voluntario"] = {
+    async aoEntrar() {
+      // Mostra na hora o nome guardado no login; depois confirma com o banco
+      const guardado = sessao.obter();
+      mostrarNomev(guardado && guardado.perfil === "voluntario" ? guardado.nome : "");
+
+      try {
+        const usuario = await AACD.api.usuarioLogado();
+        if (usuario.perfil !== "voluntario") return mostrarNomev("");
+        sessao.salvar({ ...guardado, ...usuario });
+        mostrarNomev(usuario.nome);
+      } catch {
+        // Sem sessão válida ou servidor fora do ar: a mensagem fica sem o nome
+        if (!guardado) mostrarNomev("");
+      }
+    }
+  };
+})();
+

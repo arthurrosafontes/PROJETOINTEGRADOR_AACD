@@ -93,7 +93,7 @@
         if (!okEmail) return email.focus();
         if (!okSenha) return senha.focus();
         entrar({
-          form, perfil: "voluntario", mensagem, destino: "#/voluntario/impressora/cadastrar",
+          form, perfil: "voluntario", mensagem, destino: "#/voluntario",
           email: email.value.trim().toLowerCase(), senha: senha.value
         });
       });
