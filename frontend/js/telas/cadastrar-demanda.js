@@ -93,6 +93,28 @@
   }
 
   // ===== Próteses cadastradas =====
+
+  // Converte a linha da tabela "protese" (MySQL) para o formato usado na tela.
+  // O MySQL devolve DECIMAL como texto e usa nomes de coluna diferentes.
+  const numeroOuNulo = (v) => (v === null || v === undefined || v === "" ? null : Number(v));
+  function normalizarProtese(p) {
+    return {
+      id: p.id_protese ?? p.id,
+      codigo: p.codigo || "",
+      nome: p.nome,
+      tipo: p.tipo,
+      regiao: p.regiao_corpo ?? p.regiao,
+      // "TPU (flexível)" no banco → "TPU" no <select>
+      filamento: String(p.material_recomendado ?? p.filamento ?? "").replace(/\s*\(.*\)\s*$/, ""),
+      bico: numeroOuNulo(p.bico),       // ainda não existe no banco
+      largura: numeroOuNulo(p.largura),
+      profundidade: numeroOuNulo(p.profundidade),
+      altura: numeroOuNulo(p.altura),
+      horas: numeroOuNulo(p.horas),     // ainda não existe no banco
+      minutos: numeroOuNulo(p.minutos)
+    };
+  }
+
   function carregarProteses() {
     const atual = el.protese.value;
     el.protese.replaceChildren(new Option("Selecione uma prótese cadastrada", ""));
@@ -250,7 +272,8 @@
     async aoEntrar() {
       campo("prazo").min = hojeISO(); // não deixa escolher prazo no passado
       try {
-        protesesCadastradas = await AACD.api.listarProteses();
+        const bruto = await AACD.api.listarProteses();
+        protesesCadastradas = bruto.map(normalizarProtese);
       } catch {
         mostrarToast("Não foi possível carregar as próteses cadastradas.", true);
       }
