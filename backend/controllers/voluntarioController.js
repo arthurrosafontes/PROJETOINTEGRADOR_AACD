@@ -142,6 +142,29 @@ async function listarVoluntarios(req, res) {
   }
 }
 
+// Funcionário: aceita um voluntário pendente. Só depois disso ele consegue fazer login.
+async function aceitarVoluntario(req, res) {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ erro: 'ID de voluntário inválido.' });
+
+  try {
+    const [resultado] = await pool.execute(
+      `UPDATE voluntario SET status_homologacao = 'Ativo'
+       WHERE id_voluntario = ? AND status_homologacao = 'Pendente'`,
+      [id]
+    );
+    if (resultado.affectedRows === 0) {
+      const [linhas] = await pool.execute('SELECT status_homologacao FROM voluntario WHERE id_voluntario = ?', [id]);
+      if (linhas.length === 0) return res.status(404).json({ erro: 'Voluntário não encontrado.' });
+      return res.status(409).json({ erro: `Este voluntário não está pendente (status atual: ${linhas[0].status_homologacao}).` });
+    }
+    return res.json({ mensagem: 'Voluntário aceito com sucesso.', status: 'Ativo' });
+  } catch (erro) {
+    console.error('Erro ao aceitar voluntário:', erro);
+    return res.status(500).json({ erro: 'Não foi possível aceitar o voluntário.' });
+  }
+}
+
 // Funcionário: remove o voluntário, o usuário dele e as impressoras cadastradas
 async function removerVoluntario(req, res) {
   const id = Number(req.params.id);
@@ -176,4 +199,4 @@ async function removerVoluntario(req, res) {
   }
 }
 
-module.exports = { cadastrarVoluntario, listarVoluntarios, removerVoluntario };
+module.exports = { cadastrarVoluntario, listarVoluntarios, aceitarVoluntario, removerVoluntario };

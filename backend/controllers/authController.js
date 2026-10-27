@@ -24,7 +24,7 @@ async function login(req, res) {
   try {
     const [rows] = await pool.execute(
       `SELECT u.id_usuario, u.nome, u.email, u.senha_hash, u.tipo_usuario, u.status,
-              v.id_voluntario, f.id_funcionario
+              v.id_voluntario, v.status_homologacao, f.id_funcionario
        FROM usuario u
        LEFT JOIN voluntario v ON v.id_usuario = u.id_usuario
        LEFT JOIN funcionario_aacd f ON f.id_usuario = u.id_usuario
@@ -43,6 +43,14 @@ async function login(req, res) {
     if (!permitido) return res.status(403).json({ erro: 'Conta sem acesso a esta área.' });
     if (normalizar(usuario.status) !== 'ativo') {
       return res.status(403).json({ erro: 'Conta inativa ou bloqueada.' });
+    }
+    // Voluntário só entra depois que um funcionário aceitar o cadastro
+    if (perfil === 'voluntario' && normalizar(usuario.status_homologacao) !== 'ativo') {
+      return res.status(403).json({
+        erro: normalizar(usuario.status_homologacao) === 'pendente'
+          ? 'Seu cadastro ainda está aguardando a aprovação da AACD.'
+          : 'Seu cadastro de voluntário não está ativo.'
+      });
     }
     const token = jwt.sign(
       { sub: String(usuario.id_usuario), perfil, id_voluntario: usuario.id_voluntario || null,

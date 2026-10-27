@@ -52,10 +52,14 @@ AACD.util = (() => {
 
   // ===== Confirmação (substitui o window.confirm) =====
   // Uso: if (await AACD.util.confirmar("Remover?", "Remover")) { ... }
-  function confirmar(mensagem, textoBotao = "Confirmar") {
+  // Para ações que não são destrutivas: confirmar("Aceitar?", "Aceitar", false)
+  function confirmar(mensagem, textoBotao = "Confirmar", perigo = true) {
     const dialogo = $("dialogo-confirmar");
+    const botaoOk = $("dialogo-confirmar-ok");
     $("dialogo-confirmar-texto").textContent = mensagem;
-    $("dialogo-confirmar-ok").textContent = textoBotao;
+    botaoOk.textContent = textoBotao;
+    botaoOk.classList.toggle("botao--perigo-cheio", perigo);
+    botaoOk.classList.toggle("botao--escuro", !perigo);
     dialogo.returnValue = "";
     dialogo.showModal();
     return new Promise((resolver) => {
