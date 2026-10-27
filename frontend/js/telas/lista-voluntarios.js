@@ -1,18 +1,11 @@
 /* =========================================================
-   telas/lista-voluntarios.js — funcionário acompanha voluntários
-   status: "Pendente" | "Ativo" | "Inativo"
-   (qual é o próximo status quem decide é a API)
+   telas/lista-voluntarios.js — funcionário vê todos os voluntários
+   cadastrados, abre os detalhes e pode remover um voluntário
    ========================================================= */
 "use strict";
 
 (() => {
-  const { $, escapar, formatarData, mostrarToast, alternarDetalhes, listaDescricao } = AACD.util;
-
-  const acaoPorStatus = {
-    Pendente: { texto: "Aprovar", aviso: "aprovado(a)" },
-    Ativo: { texto: "Desativar", aviso: "desativado(a)" },
-    Inativo: { texto: "Reativar", aviso: "reativado(a)" }
-  };
+  const { $, escapar, formatarData, mostrarToast, confirmar, alternarDetalhes, listaDescricao } = AACD.util;
 
   let voluntarios = [];
   const el = {};
@@ -31,7 +24,7 @@
       && (status === "todos" || v.status === status));
 
     if (el.ordenar.value === "nome") resultado.sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
-    if (el.ordenar.value === "entregas") resultado.sort((a, b) => (b.entregues || 0) - (a.entregues || 0));
+    if (el.ordenar.value === "impressoras") resultado.sort((a, b) => (b.impressoras || 0) - (a.impressoras || 0));
     if (el.ordenar.value === "recentes") resultado.sort((a, b) => String(b.cadastro || "").localeCompare(String(a.cadastro || "")));
     return resultado;
   }
@@ -41,7 +34,6 @@
     el.lista.innerHTML = itens.map(v => {
       const id = escapar(v.id);
       const status = escapar(v.status);
-      const acao = acaoPorStatus[v.status] || { texto: "Mudar status" };
       return `
       <li class="cartao-item cartao-item--faixa cartao-item--avatar cartao-item--${status}" data-id="${id}">
         <span class="iniciais" aria-hidden="true">${escapar(iniciais(v.nome))}</span>
@@ -52,23 +44,25 @@
             <span class="cartao-item__codigo">#${id}</span>
           </header>
           <p class="cartao-item__detalhes">
-            <span>Cidade: <strong>${escapar(v.cidade) || "-"}</strong></span>
-            <span>Peças entregues: <strong>${escapar(v.entregues ?? 0)}</strong></span>
-            <span>Em produção: <strong>${escapar(v.emProducao ?? 0)}</strong></span>
-            <span>Desde: <strong><time datetime="${escapar(v.cadastro)}">${formatarData(v.cadastro)}</time></strong></span>
+            <span>Cidade: <strong>${escapar([v.cidade, v.estado].filter(Boolean).join(" / ")) || "-"}</strong></span>
+            <span>Tipo: <strong>${escapar(v.tipo) || "-"}</strong></span>
+            <span>Impressoras: <strong>${escapar(v.impressoras ?? 0)}</strong></span>
+            ${v.cadastro ? `<span>Desde: <strong><time datetime="${escapar(v.cadastro)}">${formatarData(v.cadastro)}</time></strong></span>` : ""}
           </p>
         </article>
         <div class="cartao-item__acoes">
           <button type="button" class="botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="lvol-extra-${id}">Detalhes</button>
-          <button type="button" class="botao botao--primario" data-acao="status">${acao.texto}</button>
+          <button type="button" class="botao botao--perigo" data-acao="remover">Remover</button>
         </div>
         <div class="cartao-item__extra" id="lvol-extra-${id}" hidden>
           ${listaDescricao([
             ["E-mail:", v.email ? `<a href="mailto:${escapar(v.email)}">${escapar(v.email)}</a>` : ""],
             ["Telefone:", v.telefone ? `<a href="tel:${escapar(String(v.telefone).replace(/[^\d+]/g, ""))}">${escapar(v.telefone)}</a>` : ""],
-            ["Impressoras:", escapar(v.impressoras)],
-            ["Materiais:", escapar(v.materiais)]
+            [v.tipo === "Pessoa física" ? "CPF:" : "CNPJ:", escapar(v.documento)],
+            ["Razão social:", escapar(v.razaoSocial)],
+            ["Endereço:", escapar(v.endereco)],
+            ["CEP:", escapar(v.cep)]
           ])}
         </div>
       </li>`;
@@ -78,6 +72,31 @@
     el.vazio.classList.remove("vazio--erro");
     el.vazio.textContent = "Nenhum voluntário encontrado.";
     el.vazio.hidden = itens.length > 0;
+  }
+
+  async function remover(botao, item, voluntario) {
+    const ok = await confirmar(
+      `Remover o voluntário "${voluntario.nome}"?
+O acesso e as impressoras dele também serão removidos. Essa ação não pode ser desfeita.`,
+      "Remover"
+    );
+    if (!ok) return;
+
+    item.querySelectorAll("button").forEach(b => { b.disabled = true; });
+    botao.textContent = "Removendo...";
+    try {
+      await AACD.api.removerVoluntario(voluntario.id);
+      item.classList.add("saindo");
+      setTimeout(() => {
+        voluntarios = voluntarios.filter(v => v.id !== voluntario.id);
+        renderizar();
+        mostrarToast(`Voluntário "${voluntario.nome}" removido.`);
+      }, 300);
+    } catch (erro) {
+      item.querySelectorAll("button").forEach(b => { b.disabled = false; });
+      botao.textContent = "Remover";
+      mostrarToast(erro.message, true);
+    }
   }
 
   AACD.telas["tela-lista-voluntarios"] = {
@@ -93,7 +112,7 @@
       el.status.addEventListener("change", renderizar);
       el.ordenar.addEventListener("change", renderizar);
 
-      el.lista.addEventListener("click", async e => {
+      el.lista.addEventListener("click", e => {
         const botao = e.target.closest("button[data-acao]");
         if (!botao) return;
         const id = botao.closest(".cartao-item").dataset.id;
@@ -101,22 +120,7 @@
 
         if (botao.dataset.acao === "detalhes") alternarDetalhes(botao, "Detalhes");
 
-        if (botao.dataset.acao === "status") {
-          const acao = acaoPorStatus[voluntario.status] || { aviso: "atualizado(a)" };
-          const textoOriginal = botao.textContent;
-          botao.disabled = true;
-          botao.textContent = "Salvando...";
-          try {
-            const atualizado = await AACD.api.mudarStatusVoluntario(id);
-            Object.assign(voluntario, atualizado);
-            renderizar();
-            mostrarToast(`${voluntario.nome} foi ${acao.aviso}.`);
-          } catch (erro) {
-            botao.disabled = false;
-            botao.textContent = textoOriginal;
-            mostrarToast(erro.message, true);
-          }
-        }
+        if (botao.dataset.acao === "remover") remover(botao, botao.closest(".cartao-item"), voluntario);
       });
     },
 
@@ -124,6 +128,14 @@
       el.contador.textContent = "Carregando voluntários...";
       try {
         voluntarios = await AACD.api.listarVoluntarios();
+        // Garante que o filtro tenha todos os status que vieram do banco
+        const existentes = new Set([...el.status.options].map(o => o.value));
+        voluntarios.forEach(v => {
+          if (v.status && !existentes.has(v.status)) {
+            el.status.add(new Option(v.status, v.status));
+            existentes.add(v.status);
+          }
+        });
         renderizar();
       } catch {
         voluntarios = [];

@@ -262,4 +262,66 @@ app.delete('/api/funcionario/impressoras/:id', ...somenteFuncionario, async (req
   }
 });
 
-app.listen(PORTA, () => console.log(`Servidor rodando com sucesso na porta ${PORTA}`));
+// Cadastro de prótese pelo funcionário (tabela "protese" do MySQL)
+const TIPOS_PROTESE = ['Prótese', 'Órtese', 'Componente'];
+const STATUS_PROTESE = ['Ativa', 'Revisão', 'Inativa'];
+
+app.post('/api/funcionario/proteses', ...somenteFuncionario, async (req, res) => {
+  const d = req.body;
+  if (!d || typeof d !== 'object' || Array.isArray(d)) {
+    return res.status(400).json({ erro: 'Dados da prótese inválidos.' });
+  }
+
+  // Texto opcional: vazio vira NULL; acima do limite da coluna é erro
+  const texto = (campo, limite) => {
+    const v = String(d[campo] ?? '').trim();
+    if (limite && v.length > limite) throw new Error(`O campo ${campo} excede ${limite} caracteres.`);
+    return v || null;
+  };
+  // Número opcional dentro do intervalo aceito pela coluna
+  const numero = (campo, min, max, inteiro = false) => {
+    if (d[campo] === null || d[campo] === undefined || d[campo] === '') return null;
+    const n = Number(d[campo]);
+    if (!Number.isFinite(n) || n < min || n > max || (inteiro && !Number.isInteger(n))) {
+      throw new Error(`Valor inválido para ${campo}.`);
+    }
+    return n;
+  };
+
+  let valores;
+  try {
+    const nome = texto('nome', 150);
+    if (!nome) throw new Error('Informe o nome da prótese.');
+    if (!TIPOS_PROTESE.includes(d.tipo)) throw new Error('Tipo de prótese inválido.');
+    const status = d.status || 'Ativa';
+    if (!STATUS_PROTESE.includes(status)) throw new Error('Status inválido.');
+
+    valores = [
+      nome, texto('codigo', 50), d.tipo, texto('regiao_corpo', 100), texto('descricao'),
+      texto('material_recomendado', 100),
+      numero('largura', 0.01, 999999.99), numero('profundidade', 0.01, 999999.99), numero('altura', 0.01, 999999.99),
+      texto('arquivo_3d', 255), numero('altura_camada', 0.01, 99.99), numero('infill', 0, 100, true),
+      d.necessita_suporte ? 1 : 0, texto('orientacoes_impressao'), texto('observacoes'),
+      texto('versao', 20), status
+    ];
+  } catch (erro) {
+    return res.status(400).json({ erro: erro.message });
+  }
+
+  try {
+    const [resultado] = await pool.execute(
+      `INSERT INTO protese
+        (nome, codigo, tipo, regiao_corpo, descricao, material_recomendado, largura, profundidade, altura,
+         arquivo_3d, altura_camada, infill, necessita_suporte, orientacoes_impressao, observacoes, versao, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      valores
+    );
+    return res.status(201).json({ mensagem: 'Prótese cadastrada com sucesso!', id_protese: resultado.insertId });
+  } catch (erro) {
+    if (erro.code === 'ER_DUP_ENTRY') return res.status(409).json({ erro: 'Já existe uma prótese com esse código.' });
+    console.error('Erro ao cadastrar prótese:', erro);
+    return res.status(500).json({ erro: 'Não foi possível cadastrar a prótese.' });
+  }
+});
+
+app.listen(PORTA,() => console.log(`Servidor rodando com sucesso na porta ${PORTA}`));

@@ -93,12 +93,21 @@ AACD.api = (() => {
     enviarParaValidacao: (id) => requisitar(`/producao/${id}/enviar`, { metodo: "PATCH", erroPadrao: "Não foi possível enviar a peça." }),
 
     // ----- Funcionário: voluntários -----
-    // Formato: { id, nome, cidade, status, impressoras, materiais, entregues, emProducao, email, telefone, cadastro }
-    listarVoluntarios: () => requisitar("/voluntarios", { erroPadrao: "Não foi possível carregar os voluntários." }),
-    mudarStatusVoluntario: (id) => requisitar(`/voluntarios/${id}/status`, { metodo: "PATCH", erroPadrao: "Não foi possível mudar o status." }),
+    // Formato: { id, nome, email, telefone, tipo, documento, razaoSocial, endereco, cep,
+    //            cidade, estado, status, impressoras, cadastro }
+    listarVoluntarios: () => requisitar("/voluntarios", { comCookie: true, erroPadrao: "Não foi possível carregar os voluntários." }),
+    removerVoluntario: (id) => requisitar(`/voluntarios/${encodeURIComponent(id)}`, {
+      metodo: "DELETE", comCookie: true,
+      erroPadrao: "Não foi possível remover o voluntário."
+    }),
 
     // ----- Funcionário: demandas e próteses -----
     listarProteses: () => requisitar("/proteses", { erroPadrao: "Não foi possível carregar as próteses." }),
+    // Campos com os mesmos nomes das colunas da tabela "protese"
+    cadastrarProtese: (dados) => requisitar("/funcionario/proteses", {
+      metodo: "POST", corpo: dados, comCookie: true,
+      erroPadrao: "Não foi possível cadastrar a prótese."
+    }),
     publicarDemanda: (demanda) => requisitar("/demandas", { metodo: "POST", corpo: demanda, erroPadrao: "Não foi possível publicar a demanda." }),
 
     // ----- Voluntário: cadastrar impressora -----

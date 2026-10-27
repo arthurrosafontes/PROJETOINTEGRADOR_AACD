@@ -30,6 +30,7 @@
   <script src="js/telas/cadastrar-demanda.js" defer></script>
   <script src="js/telas/lista-voluntarios.js" defer></script>
   <script src="js/telas/impressoras.js" defer></script>
+  <script src="js/telas/cadastrar-protese.js" defer></script>
   <script src="js/roteador.js" defer></script>
 </head>
 <body data-area="publica">
@@ -105,6 +106,7 @@
         <li class="menu__item">
           <button class="menu__botao" type="button" aria-expanded="false" aria-controls="sub-func-proteses">Próteses</button>
           <ul class="submenu" id="sub-func-proteses" hidden>
+            <li><a href="#/funcionario/proteses/cadastrar">Cadastrar prótese</a></li>
             <li><a href="#/funcionario/em-construcao">Status da produção</a></li>
             <li><a href="#/funcionario/em-construcao">Modelos 3D</a></li>
           </ul>
@@ -270,11 +272,6 @@
         </ul>
       </section>
     </div>
-
-    <footer class="inicio-rodape">
-      <p>Projeto Integrador — Instituto Mauá de Tecnologia &amp; AACD</p>
-      <p><a href="https://aacd.org.br" target="_blank" rel="noopener noreferrer">aacd.org.br<span class="visualmente-oculto"> (abre em nova aba)</span></a></p>
-    </footer>
   </main>
 
 
@@ -1108,7 +1105,7 @@
         data-rota="/funcionario/voluntarios" data-area="funcionario" data-titulo="Lista de voluntários" hidden>
     <header class="cabecalho-pagina">
       <h1 id="titulo-tela-lista-voluntarios" tabindex="-1">Lista de voluntários</h1>
-      <p>Acompanhe os voluntários cadastrados e o que cada um está imprimindo.</p>
+      <p>Veja todos os voluntários cadastrados, consulte os detalhes de cada um ou remova um cadastro.</p>
     </header>
 
     <search class="filtros">
@@ -1120,8 +1117,8 @@
         <label class="visualmente-oculto" for="lvol-status">Filtrar por status</label>
         <select id="lvol-status">
           <option value="todos">Todos os status</option>
-          <option value="Ativo">Ativo</option>
           <option value="Pendente">Pendente</option>
+          <option value="Ativo">Ativo</option>
           <option value="Inativo">Inativo</option>
         </select>
       </p>
@@ -1129,7 +1126,7 @@
         <label class="visualmente-oculto" for="lvol-ordenar">Ordenar</label>
         <select id="lvol-ordenar">
           <option value="nome">Nome (A-Z)</option>
-          <option value="entregas">Mais peças entregues</option>
+          <option value="impressoras">Mais impressoras</option>
           <option value="recentes">Cadastro mais recente</option>
         </select>
       </p>
@@ -1177,6 +1174,148 @@
     <p class="contador" id="imp-contador" role="status"></p>
     <ul class="lista-cartoes" id="imp-lista" aria-labelledby="titulo-tela-impressoras"></ul>
     <p class="vazio" id="imp-vazio" hidden>Nenhuma impressora encontrada.</p>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: CADASTRAR PRÓTESE (funcionário, 4 etapas)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-cadastrar-protese" class="tela tela--app" id="tela-cadastrar-protese"
+        data-rota="/funcionario/proteses/cadastrar" data-area="funcionario" data-titulo="Cadastrar prótese" hidden>
+    <header class="cabecalho-pagina cabecalho-pagina--normal">
+      <h1 id="titulo-tela-cadastrar-protese" tabindex="-1">Cadastrar prótese</h1>
+    </header>
+
+    <nav aria-label="Etapas do cadastro da prótese">
+      <ol class="etapas" id="cp-etapas">
+        <li><button type="button" class="etapa" data-etapa="0">Identificação</button></li>
+        <li><button type="button" class="etapa" data-etapa="1">Especificações</button></li>
+        <li><button type="button" class="etapa" data-etapa="2">Impressão</button></li>
+        <li><button type="button" class="etapa" data-etapa="3">Revisão</button></li>
+      </ol>
+    </nav>
+
+    <form class="cartao-form" id="form-protese" novalidate>
+
+      <fieldset class="passo" data-passo="0">
+        <legend>Identificação</legend>
+        <div class="grade">
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-nome">Nome da prótese</label>
+            <input type="text" id="cp-nome" name="nome" maxlength="150" placeholder="Nome (Ex: Mão mecânica infantil)"
+                   aria-describedby="cp-nome-erro" required>
+            <small class="erro" id="cp-nome-erro">Informe o nome da prótese.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-codigo">Código (opcional)</label>
+            <input type="text" id="cp-codigo" name="codigo" maxlength="50" placeholder="Código (opcional) (Ex: PRT-001)">
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-tipo">Tipo</label>
+            <select id="cp-tipo" name="tipo" aria-describedby="cp-tipo-erro" required>
+              <option value="">Tipo</option>
+              <option value="Prótese">Prótese</option>
+              <option value="Órtese">Órtese</option>
+              <option value="Componente">Componente</option>
+            </select>
+            <small class="erro" id="cp-tipo-erro">Selecione o tipo.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-regiao">Região do corpo (opcional)</label>
+            <input type="text" id="cp-regiao" name="regiao" maxlength="100" placeholder="Região do corpo (opcional) (Ex: Mão direita)">
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-versao">Versão (opcional)</label>
+            <input type="text" id="cp-versao" name="versao" maxlength="20" placeholder="Versão (opcional) (Ex: 1.0)">
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-status">Status</label>
+            <select id="cp-status" name="status" required>
+              <option value="Ativa">Status: Ativa</option>
+              <option value="Revisão">Status: Revisão</option>
+              <option value="Inativa">Status: Inativa</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-descricao">Descrição (opcional)</label>
+            <textarea id="cp-descricao" name="descricao" rows="3" placeholder="Descrição (opcional)"></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="passo" data-passo="1" hidden>
+        <legend>Especificações</legend>
+        <div class="grade">
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-material">Material recomendado (opcional)</label>
+            <input type="text" id="cp-material" name="material" maxlength="100" placeholder="Material recomendado (opcional) (Ex: PLA, PETG)">
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-largura">Largura em milímetros (opcional)</label>
+            <input type="number" id="cp-largura" name="largura" min="0.01" max="999999.99" step="0.01"
+                   placeholder="Largura (mm) (opcional)" aria-describedby="cp-largura-erro">
+            <small class="erro" id="cp-largura-erro">Informe um valor maior que zero.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-profundidade">Profundidade em milímetros (opcional)</label>
+            <input type="number" id="cp-profundidade" name="profundidade" min="0.01" max="999999.99" step="0.01"
+                   placeholder="Profundidade (mm) (opcional)" aria-describedby="cp-profundidade-erro">
+            <small class="erro" id="cp-profundidade-erro">Informe um valor maior que zero.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-altura">Altura em milímetros (opcional)</label>
+            <input type="number" id="cp-altura" name="altura" min="0.01" max="999999.99" step="0.01"
+                   placeholder="Altura (mm) (opcional)" aria-describedby="cp-altura-erro">
+            <small class="erro" id="cp-altura-erro">Informe um valor maior que zero.</small>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="passo" data-passo="2" hidden>
+        <legend>Impressão</legend>
+        <div class="grade">
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-arquivo">Arquivo 3D (opcional)</label>
+            <input type="text" id="cp-arquivo" name="arquivo" maxlength="255" placeholder="Arquivo 3D (opcional) (Ex: link ou nome do .stl)">
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-camada">Altura de camada em milímetros (opcional)</label>
+            <input type="number" id="cp-camada" name="camada" min="0.01" max="99.99" step="0.01"
+                   placeholder="Altura de camada (mm) (opcional) (Ex: 0.2)" aria-describedby="cp-camada-erro">
+            <small class="erro" id="cp-camada-erro">Informe um valor entre 0,01 e 99,99.</small>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-infill">Preenchimento (infill) em % (opcional)</label>
+            <input type="number" id="cp-infill" name="infill" min="0" max="100" step="1"
+                   placeholder="Infill (%) (opcional) (Ex: 20)" aria-describedby="cp-infill-erro">
+            <small class="erro" id="cp-infill-erro">Informe um número inteiro de 0 a 100.</small>
+          </div>
+          <label class="opcao-check">
+            <input type="checkbox" id="cp-suporte" name="suporte">
+            Necessita de suporte na impressão
+          </label>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-orientacoes">Orientações de impressão (opcional)</label>
+            <textarea id="cp-orientacoes" name="orientacoes" rows="3" placeholder="Orientações de impressão (opcional)"></textarea>
+          </div>
+          <div class="campo">
+            <label class="visualmente-oculto" for="cp-observacoes">Observações (opcional)</label>
+            <textarea id="cp-observacoes" name="observacoes" rows="3" placeholder="Observações (opcional)"></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <section class="passo" data-passo="3" hidden aria-labelledby="cp-revisao-titulo">
+        <h2 id="cp-revisao-titulo">Revisão</h2>
+        <p class="legenda">Confira os dados antes de cadastrar.</p>
+        <div class="revisao" id="cp-revisao"></div>
+      </section>
+
+      <div class="cartao-form__acoes">
+        <button type="button" class="botao-form botao-form--contorno" id="cp-voltar" hidden><span aria-hidden="true">←</span> Voltar</button>
+        <button type="submit" class="botao-form" id="cp-proximo">Próximo <span aria-hidden="true">→</span></button>
+      </div>
+    </form>
   </main>
 
 
