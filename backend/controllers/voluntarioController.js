@@ -1,5 +1,6 @@
 const pool = require('../config/mysql');
 const bcrypt = require('bcrypt');
+const FichaImpressora = require('../models/FichaTecnicaImpressora');
 
 const somenteDigitos = (valor) => String(valor ?? '').replace(/\D/g, '');
 
@@ -103,4 +104,76 @@ async function cadastrarVoluntario(req, res) {
   }
 }
 
-module.exports = { cadastrarVoluntario };
+// Funcionário: lista todos os voluntários cadastrados (sem dados de senha)
+async function listarVoluntarios(req, res) {
+  try {
+    const [linhas] = await pool.query(
+      `SELECT v.*, u.nome, u.email, u.telefone, u.status AS status_usuario
+       FROM voluntario v
+       INNER JOIN usuario u ON u.id_usuario = v.id_usuario
+       ORDER BY u.nome`
+    );
+
+    // Quantas impressoras cada voluntário tem no MongoDB
+    const contagem = await FichaImpressora.aggregate([
+      { $group: { _id: '$id_voluntario', total: { $sum: 1 } } }
+    ]);
+    const impressorasPorId = new Map(contagem.map(c => [Number(c._id), c.total]));
+
+    res.json(linhas.map(v => ({
+      id: v.id_voluntario,
+      nome: v.nome,
+      email: v.email,
+      telefone: v.telefone,
+      tipo: v.tipo_voluntario,
+      documento: v.cpf_cnpj,
+      razaoSocial: v.razao_social,
+      endereco: [v.logradouro, v.numero, v.complemento, v.bairro].filter(Boolean).join(', '),
+      cep: v.cep,
+      cidade: v.cidade,
+      estado: v.estado,
+      status: v.status_homologacao,
+      impressoras: impressorasPorId.get(Number(v.id_voluntario)) || 0,
+      cadastro: v.data_cadastro || v.criado_em || null
+    })));
+  } catch (erro) {
+    console.error('Erro ao listar voluntários:', erro);
+    res.status(500).json({ erro: 'Não foi possível carregar os voluntários.' });
+  }
+}
+
+// Funcionário: remove o voluntário, o usuário dele e as impressoras cadastradas
+async function removerVoluntario(req, res) {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ erro: 'ID de voluntário inválido.' });
+
+  let conexao;
+  try {
+    conexao = await pool.getConnection();
+    await conexao.beginTransaction();
+    const [linhas] = await conexao.execute('SELECT id_usuario FROM voluntario WHERE id_voluntario = ? FOR UPDATE', [id]);
+    if (linhas.length === 0) {
+      await conexao.rollback();
+      return res.status(404).json({ erro: 'Voluntário não encontrado.' });
+    }
+    await conexao.execute('DELETE FROM voluntario WHERE id_voluntario = ?', [id]);
+    await conexao.execute('DELETE FROM usuario WHERE id_usuario = ?', [linhas[0].id_usuario]);
+    await conexao.commit();
+
+    await FichaImpressora.deleteMany({ id_voluntario: id });
+    return res.json({ mensagem: 'Voluntário removido com sucesso.' });
+  } catch (erro) {
+    if (conexao) {
+      try { await conexao.rollback(); } catch (e) { console.error('Falha ao reverter transação:', e); }
+    }
+    if (erro.code === 'ER_ROW_IS_REFERENCED_2' || erro.code === 'ER_ROW_IS_REFERENCED') {
+      return res.status(409).json({ erro: 'Este voluntário possui registros vinculados (pedidos ou produções) e não pode ser removido.' });
+    }
+    console.error('Erro ao remover voluntário:', erro);
+    return res.status(500).json({ erro: 'Não foi possível remover o voluntário.' });
+  } finally {
+    if (conexao) conexao.release();
+  }
+}
+
+module.exports = { cadastrarVoluntario, listarVoluntarios, removerVoluntario };
