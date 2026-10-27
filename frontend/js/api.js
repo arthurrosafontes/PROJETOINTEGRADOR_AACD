@@ -15,7 +15,9 @@ AACD.api = (() => {
   // respostas de erro (4xx/5xx) em exceções com a mensagem do servidor.
   async function requisitar(caminho, { metodo = "GET", corpo, comCookie = false, erroPadrao } = {}) {
     const opcoes = { method: metodo, headers: {} };
-    if (corpo !== undefined) {
+    if (corpo instanceof FormData) {
+      opcoes.body = corpo; // o navegador define o Content-Type (multipart) sozinho
+    } else if (corpo !== undefined) {
       opcoes.headers["Content-Type"] = "application/json";
       opcoes.body = JSON.stringify(corpo);
     }
@@ -103,11 +105,17 @@ AACD.api = (() => {
 
     // ----- Funcionário: demandas e próteses -----
     listarProteses: () => requisitar("/proteses", { erroPadrao: "Não foi possível carregar as próteses." }),
-    // Campos com os mesmos nomes das colunas da tabela "protese"
-    cadastrarProtese: (dados) => requisitar("/funcionario/proteses", {
-      metodo: "POST", corpo: dados, comCookie: true,
-      erroPadrao: "Não foi possível cadastrar a prótese."
-    }),
+    // Campos com os mesmos nomes das colunas da tabela "protese".
+    // Vai como multipart para levar junto o arquivo 3D (opcional).
+    cadastrarProtese: (dados, arquivo) => {
+      const corpo = new FormData();
+      Object.entries(dados).forEach(([chave, v]) => corpo.append(chave, v === null ? "" : String(v)));
+      if (arquivo) corpo.append("arquivo_3d", arquivo);
+      return requisitar("/funcionario/proteses", {
+        metodo: "POST", corpo, comCookie: true,
+        erroPadrao: "Não foi possível cadastrar a prótese."
+      });
+    },
     publicarDemanda: (demanda) => requisitar("/demandas", { metodo: "POST", corpo: demanda, erroPadrao: "Não foi possível publicar a demanda." }),
 
     // ----- Voluntário: cadastrar impressora -----

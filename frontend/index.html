@@ -1187,7 +1187,7 @@
     </header>
 
     <nav aria-label="Etapas do cadastro da prótese">
-      <ol class="etapas" id="cp-etapas">
+      <ol class="etapas etapas--medias" id="cp-etapas">
         <li><button type="button" class="etapa" data-etapa="0">Identificação</button></li>
         <li><button type="button" class="etapa" data-etapa="1">Especificações</button></li>
         <li><button type="button" class="etapa" data-etapa="2">Impressão</button></li>
@@ -1229,14 +1229,6 @@
             <input type="text" id="cp-versao" name="versao" maxlength="20" placeholder="Versão (opcional) (Ex: 1.0)">
           </div>
           <div class="campo">
-            <label class="visualmente-oculto" for="cp-status">Status</label>
-            <select id="cp-status" name="status" required>
-              <option value="Ativa">Status: Ativa</option>
-              <option value="Revisão">Status: Revisão</option>
-              <option value="Inativa">Status: Inativa</option>
-            </select>
-          </div>
-          <div class="campo">
             <label class="visualmente-oculto" for="cp-descricao">Descrição (opcional)</label>
             <textarea id="cp-descricao" name="descricao" rows="3" placeholder="Descrição (opcional)"></textarea>
           </div>
@@ -1248,7 +1240,15 @@
         <div class="grade">
           <div class="campo">
             <label class="visualmente-oculto" for="cp-material">Material recomendado (opcional)</label>
-            <input type="text" id="cp-material" name="material" maxlength="100" placeholder="Material recomendado (opcional) (Ex: PLA, PETG)">
+            <select id="cp-material" name="material">
+              <option value="">Material recomendado (opcional)</option>
+              <option value="PLA">PLA</option>
+              <option value="PETG">PETG</option>
+              <option value="TPU (flexível)">TPU (flexível)</option>
+              <option value="ABS">ABS</option>
+              <option value="ASA">ASA</option>
+              <option value="Nylon">Nylon</option>
+            </select>
           </div>
           <div class="campo">
             <label class="visualmente-oculto" for="cp-largura">Largura em milímetros (opcional)</label>
@@ -1275,8 +1275,9 @@
         <legend>Impressão</legend>
         <div class="grade">
           <div class="campo">
-            <label class="visualmente-oculto" for="cp-arquivo">Arquivo 3D (opcional)</label>
-            <input type="text" id="cp-arquivo" name="arquivo" maxlength="255" placeholder="Arquivo 3D (opcional) (Ex: link ou nome do .stl)">
+            <label class="rotulo-arquivo" for="cp-arquivo">Arquivo 3D (opcional) — .stl, .obj ou .3mf, até 50 MB</label>
+            <input type="file" id="cp-arquivo" name="arquivo" accept=".stl,.obj,.3mf" aria-describedby="cp-arquivo-erro">
+            <small class="erro" id="cp-arquivo-erro">Escolha um arquivo .stl, .obj ou .3mf de até 50 MB.</small>
           </div>
           <div class="campo">
             <label class="visualmente-oculto" for="cp-camada">Altura de camada em milímetros (opcional)</label>

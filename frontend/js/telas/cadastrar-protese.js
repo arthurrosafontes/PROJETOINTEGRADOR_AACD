@@ -11,11 +11,13 @@
   const etapasConfig = [
     { nome: "Identificação", campos: ["nome", "tipo"] },
     { nome: "Especificações", campos: ["largura", "profundidade", "altura"] },
-    { nome: "Impressão", campos: ["camada", "infill"] },
+    { nome: "Impressão", campos: ["arquivo", "camada", "infill"] },
     { nome: "Revisão", campos: [] }
   ];
   const ULTIMA = etapasConfig.length - 1;
   const OBRIGATORIOS = ["nome", "tipo"];
+  const EXTENSOES_3D = [".stl", ".obj", ".3mf"];
+  const TAMANHO_MAX_ARQUIVO = 50 * 1024 * 1024; // 50 MB (mesmo limite do servidor)
 
   let etapaAtual = 0;
   let etapaMaxima = 0; // etapa mais avançada que o usuário já alcançou
@@ -25,6 +27,7 @@
   const campo = (id) => $(`cp-${id}`);
   const valor = (id) => campo(id).value.trim();
   const numeroOuNulo = (id) => (valor(id) === "" ? null : Number(valor(id)));
+  const arquivo3d = () => campo("arquivo").files[0] || null;
 
   function marcarErro(entrada, temErro) {
     entrada.closest(".campo").classList.toggle("invalido", temErro);
@@ -37,6 +40,11 @@
     const entrada = campo(id);
     const texto = entrada.value.trim();
     let ok = OBRIGATORIOS.includes(id) ? texto !== "" : true;
+    if (entrada.type === "file" && arquivo3d()) {
+      const arquivo = arquivo3d();
+      const nome = arquivo.name.toLowerCase();
+      ok = EXTENSOES_3D.some(ext => nome.endsWith(ext)) && arquivo.size <= TAMANHO_MAX_ARQUIVO;
+    }
     if (entrada.type === "number" && texto !== "") {
       const n = Number(texto);
       ok = Number.isFinite(n) && n >= Number(entrada.min) && n <= Number(entrada.max);
@@ -96,7 +104,7 @@
     el.revisao.innerHTML =
       bloco("Identificação", 0, [
         ["Nome", valor("nome")], ["Código", valor("codigo")], ["Tipo", valor("tipo")],
-        ["Região do corpo", valor("regiao")], ["Versão", valor("versao")], ["Status", valor("status")],
+        ["Região do corpo", valor("regiao")], ["Versão", valor("versao")],
         ["Descrição", valor("descricao")]
       ]) +
       bloco("Especificações", 1, [
@@ -106,7 +114,7 @@
         ["Altura", comUnidade("altura", "mm")]
       ]) +
       bloco("Impressão", 2, [
-        ["Arquivo 3D", valor("arquivo")],
+        ["Arquivo 3D", arquivo3d() && arquivo3d().name],
         ["Altura de camada", comUnidade("camada", "mm")],
         ["Infill", comUnidade("infill", "%")],
         ["Suporte", campo("suporte").checked ? "Sim" : "Não"],
@@ -115,7 +123,9 @@
       ]);
   }
 
-  // Nomes iguais aos das colunas da tabela "protese"
+  // Nomes iguais aos das colunas da tabela "protese". O status não vai:
+  // toda prótese nasce "Inativa" e quem muda é o servidor (demanda → Revisão,
+  // voluntário aceita → Ativa). O arquivo 3D é enviado à parte.
   function montarProtese() {
     return {
       nome: valor("nome"),
@@ -127,14 +137,12 @@
       largura: numeroOuNulo("largura"),
       profundidade: numeroOuNulo("profundidade"),
       altura: numeroOuNulo("altura"),
-      arquivo_3d: valor("arquivo") || null,
       altura_camada: numeroOuNulo("camada"),
       infill: numeroOuNulo("infill"),
       necessita_suporte: campo("suporte").checked,
       orientacoes_impressao: valor("orientacoes") || null,
       observacoes: valor("observacoes") || null,
-      versao: valor("versao") || null,
-      status: valor("status")
+      versao: valor("versao") || null
     };
   }
 
@@ -150,7 +158,7 @@
     el.btnProximo.disabled = true;
     el.btnProximo.textContent = "Cadastrando...";
     try {
-      await AACD.api.cadastrarProtese(protese);
+      await AACD.api.cadastrarProtese(protese, arquivo3d());
       mostrarToast(`Prótese "${protese.nome}" cadastrada com sucesso!`);
       reiniciar();
     } catch (erro) {
@@ -205,10 +213,13 @@
       });
 
       // Corrigiu o campo? some o erro.
-      el.form.addEventListener("input", e => {
+      // ("change" cobre o seletor de arquivo, que nem todo navegador avisa com "input")
+      const revalidar = e => {
         const recipiente = e.target.closest(".campo");
         if (recipiente && recipiente.classList.contains("invalido")) campoValido(e.target.id.replace(/^cp-/, ""));
-      });
+      };
+      el.form.addEventListener("input", revalidar);
+      el.form.addEventListener("change", revalidar);
 
       irParaEtapa(0, false);
     }
