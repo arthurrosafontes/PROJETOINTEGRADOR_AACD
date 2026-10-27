@@ -385,4 +385,6 @@ app.post('/api/funcionario/proteses', ...somenteFuncionario, receberArquivo3d, a
   }
 });
 
+app.use('/api/funcionario', require('./backend/routes/consulta-proteses'));
+
 app.listen(PORTA,() => console.log(`Servidor rodando com sucesso na porta ${PORTA}`));
