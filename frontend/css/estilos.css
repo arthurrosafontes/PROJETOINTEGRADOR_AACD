@@ -784,6 +784,9 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .etapas--grandes { margin-bottom: 26px; }
 .etapas--grandes li + li::before { margin: 0 22px; font-size: 20px; }
 .etapas--grandes .etapa { font-size: 24px; padding: 6px 8px 8px; }
+.etapas--medias { margin-bottom: 22px; }
+.etapas--medias li + li::before { margin: 0 18px; font-size: 18px; }
+.etapas--medias .etapa { font-size: 20px; padding: 5px 6px 7px; }
 
 .cartao-form {
   padding: 26px 30px;
@@ -820,6 +823,19 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   transition: border-color .2s, box-shadow .2s;
 }
 .cartao-form textarea { height: auto; padding: 12px 16px; resize: vertical; }
+.cartao-form input[type="file"] { height: auto; padding: 8px 12px; cursor: pointer; }
+.cartao-form input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--teal-claro);
+  color: var(--teal-escuro);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.rotulo-arquivo { margin: 0 0 6px 4px; font-size: 14px; }
 .cartao-form ::placeholder { color: var(--placeholder); }
 .cartao-form select:invalid { color: var(--placeholder); }
 .cartao-form select option { color: var(--texto); }
@@ -1072,6 +1088,8 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   .cabecalho-pagina--grande h1 { font-size: 34px; }
   .etapas--grandes .etapa { font-size: 18px; }
   .etapas--grandes li + li::before { margin: 0 10px; }
+  .etapas--medias .etapa { font-size: 17px; }
+  .etapas--medias li + li::before { margin: 0 10px; }
 }
 
 @media (max-width: 760px) {

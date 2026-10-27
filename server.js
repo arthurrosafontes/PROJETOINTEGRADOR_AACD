@@ -3,6 +3,10 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
 const conectarBanco = require('./backend/config/db');
 const FichaImpressora = require('./backend/models/FichaTecnicaImpressora');
 const voluntariosRoutes = require('./backend/routes/voluntarios');
@@ -264,9 +268,61 @@ app.delete('/api/funcionario/impressoras/:id', ...somenteFuncionario, async (req
 
 // Cadastro de prótese pelo funcionário (tabela "protese" do MySQL)
 const TIPOS_PROTESE = ['Prótese', 'Órtese', 'Componente'];
-const STATUS_PROTESE = ['Ativa', 'Revisão', 'Inativa'];
+const MATERIAIS_PROTESE = ['PLA', 'PETG', 'TPU (flexível)', 'ABS', 'ASA', 'Nylon'];
 
-app.post('/api/funcionario/proteses', ...somenteFuncionario, async (req, res) => {
+// Ciclo de vida do status da prótese (o navegador nunca escolhe o status):
+//   cadastro                          -> 'Inativa'
+//   demanda criada com a prótese      -> 'Inativa' vira 'Revisão'
+//   voluntário aceita essa demanda    -> 'Revisão' vira 'Ativa'
+// Chame esta função nas rotas de demanda: mudarStatusProtese(id, 'demanda') / (id, 'aceite').
+// Só muda se a prótese estiver no status anterior esperado; devolve true se mudou.
+const TRANSICOES_PROTESE = {
+  demanda: { de: 'Inativa', para: 'Revisão' },
+  aceite: { de: 'Revisão', para: 'Ativa' }
+};
+async function mudarStatusProtese(idProtese, evento, conexao = pool) {
+  const { de, para } = TRANSICOES_PROTESE[evento];
+  const [resultado] = await conexao.execute(
+    'UPDATE protese SET status = ? WHERE id_protese = ? AND status = ?',
+    [para, idProtese, de]
+  );
+  return resultado.affectedRows > 0;
+}
+
+// Upload do arquivo 3D da prótese (.stl, .obj ou .3mf, até 50 MB).
+// Fica em uploads/proteses com nome gerado; a coluna arquivo_3d guarda esse caminho.
+const PASTA_UPLOADS_PROTESE = path.join(__dirname, 'uploads', 'proteses');
+fs.mkdirSync(PASTA_UPLOADS_PROTESE, { recursive: true });
+const EXTENSOES_3D = ['.stl', '.obj', '.3mf'];
+const uploadArquivo3d = multer({
+  storage: multer.diskStorage({
+    destination: PASTA_UPLOADS_PROTESE,
+    filename: (req, arquivo, cb) => {
+      const extensao = path.extname(arquivo.originalname).toLowerCase();
+      cb(null, `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${extensao}`);
+    }
+  }),
+  limits: { fileSize: 50 * 1024 * 1024, files: 1 },
+  fileFilter: (req, arquivo, cb) => {
+    if (EXTENSOES_3D.includes(path.extname(arquivo.originalname).toLowerCase())) return cb(null, true);
+    cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', arquivo.fieldname));
+  }
+}).single('arquivo_3d');
+
+// Roda o multer e transforma erros de upload em resposta 400
+function receberArquivo3d(req, res, next) {
+  uploadArquivo3d(req, res, erro => {
+    if (!erro) return next();
+    const mensagem = erro.code === 'LIMIT_FILE_SIZE'
+      ? 'O arquivo 3D deve ter no máximo 50 MB.'
+      : 'Envie um único arquivo 3D .stl, .obj ou .3mf.';
+    return res.status(400).json({ erro: mensagem });
+  });
+}
+
+app.post('/api/funcionario/proteses', ...somenteFuncionario, receberArquivo3d, async (req, res) => {
+  // Se o cadastro falhar, o arquivo enviado não deve ficar órfão na pasta
+  const descartarArquivo = () => req.file && fs.promises.unlink(req.file.path).catch(() => {});
   const d = req.body;
   if (!d || typeof d !== 'object' || Array.isArray(d)) {
     return res.status(400).json({ erro: 'Dados da prótese inválidos.' });
@@ -293,18 +349,22 @@ app.post('/api/funcionario/proteses', ...somenteFuncionario, async (req, res) =>
     const nome = texto('nome', 150);
     if (!nome) throw new Error('Informe o nome da prótese.');
     if (!TIPOS_PROTESE.includes(d.tipo)) throw new Error('Tipo de prótese inválido.');
-    const status = d.status || 'Ativa';
-    if (!STATUS_PROTESE.includes(status)) throw new Error('Status inválido.');
+    const material = texto('material_recomendado', 100);
+    if (material && !MATERIAIS_PROTESE.includes(material)) throw new Error('Material recomendado inválido.');
 
     valores = [
       nome, texto('codigo', 50), d.tipo, texto('regiao_corpo', 100), texto('descricao'),
-      texto('material_recomendado', 100),
+      material,
       numero('largura', 0.01, 999999.99), numero('profundidade', 0.01, 999999.99), numero('altura', 0.01, 999999.99),
-      texto('arquivo_3d', 255), numero('altura_camada', 0.01, 99.99), numero('infill', 0, 100, true),
-      d.necessita_suporte ? 1 : 0, texto('orientacoes_impressao'), texto('observacoes'),
-      texto('versao', 20), status
+      req.file ? `uploads/proteses/${req.file.filename}` : null,
+      numero('altura_camada', 0.01, 99.99), numero('infill', 0, 100, true),
+      // Pode vir como booleano (JSON) ou texto "true"/"false" (multipart)
+      d.necessita_suporte === true || d.necessita_suporte === 'true' ? 1 : 0,
+      texto('orientacoes_impressao'), texto('observacoes'),
+      texto('versao', 20), 'Inativa'
     ];
   } catch (erro) {
+    descartarArquivo();
     return res.status(400).json({ erro: erro.message });
   }
 
@@ -318,6 +378,7 @@ app.post('/api/funcionario/proteses', ...somenteFuncionario, async (req, res) =>
     );
     return res.status(201).json({ mensagem: 'Prótese cadastrada com sucesso!', id_protese: resultado.insertId });
   } catch (erro) {
+    descartarArquivo();
     if (erro.code === 'ER_DUP_ENTRY') return res.status(409).json({ erro: 'Já existe uma prótese com esse código.' });
     console.error('Erro ao cadastrar prótese:', erro);
     return res.status(500).json({ erro: 'Não foi possível cadastrar a prótese.' });
