@@ -98,7 +98,11 @@ AACD.api = (() => {
     // Formato: { id, nome, email, telefone, tipo, documento, razaoSocial, endereco, cep,
     //            cidade, estado, status, impressoras, cadastro }
     listarVoluntarios: () => requisitar("/voluntarios", { comCookie: true, erroPadrao: "Não foi possível carregar os voluntários." }),
-    removerVoluntario: (id) => requisitar(`/voluntarios/${encodeURIComponent(id)}`, {
+    aceitarVoluntario: (id) => requisitar(`/voluntarios/${encodeURIComponent(id)}/aceitar`, {
+      metodo: "PATCH", comCookie: true,
+      erroPadrao: "Não foi possível aceitar o voluntário."
+    }),
+    removerVoluntario: (id) =>requisitar(`/voluntarios/${encodeURIComponent(id)}`, {
       metodo: "DELETE", comCookie: true,
       erroPadrao: "Não foi possível remover o voluntário."
     }),

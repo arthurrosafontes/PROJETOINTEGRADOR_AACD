@@ -11,7 +11,7 @@ async function exigirAutenticacao(req, res, next) {
     const dados = jwt.verify(token, process.env.JWT_SECRET, { issuer: 'aacd' });
     const [rows] = await pool.execute(
       `SELECT u.id_usuario, u.nome, u.email, u.tipo_usuario, u.status,
-              v.id_voluntario, f.id_funcionario
+              v.id_voluntario, v.status_homologacao, f.id_funcionario
        FROM usuario u
        LEFT JOIN voluntario v ON v.id_usuario = u.id_usuario
        LEFT JOIN funcionario_aacd f ON f.id_usuario = u.id_usuario
@@ -20,8 +20,9 @@ async function exigirAutenticacao(req, res, next) {
     const usuario = rows[0];
     const tipo = normalizar(usuario?.tipo_usuario);
     const perfilCorreto = dados.perfil === 'voluntario'
-      ? tipo === 'voluntario' && usuario?.id_voluntario != null
-      : dados.perfil === 'funcionario' && tipo === 'funcionario aacd' && usuario?.id_funcionario != null;
+      ? tipo === 'voluntario' && usuario?.id_voluntario != null &&
+        normalizar(usuario.status_homologacao) === 'ativo' // ainda não aceito pelo funcionário = sem acesso
+      :dados.perfil === 'funcionario' && tipo === 'funcionario aacd' && usuario?.id_funcionario != null;
     if (!usuario || normalizar(usuario.status) !== 'ativo' || !perfilCorreto) {
       return res.status(401).json({ erro: 'Sessão inválida.' });
     }
