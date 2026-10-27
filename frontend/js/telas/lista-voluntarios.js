@@ -1,6 +1,6 @@
 /* =========================================================
    telas/lista-voluntarios.js — funcionário vê todos os voluntários
-   cadastrados, abre os detalhes e pode remover um voluntário
+   cadastrados, abre os detalhes, aceita os pendentes e pode remover um voluntário
    ========================================================= */
 "use strict";
 
@@ -53,6 +53,7 @@
         <div class="cartao-item__acoes">
           <button type="button" class="botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="lvol-extra-${id}">Detalhes</button>
+          ${v.status === "Pendente" ? `<button type="button" class="botao botao--escuro" data-acao="aceitar">Aceitar</button>` : ""}
           <button type="button" class="botao botao--perigo" data-acao="remover">Remover</button>
         </div>
         <div class="cartao-item__extra" id="lvol-extra-${id}" hidden>
@@ -72,6 +73,30 @@
     el.vazio.classList.remove("vazio--erro");
     el.vazio.textContent = "Nenhum voluntário encontrado.";
     el.vazio.hidden = itens.length > 0;
+  }
+
+  // Enquanto estiver "Pendente" o voluntário não consegue fazer login
+  async function aceitar(botao, item, voluntario) {
+    const ok = await confirmar(
+      `Aceitar o voluntário "${voluntario.nome}"?
+Ele passará a ter acesso ao sistema.`,
+      "Aceitar",
+      false
+    );
+    if (!ok) return;
+
+    item.querySelectorAll("button").forEach(b => { b.disabled = true; });
+    botao.textContent = "Aceitando...";
+    try {
+      const resposta = await AACD.api.aceitarVoluntario(voluntario.id);
+      voluntario.status = resposta.status || "Ativo";
+      renderizar();
+      mostrarToast(`Voluntário "${voluntario.nome}" aceito. Ele já pode entrar no sistema.`);
+    } catch (erro) {
+      item.querySelectorAll("button").forEach(b => { b.disabled = false; });
+      botao.textContent = "Aceitar";
+      mostrarToast(erro.message, true);
+    }
   }
 
   async function remover(botao, item, voluntario) {
@@ -119,6 +144,8 @@ O acesso e as impressoras dele também serão removidos. Essa ação não pode s
         const voluntario = voluntarios.find(v => String(v.id) === id);
 
         if (botao.dataset.acao === "detalhes") alternarDetalhes(botao, "Detalhes");
+
+        if (botao.dataset.acao === "aceitar") aceitar(botao, botao.closest(".cartao-item"), voluntario);
 
         if (botao.dataset.acao === "remover") remover(botao, botao.closest(".cartao-item"), voluntario);
       });
