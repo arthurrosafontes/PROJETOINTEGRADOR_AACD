@@ -743,6 +743,24 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .selo--recusado { background: var(--recusado-fundo); color: var(--recusado-texto); }
 .selo--Resina { background: var(--resina-fundo); color: var(--resina-texto); }
 
+/* Lista de demandas: prioridade, status e faixa lateral do cartão */
+.selo--Normal { background: var(--teal-escuro); color: var(--branco); }
+.selo--Urgente { background: #8e1020; color: var(--branco); }
+.selo--st-rascunho, .selo--st-cancelada { background: #eceff0; color: #4f5757; }
+.selo--st-aberta { background: var(--teal-claro); color: var(--teal-escuro); }
+.selo--st-em-producao { background: var(--producao-fundo); color: var(--producao-texto); }
+.selo--st-aguardando-validacao { background: var(--pendente-fundo); color: var(--pendente-texto); }
+.selo--st-concluida { background: var(--concluido-fundo); color: var(--concluido-texto); }
+.cartao-item--demanda-em-producao { border-left-color: var(--producao-texto); }
+.cartao-item--demanda-aguardando-validacao { border-left-color: var(--pendente); }
+.cartao-item--demanda-concluida { border-left-color: var(--ativo); }
+.cartao-item--demanda-rascunho,
+.cartao-item--demanda-cancelada { border-left-color: var(--inativo); }
+.cartao-item--demanda-cancelada article { opacity: .65; }
+.cartao-item__extra--colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: start; }
+.cartao-item__extra--colunas dd { white-space: pre-line; } /* uma observação por linha */
+.cartao-item__extra--colunas h3 { margin-bottom: 8px; font-size: 14px; color: var(--teal-titulo); }
+
 /* Botões das telas internas */
 .botao {
   padding: 10px 16px;
