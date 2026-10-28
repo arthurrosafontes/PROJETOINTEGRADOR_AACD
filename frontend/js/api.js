@@ -108,7 +108,10 @@ AACD.api = (() => {
     }),
 
     // ----- Funcionário: demandas e próteses -----
-    listarProteses: () => requisitar("/proteses", { erroPadrao: "Não foi possível carregar as próteses." }),
+    listarProteses: () => requisitar("/funcionario/proteses", {
+    comCookie: true,
+    erroPadrao: "Não foi possível carregar as próteses."
+    }),
     // Campos com os mesmos nomes das colunas da tabela "protese".
     // Vai como multipart para levar junto o arquivo 3D (opcional).
     cadastrarProtese: (dados, arquivo) => {
@@ -120,8 +123,13 @@ AACD.api = (() => {
         erroPadrao: "Não foi possível cadastrar a prótese."
       });
     },
-    publicarDemanda: (demanda) => requisitar("/demandas", { metodo: "POST", corpo: demanda, erroPadrao: "Não foi possível publicar a demanda." }),
 
+    publicarDemanda: (demanda) => requisitar("/demandas", {
+    metodo: "POST",
+    corpo: demanda,
+    comCookie: true,
+    erroPadrao: "Não foi possível publicar a demanda."
+    }),
     // ----- Voluntário: cadastrar impressora -----
     cadastrarImpressora: (dados) => requisitar("/impressoras", {
       metodo: "POST", corpo: dados, comCookie: true,

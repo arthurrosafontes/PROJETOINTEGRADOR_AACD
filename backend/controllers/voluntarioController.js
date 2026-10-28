@@ -149,7 +149,7 @@ async function aceitarVoluntario(req, res) {
 
   try {
     const [resultado] = await pool.execute(
-      `UPDATE voluntario SET status_homologacao = 'Ativo'
+      `UPDATE voluntario SET status_homologacao = 'Aprovado'
        WHERE id_voluntario = ? AND status_homologacao = 'Pendente'`,
       [id]
     );
@@ -158,42 +158,78 @@ async function aceitarVoluntario(req, res) {
       if (linhas.length === 0) return res.status(404).json({ erro: 'Voluntário não encontrado.' });
       return res.status(409).json({ erro: `Este voluntário não está pendente (status atual: ${linhas[0].status_homologacao}).` });
     }
-    return res.json({ mensagem: 'Voluntário aceito com sucesso.', status: 'Ativo' });
+    return res.json({ mensagem: 'Voluntário Aprovado com sucesso.', status: 'Aprovado' });
   } catch (erro) {
-    console.error('Erro ao aceitar voluntário:', erro);
-    return res.status(500).json({ erro: 'Não foi possível aceitar o voluntário.' });
+    console.error('Erro ao aprovar voluntário:', erro);
+    return res.status(500).json({ erro: 'Não foi possível aprovar o voluntário.' });
   }
 }
 
 // Funcionário: remove o voluntário, o usuário dele e as impressoras cadastradas
+// Reprova um voluntário sem excluir seus dados
 async function removerVoluntario(req, res) {
   const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) return res.status(400).json({ erro: 'ID de voluntário inválido.' });
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({
+      erro: 'ID de voluntário inválido.'
+    });
+  }
 
   let conexao;
+
   try {
     conexao = await pool.getConnection();
     await conexao.beginTransaction();
-    const [linhas] = await conexao.execute('SELECT id_usuario FROM voluntario WHERE id_voluntario = ? FOR UPDATE', [id]);
+
+    const [linhas] = await conexao.execute(
+      `SELECT v.id_usuario
+       FROM voluntario v
+       WHERE v.id_voluntario = ?
+       FOR UPDATE`,
+      [id]
+    );
+
     if (linhas.length === 0) {
       await conexao.rollback();
-      return res.status(404).json({ erro: 'Voluntário não encontrado.' });
+
+      return res.status(404).json({
+        erro: 'Voluntário não encontrado.'
+      });
     }
-    await conexao.execute('DELETE FROM voluntario WHERE id_voluntario = ?', [id]);
-    await conexao.execute('DELETE FROM usuario WHERE id_usuario = ?', [linhas[0].id_usuario]);
+
+    await conexao.execute(
+      `UPDATE voluntario
+       SET status_homologacao = 'Reprovado'
+       WHERE id_voluntario = ?`,
+      [id]
+    );
+
+    await conexao.execute(
+      `UPDATE usuario
+       SET status = 'Inativo'
+       WHERE id_usuario = ?`,
+      [linhas[0].id_usuario]
+    );
+
     await conexao.commit();
 
-    await FichaImpressora.deleteMany({ id_voluntario: id });
-    return res.json({ mensagem: 'Voluntário removido com sucesso.' });
+    return res.json({
+      mensagem: 'Voluntário reprovado com sucesso.',
+      status: 'Reprovado'
+    });
+
   } catch (erro) {
     if (conexao) {
-      try { await conexao.rollback(); } catch (e) { console.error('Falha ao reverter transação:', e); }
+      await conexao.rollback();
     }
-    if (erro.code === 'ER_ROW_IS_REFERENCED_2' || erro.code === 'ER_ROW_IS_REFERENCED') {
-      return res.status(409).json({ erro: 'Este voluntário possui registros vinculados (pedidos ou produções) e não pode ser removido.' });
-    }
-    console.error('Erro ao remover voluntário:', erro);
-    return res.status(500).json({ erro: 'Não foi possível remover o voluntário.' });
+
+    console.error('Erro ao reprovar voluntário:', erro);
+
+    return res.status(500).json({
+      erro: 'Não foi possível reprovar o voluntário.'
+    });
+
   } finally {
     if (conexao) conexao.release();
   }

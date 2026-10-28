@@ -42,10 +42,10 @@ async function login(req, res) {
       : perfilBanco === 'funcionario aacd' && usuario.id_funcionario != null;
     if (!permitido) return res.status(403).json({ erro: 'Conta sem acesso a esta área.' });
     if (normalizar(usuario.status) !== 'ativo') {
-      return res.status(403).json({ erro: 'Conta inativa ou bloqueada.' });
+      return res.status(403).json({ erro: 'Essa conta foi reprovada.' });
     }
     // Voluntário só entra depois que um funcionário aceitar o cadastro
-    if (perfil === 'voluntario' && normalizar(usuario.status_homologacao) !== 'ativo') {
+    if (perfil === 'voluntario' && normalizar(usuario.status_homologacao) !== 'aprovado') {
       return res.status(403).json({
         erro: normalizar(usuario.status_homologacao) === 'pendente'
           ? 'Seu cadastro ainda está aguardando a aprovação da AACD.'
