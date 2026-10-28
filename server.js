@@ -386,6 +386,8 @@ app.post('/api/funcionario/proteses', ...somenteFuncionario, receberArquivo3d, a
 });
 
 app.use('/api/funcionario', require('./backend/routes/consulta-proteses'));
+// Lista, edição e cancelamento das demandas (tela "Lista de demandas")
+app.use('/api/funcionario/demandas', require('./backend/routes/demandas'));
 
 // OBJETIVO 10 — Publicar demandas no MySQL
 

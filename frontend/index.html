@@ -29,6 +29,7 @@
   <script src="js/telas/cadastrar-impressora.js" defer></script>
   <script src="js/telas/cadastrar-demanda.js" defer></script>
   <script src="js/telas/lista-voluntarios.js" defer></script>
+  <script src="js/telas/lista-demandas.js" defer></script>
   <script src="js/telas/impressoras.js" defer></script>
   <script src="js/telas/cadastrar-protese.js" defer></script>
   <script src="js/roteador.js" defer></script>
@@ -93,7 +94,7 @@
           <button class="menu__botao" type="button" aria-expanded="false" aria-controls="sub-func-demandas">Demandas</button>
           <ul class="submenu" id="sub-func-demandas" hidden>
             <li><a href="#/funcionario/demandas/cadastrar">Cadastrar demanda</a></li>
-            <li><a href="#/funcionario/em-construcao">Demandas abertas</a></li>
+            <li><a href="#/funcionario/demandas/lista">Lista de demandas</a></li>
           </ul>
         </li>
         <li class="menu__item">
@@ -880,6 +881,7 @@
     <nav aria-label="Atalhos da área do funcionário">
       <ul class="atalhos">
         <li><a href="#/funcionario/demandas/cadastrar"><strong>Cadastrar demanda</strong> <span>Publique uma nova demanda de prótese.</span></a></li>
+        <li><a href="#/funcionario/demandas/lista"><strong>Lista de demandas</strong> <span>Acompanhe, edite ou cancele as demandas.</span></a></li>
         <li><a href="#/funcionario/voluntarios"><strong>Lista de voluntários</strong> <span>Aprove e acompanhe os voluntários.</span></a></li>
         <li><a href="#/funcionario/impressoras"><strong>Impressoras cadastradas</strong> <span>Veja e edite as impressoras da rede.</span></a></li>
       </ul>
@@ -968,9 +970,10 @@
             <label for="cd-prioridade">Prioridade</label>
             <select id="cd-prioridade" name="prioridade" aria-describedby="cd-prioridade-erro" required>
               <option value="">Selecione</option>
-              <option value="Alta">Alta</option>
-              <option value="Média">Média</option>
               <option value="Baixa">Baixa</option>
+              <option value="Normal">Normal</option>
+              <option value="Alta">Alta</option>
+              <option value="Urgente">Urgente</option>
             </select>
             <small class="erro" id="cd-prioridade-erro">Selecione a prioridade.</small>
           </div>
@@ -1136,6 +1139,59 @@
     <p class="contador" id="lvol-contador" role="status"></p>
     <ul class="lista-cartoes" id="lvol-lista" aria-labelledby="titulo-tela-lista-voluntarios"></ul>
     <p class="vazio" id="lvol-vazio" hidden>Nenhum voluntário encontrado.</p>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: LISTA DE DEMANDAS (funcionário)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-lista-demandas" class="tela tela--app" id="tela-lista-demandas"
+        data-rota="/funcionario/demandas/lista" data-area="funcionario" data-titulo="Lista de demandas" hidden>
+    <header class="cabecalho-pagina">
+      <h1 id="titulo-tela-lista-demandas" tabindex="-1">Lista de demandas</h1>
+      <p>Acompanhe a produção: Aberta → Em produção → Aguardando validação → Concluída.</p>
+    </header>
+
+    <search class="filtros">
+      <p class="filtros__busca">
+        <label class="visualmente-oculto" for="ldem-busca">Buscar por nome da demanda, prótese ou ID</label>
+        <input type="search" id="ldem-busca" placeholder="Buscar demanda, prótese ou ID...">
+      </p>
+      <p>
+        <label class="visualmente-oculto" for="ldem-status">Filtrar por status</label>
+        <select id="ldem-status">
+          <option value="todos">Status: Todos</option>
+          <option value="Rascunho">Rascunho</option>
+          <option value="Aberta">Aberta</option>
+          <option value="Em produção">Em produção</option>
+          <option value="Aguardando validação">Aguardando validação</option>
+          <option value="Concluída">Concluída</option>
+          <option value="Cancelada">Cancelada</option>
+        </select>
+      </p>
+      <p>
+        <label class="visualmente-oculto" for="ldem-prioridade">Filtrar por prioridade</label>
+        <select id="ldem-prioridade">
+          <option value="todas">Prioridade: Todas</option>
+          <option value="Baixa">Baixa</option>
+          <option value="Normal">Normal</option>
+          <option value="Alta">Alta</option>
+          <option value="Urgente">Urgente</option>
+        </select>
+      </p>
+      <p>
+        <label class="visualmente-oculto" for="ldem-ordenar">Ordenar</label>
+        <select id="ldem-ordenar">
+          <option value="recentes">Mais recentes</option>
+          <option value="prazo">Prazo mais próximo</option>
+          <option value="prioridade">Maior prioridade</option>
+        </select>
+      </p>
+    </search>
+
+    <p class="contador" id="ldem-contador" role="status"></p>
+    <ul class="lista-cartoes" id="ldem-lista" aria-labelledby="titulo-tela-lista-demandas"></ul>
+    <p class="vazio" id="ldem-vazio" hidden>Nenhuma demanda encontrada.</p>
   </main>
 
 
@@ -1401,6 +1457,102 @@
       <div class="modal__acoes">
         <button type="button" class="botao botao--secundario" data-fechar>Cancelar</button>
         <button type="submit" class="botao botao--escuro" id="modal-impressora-salvar">Salvar alterações</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="modal-demanda" aria-labelledby="modal-demanda-titulo">
+    <form class="modal__form" id="form-editar-demanda" method="dialog" novalidate>
+      <div class="modal__cabecalho">
+        <h2 id="modal-demanda-titulo">Editar demanda</h2>
+        <button type="button" class="modal__fechar" data-fechar>
+          <span aria-hidden="true">✕</span><span class="visualmente-oculto">Fechar</span>
+        </button>
+      </div>
+
+      <p class="modal__sub" id="modal-demanda-protese"></p>
+
+      <div class="modal__campos">
+        <p class="campo campo--inteiro">
+          <label for="md-nome">Nome da demanda <abbr title="obrigatório">*</abbr></label>
+          <input type="text" id="md-nome" name="nome" required maxlength="150">
+        </p>
+        <p class="campo">
+          <label for="md-quantidade">Quantidade <abbr title="obrigatório">*</abbr></label>
+          <input type="number" id="md-quantidade" name="quantidade" min="1" step="1" required>
+        </p>
+        <p class="campo">
+          <label for="md-material">Material <abbr title="obrigatório">*</abbr></label>
+          <select id="md-material" name="material" required>
+            <option value="PLA">PLA</option>
+            <option value="PETG">PETG</option>
+            <option value="TPU">TPU (flexível)</option>
+            <option value="ABS">ABS</option>
+            <option value="ASA">ASA</option>
+            <option value="Nylon">Nylon</option>
+          </select>
+        </p>
+        <p class="campo">
+          <label for="md-prioridade">Prioridade <abbr title="obrigatório">*</abbr></label>
+          <select id="md-prioridade" name="prioridade" required>
+            <option value="Baixa">Baixa</option>
+            <option value="Normal">Normal</option>
+            <option value="Alta">Alta</option>
+            <option value="Urgente">Urgente</option>
+          </select>
+        </p>
+        <p class="campo">
+          <label for="md-bico">Bico (mm) <abbr title="obrigatório">*</abbr></label>
+          <input type="number" id="md-bico" name="bico" step="0.05" min="0.1" max="2" required>
+        </p>
+        <p class="campo">
+          <label for="md-tempo">Tempo estimado (h) <abbr title="obrigatório">*</abbr></label>
+          <input type="number" id="md-tempo" name="tempo" step="0.01" min="0.01" required>
+        </p>
+        <p class="campo">
+          <label for="md-prazo">Prazo de entrega <abbr title="obrigatório">*</abbr></label>
+          <input type="date" id="md-prazo" name="prazo" required>
+        </p>
+        <p class="campo campo--inteiro">
+          <label for="md-local">Local de entrega</label>
+          <input type="text" id="md-local" name="local" maxlength="255">
+        </p>
+        <p class="campo campo--inteiro">
+          <label for="md-obs">Observações</label>
+          <textarea id="md-obs" name="obs" rows="3" maxlength="500"></textarea>
+        </p>
+      </div>
+
+      <p class="modal__erro" id="modal-demanda-erro" role="alert" hidden></p>
+
+      <div class="modal__acoes">
+        <button type="button" class="botao botao--secundario" data-fechar>Fechar</button>
+        <button type="submit" class="botao botao--escuro" id="modal-demanda-salvar">Salvar alterações</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal modal--confirmacao" id="modal-observacao" aria-labelledby="modal-observacao-titulo">
+    <form class="modal__form" id="form-observacao-demanda" method="dialog" novalidate>
+      <div class="modal__cabecalho">
+        <h2 id="modal-observacao-titulo">Adicionar observação</h2>
+        <button type="button" class="modal__fechar" data-fechar>
+          <span aria-hidden="true">✕</span><span class="visualmente-oculto">Fechar</span>
+        </button>
+      </div>
+
+      <p class="modal__sub" id="modal-observacao-demanda"></p>
+
+      <p class="campo campo--inteiro">
+        <label for="mo-texto">Observação <abbr title="obrigatório">*</abbr></label>
+        <textarea id="mo-texto" name="texto" rows="4" maxlength="500" required></textarea>
+      </p>
+
+      <p class="modal__erro" id="modal-observacao-erro" role="alert" hidden></p>
+
+      <div class="modal__acoes">
+        <button type="button" class="botao botao--secundario" data-fechar>Fechar</button>
+        <button type="submit" class="botao botao--escuro" id="modal-observacao-salvar">Adicionar</button>
       </div>
     </form>
   </dialog>

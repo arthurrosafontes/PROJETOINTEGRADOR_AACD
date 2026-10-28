@@ -130,6 +130,25 @@ AACD.api = (() => {
     comCookie: true,
     erroPadrao: "Não foi possível publicar a demanda."
     }),
+    // Formato: { id, nome, protese, proteseCodigo, tipo, regiao, quantidade, material, bico,
+    //            largura, profundidade, altura, tempoHoras, prioridade, prazo, status, cadastro,
+    //            localEntrega, paciente, formaEntrega, responsavel, instrucoes, observacoes }
+    listarDemandas: () => requisitar("/funcionario/demandas", {
+      comCookie: true,
+      erroPadrao: "Não foi possível carregar as demandas."
+    }),
+    atualizarDemanda: (id, campos) => requisitar(`/funcionario/demandas/${encodeURIComponent(id)}`, {
+      metodo: "PUT", corpo: campos, comCookie: true,
+      erroPadrao: "Não foi possível salvar as alterações da demanda."
+    }),
+    adicionarObservacaoDemanda: (id, texto) => requisitar(`/funcionario/demandas/${encodeURIComponent(id)}/observacoes`, {
+      metodo: "POST", corpo: { texto }, comCookie: true,
+      erroPadrao: "Não foi possível adicionar a observação."
+    }),
+    cancelarDemanda: (id) => requisitar(`/funcionario/demandas/${encodeURIComponent(id)}/cancelar`, {
+      metodo: "PATCH", comCookie: true,
+      erroPadrao: "Não foi possível cancelar a demanda."
+    }),
     // ----- Voluntário: cadastrar impressora -----
     cadastrarImpressora: (dados) => requisitar("/impressoras", {
       metodo: "POST", corpo: dados, comCookie: true,
