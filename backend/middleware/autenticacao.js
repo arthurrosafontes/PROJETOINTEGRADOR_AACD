@@ -21,7 +21,7 @@ async function exigirAutenticacao(req, res, next) {
     const tipo = normalizar(usuario?.tipo_usuario);
     const perfilCorreto = dados.perfil === 'voluntario'
       ? tipo === 'voluntario' && usuario?.id_voluntario != null &&
-        normalizar(usuario.status_homologacao) === 'ativo' // ainda não aceito pelo funcionário = sem acesso
+        normalizar(usuario.status_homologacao) === 'aprovado' // ainda não aceito pelo funcionário = sem acesso
       :dados.perfil === 'funcionario' && tipo === 'funcionario aacd' && usuario?.id_funcionario != null;
     if (!usuario || normalizar(usuario.status) !== 'ativo' || !perfilCorreto) {
       return res.status(401).json({ erro: 'Sessão inválida.' });

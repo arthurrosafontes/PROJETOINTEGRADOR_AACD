@@ -16,18 +16,56 @@
     return (partes[0][0] + (partes.length > 1 ? partes[partes.length - 1][0] : "")).toUpperCase();
   }
 
-  function filtrar() {
-    const termo = el.busca.value.trim().toLowerCase();
-    const status = el.status.value;
-    const resultado = voluntarios.filter(v =>
-      (String(v.nome || "").toLowerCase().includes(termo) || String(v.cidade || "").toLowerCase().includes(termo))
-      && (status === "todos" || v.status === status));
+function filtrar() {
+  const termo = el.busca.value.trim().toLowerCase();
+  const statusSelecionado = el.status.value.trim().toLowerCase();
+  const ordenacao = el.ordenar.value;
 
-    if (el.ordenar.value === "nome") resultado.sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
-    if (el.ordenar.value === "impressoras") resultado.sort((a, b) => (b.impressoras || 0) - (a.impressoras || 0));
-    if (el.ordenar.value === "recentes") resultado.sort((a, b) => String(b.cadastro || "").localeCompare(String(a.cadastro || "")));
-    return resultado;
+  let resultado = voluntarios.filter(v => {
+
+    // Pesquisa por nome, cidade, e-mail ou documento
+    const pesquisa = [
+      v.id,
+      v.nome,
+      v.email,
+      v.cidade,
+      v.estado,
+      v.documento
+    ].map(valor => String(valor ?? "").toLowerCase()).join(" ");
+
+    const correspondeBusca = pesquisa.includes(termo);
+
+    // Compara o status sem diferenciar letras maiúsculas/minúsculas
+    const statusVoluntario = String(v.status ?? "").trim().toLowerCase();
+
+    const correspondeStatus =
+      statusSelecionado === "todos" ||
+      statusVoluntario === statusSelecionado;
+
+    return correspondeBusca && correspondeStatus;
+  });
+
+  // Ordenação
+  if (ordenacao === "nome") {
+    resultado.sort((a, b) =>
+      String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR")
+    );
   }
+
+  if (ordenacao === "impressoras") {
+    resultado.sort((a, b) =>
+      Number(b.impressoras || 0) - Number(a.impressoras || 0)
+    );
+  }
+
+  if (ordenacao === "recentes") {
+    resultado.sort((a, b) =>
+      new Date(b.cadastro || 0) - new Date(a.cadastro || 0)
+    );
+  }
+
+  return resultado;
+}
 
   function renderizar() {
     const itens = filtrar();
@@ -54,7 +92,9 @@
           <button type="button" class="botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="lvol-extra-${id}">Detalhes</button>
           ${v.status === "Pendente" ? `<button type="button" class="botao botao--escuro" data-acao="aceitar">Aceitar</button>` : ""}
-          <button type="button" class="botao botao--perigo" data-acao="remover">Remover</button>
+          ${v.status === "Pendente" || v.status === "Aprovado"
+           ? `<button type="button" class="botao botao--perigo" data-acao="remover">Reprovar</button>`
+           : ""}
         </div>
         <div class="cartao-item__extra" id="lvol-extra-${id}" hidden>
           ${listaDescricao([
@@ -101,25 +141,25 @@ Ele passará a ter acesso ao sistema.`,
 
   async function remover(botao, item, voluntario) {
     const ok = await confirmar(
-      `Remover o voluntário "${voluntario.nome}"?
+      `Reprovar o voluntário "${voluntario.nome}"?
 O acesso e as impressoras dele também serão removidos. Essa ação não pode ser desfeita.`,
-      "Remover"
+      "Reprovar"
     );
     if (!ok) return;
 
     item.querySelectorAll("button").forEach(b => { b.disabled = true; });
-    botao.textContent = "Removendo...";
+    botao.textContent = "Reprovando...";
     try {
       await AACD.api.removerVoluntario(voluntario.id);
-      item.classList.add("saindo");
-      setTimeout(() => {
-        voluntarios = voluntarios.filter(v => v.id !== voluntario.id);
-        renderizar();
-        mostrarToast(`Voluntário "${voluntario.nome}" removido.`);
-      }, 300);
+     voluntario.status = "Reprovado";
+      renderizar();
+
+      mostrarToast(
+      `Voluntário "${voluntario.nome}" reprovado com sucesso.`
+    );
     } catch (erro) {
       item.querySelectorAll("button").forEach(b => { b.disabled = false; });
-      botao.textContent = "Remover";
+      botao.textContent = "Reprovar";
       mostrarToast(erro.message, true);
     }
   }
@@ -156,13 +196,6 @@ O acesso e as impressoras dele também serão removidos. Essa ação não pode s
       try {
         voluntarios = await AACD.api.listarVoluntarios();
         // Garante que o filtro tenha todos os status que vieram do banco
-        const existentes = new Set([...el.status.options].map(o => o.value));
-        voluntarios.forEach(v => {
-          if (v.status && !existentes.has(v.status)) {
-            el.status.add(new Option(v.status, v.status));
-            existentes.add(v.status);
-          }
-        });
         renderizar();
       } catch {
         voluntarios = [];

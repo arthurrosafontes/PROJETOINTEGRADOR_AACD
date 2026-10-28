@@ -387,4 +387,215 @@ app.post('/api/funcionario/proteses', ...somenteFuncionario, receberArquivo3d, a
 
 app.use('/api/funcionario', require('./backend/routes/consulta-proteses'));
 
+// OBJETIVO 10 — Publicar demandas no MySQL
+
+app.post(
+  '/api/demandas',
+  exigirAutenticacao,
+  exigirPerfil('funcionario'),
+  async (req, res) => {
+    const d = req.body || {};
+
+    const idProtese = Number(d.proteseId);
+    const quantidade = Number(d.quantidade);
+    const impressao = d.impressao || {};
+    const entrega = d.entrega || {};
+
+    const numeroValido = (valor, maximo) => {
+      const n = Number(valor);
+      return valor !== null &&
+        valor !== undefined &&
+        valor !== '' &&
+        Number.isFinite(n) &&
+        n > 0 &&
+        n <= maximo;
+    };
+
+    if (!Number.isSafeInteger(idProtese) || idProtese <= 0) {
+      return res.status(400).json({
+        erro: 'Selecione uma prótese cadastrada.'
+      });
+    }
+
+    if (!Number.isSafeInteger(quantidade) || quantidade <= 0) {
+      return res.status(400).json({
+        erro: 'Informe uma quantidade válida.'
+      });
+    }
+
+    const prioridades = ['Baixa', 'Normal', 'Alta', 'Urgente'];
+
+    if (!prioridades.includes(d.prioridade)) {
+      return res.status(400).json({
+        erro: 'Prioridade inválida.'
+      });
+    }
+
+    const filamento = String(impressao.filamento || '').trim();
+
+    if (!filamento || filamento.length > 50) {
+      return res.status(400).json({
+        erro: 'Informe um filamento válido.'
+      });
+    }
+
+    if (
+      !numeroValido(impressao.largura, 999999.99) ||
+      !numeroValido(impressao.profundidade, 999999.99) ||
+      !numeroValido(impressao.altura, 999999.99)
+    ) {
+      return res.status(400).json({
+        erro: 'Informe dimensões válidas.'
+      });
+    }
+
+    if (!numeroValido(impressao.bico, 99.99)) {
+      return res.status(400).json({
+        erro: 'Informe um diâmetro de bico válido.'
+      });
+    }
+
+    const minutos = Number(impressao.tempoEstimadoMin);
+
+    if (!Number.isInteger(minutos) || minutos <= 0) {
+      return res.status(400).json({
+        erro: 'Informe um tempo estimado válido.'
+      });
+    }
+
+    const tempoHoras = Number((minutos / 60).toFixed(2));
+
+    if (tempoHoras > 999999.99) {
+      return res.status(400).json({
+        erro: 'Tempo estimado acima do limite permitido.'
+      });
+    }
+
+    const prazo = String(entrega.prazo || '');
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(prazo)) {
+      return res.status(400).json({
+        erro: 'Informe um prazo válido.'
+      });
+    }
+
+    const dataPrazo = new Date(`${prazo}T00:00:00Z`);
+
+    if (
+      Number.isNaN(dataPrazo.getTime()) ||
+      dataPrazo.toISOString().slice(0, 10) !== prazo
+    ) {
+      return res.status(400).json({
+        erro: 'Data de prazo inválida.'
+      });
+    }
+
+    const localEntrega = String(entrega.local || '').trim();
+
+    if (localEntrega.length > 255) {
+      return res.status(400).json({
+        erro: 'Local de entrega muito longo.'
+      });
+    }
+
+    // Guarda informações adicionais sem criar colunas.
+    // Não registra o arquivo como anexado, pois ele não foi enviado.
+    const observacoes = [
+      `Nome da demanda: ${d.nome || ''}`,
+      `Paciente: ${d.paciente || ''}`,
+      `Forma de entrega: ${entrega.forma || ''}`,
+      `Responsável: ${entrega.responsavel || ''}`,
+      `Instruções: ${entrega.instrucoes || ''}`,
+      `Observações: ${d.observacoes || ''}`
+    ].join('\n');
+
+    let conexao;
+
+    try {
+      conexao = await pool.getConnection();
+      await conexao.beginTransaction();
+
+      // Confirma que a prótese existe.
+      const [proteses] = await conexao.execute(
+        'SELECT id_protese FROM protese WHERE id_protese = ?',
+        [idProtese]
+      );
+
+      if (proteses.length === 0) {
+        await conexao.rollback();
+
+        return res.status(404).json({
+          erro: 'Prótese não encontrada.'
+        });
+      }
+
+      // O funcionário é identificado pela sessão, não pelo navegador.
+      const idFuncionario = req.usuario.id_funcionario;
+
+      const [resultado] = await conexao.execute(
+        `INSERT INTO demanda (
+          id_funcionario,
+          id_protese,
+          quantidade,
+          tipo_filamento,
+          diametro_bico,
+          largura_necessaria,
+          profundidade_necessaria,
+          altura_necessaria,
+          tempo_estimado_horas,
+          prazo,
+          prioridade,
+          status,
+          local_entrega,
+          observacoes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          idFuncionario,
+          idProtese,
+          quantidade,
+          filamento,
+          Number(impressao.bico),
+          Number(impressao.largura),
+          Number(impressao.profundidade),
+          Number(impressao.altura),
+          tempoHoras,
+          prazo,
+          d.prioridade,
+          'Aberta',
+          localEntrega || null,
+          observacoes
+        ]
+      );
+
+      // Ao criar uma demanda, a prótese Inativa passa para Revisão.
+      await conexao.execute(
+        `UPDATE protese
+         SET status = 'Revisão'
+         WHERE id_protese = ? AND status = 'Inativa'`,
+        [idProtese]
+      );
+
+      await conexao.commit();
+
+      return res.status(201).json({
+        mensagem: 'Demanda publicada com sucesso!',
+        id_demanda: resultado.insertId,
+        nome: d.nome
+      });
+
+    } catch (erro) {
+      if (conexao) await conexao.rollback();
+
+      console.error('Erro ao publicar demanda:', erro);
+
+      return res.status(500).json({
+        erro: 'Não foi possível publicar a demanda.'
+      });
+
+    } finally {
+      if (conexao) conexao.release();
+    }
+  }
+);
+
 app.listen(PORTA,() => console.log(`Servidor rodando com sucesso na porta ${PORTA}`));
