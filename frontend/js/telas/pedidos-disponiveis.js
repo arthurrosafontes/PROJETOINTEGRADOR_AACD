@@ -5,7 +5,7 @@
 
 (() => {
   const { $, escapar, formatarData, mostrarToast, alternarDetalhes, listaDescricao } = AACD.util;
-  const pesoPrioridade = { Alta: 3, "Média": 2, Baixa: 1 };
+  const pesoPrioridade = { Urgente: 4, Alta: 3, Normal: 2, Baixa: 1 };
   let pedidos = [];
 
   const el = {};
@@ -16,7 +16,10 @@
 
     const resultado = pedidos.filter(p => {
       const bateTexto = String(p.peca || "").toLowerCase().includes(termo) || String(p.id).includes(termo);
-      const batePrioridade = prioridade === "todas" || p.prioridade === prioridade;
+      const batePrioridade =
+      prioridade === "todas" ||
+      String(p.prioridade || "").trim().toLowerCase() ===
+      prioridade.trim().toLowerCase();
       return bateTexto && batePrioridade;
     });
 
@@ -63,19 +66,111 @@
     el.vazio.hidden = itens.length > 0;
   }
 
+  // Modal criado por JavaScript: não exige alterações no index.html.
+function obterDialogo() {
+    let dialogo = document.getElementById("pd-dialogo-impressora");
+    if (dialogo) return dialogo;
+
+    dialogo = document.createElement("dialog");
+    dialogo.id = "pd-dialogo-impressora";
+    dialogo.setAttribute("aria-labelledby", "pd-dialogo-titulo");
+
+    dialogo.innerHTML = `
+      <form method="dialog" id="pd-form-impressora">
+        <h2 id="pd-dialogo-titulo">Escolher impressora</h2>
+        <p id="pd-dialogo-resumo"></p>
+
+        <label for="pd-dialogo-select">
+          Impressora para produzir o pedido
+        </label>
+
+        <select id="pd-dialogo-select" required></select>
+
+        <div class="pd-dialogo-acoes">
+          <button type="button"
+                  class="botao botao--secundario"
+                  id="pd-dialogo-cancelar">
+            Cancelar
+          </button>
+
+          <button type="submit"
+                  class="botao botao--primario"
+                  id="pd-dialogo-confirmar">
+            Confirmar aceite
+          </button>
+        </div>
+      </form>`;
+
+    document.body.appendChild(dialogo);
+
+    dialogo.querySelector("#pd-dialogo-cancelar")
+      .addEventListener("click", () => dialogo.close());
+
+    return dialogo;
+}
+
+  async function escolherImpressora(pedido) {
+    const impressoras = await AACD.api.listarMinhasImpressoras();
+    if (!Array.isArray(impressoras) || impressoras.length === 0) {
+      mostrarToast("Você precisa cadastrar uma impressora antes de aceitar um pedido.", true);
+      return null;
+    }
+
+    const dialogo = obterDialogo();
+    const seletor = dialogo.querySelector("#pd-dialogo-select");
+    const resumo = dialogo.querySelector("#pd-dialogo-resumo");
+    resumo.textContent = `Pedido #${pedido.id} — ${pedido.peca} (${pedido.material}; ${pedido.quantidade} unidade(s))`;
+    seletor.replaceChildren(new Option("Selecione uma impressora", ""));
+
+    impressoras.forEach(i => {
+      const nome = i.nome_da_impressora || i.modelo_da_impressora || "Impressora";
+      const modelo = i.modelo_da_impressora ? ` — ${i.modelo_da_impressora}` : "";
+      seletor.add(new Option(`${nome}${modelo}`, String(i._id)));
+    });
+
+    return new Promise(resolve => {
+      const formulario = dialogo.querySelector("#pd-form-impressora");
+      const confirmar = dialogo.querySelector("#pd-dialogo-confirmar");
+      confirmar.disabled = false;
+      const aoEnviar = e => {
+        e.preventDefault();
+        if (!seletor.value) { seletor.reportValidity(); return; }
+        dialogo.close();
+        resolve(seletor.value);
+      };
+      const aoFechar = () => {
+        formulario.removeEventListener("submit", aoEnviar);
+        dialogo.removeEventListener("close", aoFechar);
+        resolve(null);
+      };
+      formulario.addEventListener("submit", aoEnviar);
+      dialogo.addEventListener("close", aoFechar);
+      dialogo.showModal();
+    });
+  }
+
   async function aoClicarNaLista(e) {
     const botao = e.target.closest("button[data-acao]");
     if (!botao) return;
     const item = botao.closest(".cartao-item");
     const id = item.dataset.id;
 
-    if (botao.dataset.acao === "detalhes") alternarDetalhes(botao, "Detalhes");
+    if (botao.dataset.acao === "detalhes") {
+      alternarDetalhes(botao, "Detalhes");
+      return;
+    }
 
     if (botao.dataset.acao === "aceitar") {
+      const pedido = pedidos.find(p => String(p.id) === id);
+      if (!pedido) return;
       botao.disabled = true;
-      botao.textContent = "Aceitando...";
+      botao.textContent = "Carregando impressoras...";
       try {
-        await AACD.api.aceitarDisponivel(id);
+        const idImpressora = await escolherImpressora(pedido);
+        if (!idImpressora) return;
+        botao.textContent = "Aceitando...";
+        // Passo seguinte: implementar essa rota no backend com transação MySQL.
+        await AACD.api.aceitarDisponivel(id, idImpressora);
         item.classList.add("saindo");
         setTimeout(() => {
           pedidos = pedidos.filter(p => String(p.id) !== id);
@@ -83,9 +178,10 @@
           mostrarToast(`Pedido #${id} aceito! Veja em "Pedidos aceitos".`);
         }, 300);
       } catch (erro) {
+        mostrarToast(erro.message, true);
+      } finally {
         botao.disabled = false;
         botao.textContent = "Aceitar";
-        mostrarToast(erro.message, true);
       }
     }
   }
