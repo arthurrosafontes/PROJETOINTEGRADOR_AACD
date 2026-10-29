@@ -90,13 +90,16 @@ AACD.api = (() => {
       erroPadrao: "Não foi possível carregar suas impressoras."
     }),
     // O backend ainda precisa implementar PATCH /api/disponiveis/:id/aceitar.
-    aceitarDisponivel: (id, idImpressoraMongo) => requisitar(`/disponiveis/${encodeURIComponent(id)}/aceitar`, {
-      metodo: "PATCH",
-      corpo: {   id_impressora_mongo: idImpressora,
-      doacao_material: doacaoMaterial },
-      comCookie: true,
-      erroPadrao: "Não foi possível aceitar o pedido."
-    }),
+aceitarDisponivel: (id, idImpressora, doacaoMaterial) =>
+  requisitar(`/disponiveis/${encodeURIComponent(id)}/aceitar`, {
+    metodo: "PATCH",
+    corpo: {
+      id_impressora_mongo: idImpressora,
+      doacao_material: doacaoMaterial
+    },
+    comCookie: true,
+    erroPadrao: "Não foi possível aceitar o pedido."
+  }),
 
     // ----- Voluntário: pedidos aceitos e recusados -----
     // Formato: { id, produto, categoria, status, aceito_em, material, prazo, obs }
