@@ -108,8 +108,11 @@ AACD.api = (() => {
 
     // ----- Voluntário: produção -----
     // Formato: { id, paciente, peca, status, entrega, enviado, concluido, material, impressora, progresso, obs }
-    listarProducao: () => requisitar("/producao", { erroPadrao: "Não foi possível carregar as peças." }),
-    enviarParaValidacao: (id) => requisitar(`/producao/${id}/enviar`, { metodo: "PATCH", erroPadrao: "Não foi possível enviar a peça." }),
+    listarProducao: () => requisitar("/status_producao", { comCookie: true, erroPadrao: "Não foi possível carregar as peças." }),
+  alterarStatusProducao: (id, status) => requisitar(`/status_producao/${encodeURIComponent(id)}/status`, {
+  metodo: "PATCH", corpo: { status }, comCookie: true,
+  erroPadrao: "Não foi possível alterar o status."
+}),
 
     // ----- Funcionário: voluntários -----
     // Formato: { id, nome, email, telefone, tipo, documento, razaoSocial, endereco, cep,
@@ -172,12 +175,12 @@ AACD.api = (() => {
       erroPadrao: "Não foi possível cadastrar a impressora."
     }),
 
-    // ----- Voluntário: lista de impressoras cadastradas -----
+    // ----- Voluntário: lista das impressoras que ELE cadastrou -----
     // Formato: { id, nome, marca, modelo, tecnologia, bico, largura, profundidade, altura,
     //            diametroFilamento, tempBico, materiais, cidade, estado, status, obs,
-    //            cadastro, atualizacao, voluntarioNome, minha }
+    //            cadastro, atualizacao }
     listarImpressorasVoluntario: async () => {
-      const impressoras = await requisitar("/voluntario/impressoras", {
+      const impressoras = await requisitar("/impressoras", {
         comCookie: true,
         erroPadrao: "Não foi possível carregar as impressoras."
       });
@@ -199,9 +202,7 @@ AACD.api = (() => {
         status: i.status || "",
         obs: i.observacoes || "",
         cadastro: i.data_cadastro || "",
-        atualizacao: i.data_atualizacao || "",
-        voluntarioNome: i.voluntarioNome || `Voluntário #${i.id_voluntario}`,
-        minha: Boolean(i.minha)
+        atualizacao: i.data_atualizacao || ""
       }));
     },
     // Só o dono do cadastro consegue editar (o servidor responde 403 para os demais)
