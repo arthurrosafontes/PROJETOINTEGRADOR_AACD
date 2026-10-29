@@ -99,7 +99,10 @@ AACD.api = (() => {
 
     // ----- Voluntário: pedidos aceitos e recusados -----
     // Formato: { id, produto, categoria, status, aceito_em, material, prazo, obs }
-    listarPedidos: () => requisitar("/pedidos", { erroPadrao: "Não foi possível carregar os pedidos." }),
+    listarPedidos: () => requisitar("/pedidos", {
+    comCookie: true,
+    erroPadrao: "Não foi possível carregar os pedidos."
+    }),
     aceitarPedido: (id) => requisitar(`/pedidos/${id}/aceitar`, { metodo: "PATCH", erroPadrao: "Não foi possível aceitar o pedido." }),
     recusarPedido: (id) => requisitar(`/pedidos/${id}/recusar`, { metodo: "PATCH", erroPadrao: "Não foi possível recusar o pedido." }),
 

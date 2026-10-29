@@ -830,4 +830,87 @@ app.patch('/api/disponiveis/:id/aceitar', ...somenteVoluntario, async (req, res)
   }
 });
 
+// OBJETIVO 15 — Listar pedidos aceitos pelo voluntário
+
+app.get('/api/pedidos', ...somenteVoluntario, async (req, res) => {
+  try {
+    const idVoluntario = req.usuario.id_voluntario;
+
+    // Consultar pedidos no MySQL
+    const [linhas] = await pool.execute(
+      `SELECT
+        pp.id_pedido AS id,
+        pp.id_demanda AS demandaId,
+        pp.id_impressora_mongo AS impressoraId,
+        pp.quantidade_atribuida AS quantidade,
+        pp.status,
+        DATE_FORMAT(pp.data_aceite, '%Y-%m-%d') AS aceito_em,
+        p.nome AS produto,
+        p.tipo AS categoria,
+        d.tipo_filamento AS material,
+        DATE_FORMAT(d.prazo, '%Y-%m-%d') AS prazo,
+        d.observacoes AS obs
+      FROM pedido_producao pp
+      INNER JOIN demanda d
+        ON pp.id_demanda = d.id_demanda
+      INNER JOIN protese p
+        ON d.id_protese = p.id_protese
+      WHERE pp.id_voluntario = ?
+      ORDER BY pp.data_aceite DESC, pp.id_pedido DESC`,
+      [idVoluntario]
+    );
+
+    // Consultar no MongoDB as impressoras utilizadas
+    const idsImpressoras = [...new Set(
+      linhas
+        .map(p => p.impressoraId)
+        .filter(id => mongoose.isValidObjectId(id))
+    )];
+
+    const impressoras = idsImpressoras.length
+      ? await FichaImpressora.find({
+          _id: { $in: idsImpressoras },
+          id_voluntario: idVoluntario
+        })
+          .select('_id nome_da_impressora modelo_da_impressora')
+          .lean()
+      : [];
+
+    const nomesImpressoras = new Map(
+      impressoras.map(i => [
+        String(i._id),
+        i.nome_da_impressora ||
+          i.modelo_da_impressora ||
+          'Impressora sem nome'
+      ])
+    );
+
+    // Organizar os dados para o frontend
+    const pedidos = linhas.map(p => ({
+      id: p.id,
+      demandaId: p.demandaId,
+      produto: p.produto,
+      categoria: p.categoria,
+      material: p.material,
+      quantidade: p.quantidade,
+      status: p.status,
+      aceito_em: p.aceito_em,
+      prazo: p.prazo,
+      obs: p.obs || '',
+      impressoraId: p.impressoraId,
+      impressora: nomesImpressoras.get(p.impressoraId)
+        || 'Impressora não encontrada'
+    }));
+
+    return res.status(200).json(pedidos);
+
+  } catch (erro) {
+    console.error('Erro ao listar pedidos aceitos:', erro);
+
+    return res.status(500).json({
+      erro: 'Não foi possível carregar os pedidos aceitos.'
+    });
+  }
+});
+
 app.listen(PORTA,() => console.log(`Servidor rodando com sucesso na porta ${PORTA}`));

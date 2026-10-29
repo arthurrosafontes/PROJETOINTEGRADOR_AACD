@@ -1188,3 +1188,8 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
     justify-content: flex-end;
     gap: 10px;
 }
+
+/* Preservar quebras de linha das observações */
+#pa-lista .cartao-item__extra dd {
+    white-space: pre-line;
+}

@@ -7,12 +7,15 @@
 (() => {
   const { $, escapar, formatarData, mostrarToast, confirmar, alternarDetalhes, listaDescricao } = AACD.util;
 
-  const classeStatus = {
-    "Pendente": "pendente",
-    "Em produção": "producao",
-    "Concluído": "concluido",
-    "Recusado": "recusado"
-  };
+const classeStatus = {
+  "Aceito": "pendente",
+  "Em produção": "producao",
+  "Aguardando envio": "pendente",
+  "Aguardando validação": "pendente",
+  "Concluído": "concluido",
+  "Reprovado": "recusado",
+  "Cancelado": "recusado"
+};
 
   let pedidos = [];
   let statusSelecionado = "todos";
@@ -41,10 +44,6 @@
     el.lista.innerHTML = itens.map(p => {
       const id = escapar(p.id);
       // "Aceitar" e "Recusar" só aparecem nos pedidos pendentes
-      const decisao = p.status === "Pendente"
-        ? `<button type="button" class="botao botao--primario" data-acao="aceitar">Aceitar</button>
-           <button type="button" class="botao botao--perigo" data-acao="recusar">Recusar</button>`
-        : "";
       return `
       <li class="cartao-item cartao-item--tres cartao-item--grande" data-id="${id}">
         <article aria-labelledby="pa-titulo-${id}">
@@ -56,7 +55,6 @@
           <span class="selo selo--${classeStatus[p.status] || ""}">${escapar(p.status)}</span>
         </p>
         <div class="cartao-item__acoes">
-          ${decisao}
           <button type="button" class="botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="pa-extra-${id}">Ver detalhes</button>
         </div>
@@ -65,6 +63,8 @@
             ["Produto:", escapar(p.produto)],
             ["Categoria:", escapar(p.categoria)],
             ["Material:", escapar(p.material)],
+            ["Quantidade:", escapar(p.quantidade)],
+            ["Impressora:", escapar(p.impressora)],
             ["Prazo:", `<time datetime="${escapar(p.prazo)}">${formatarData(p.prazo)}</time>`],
             ["Observações:", escapar(p.obs)]
           ])}
@@ -84,29 +84,6 @@
     renderizar();
   }
 
-  // Aceitar ou recusar: as duas ações seguem o mesmo roteiro
-  async function decidir(botao, id, acao) {
-    const pedido = pedidos.find(p => String(p.id) === id);
-    const config = acao === "aceitar"
-      ? { chamada: AACD.api.aceitarPedido, carregando: "Aceitando...", texto: "Aceitar", aviso: "aceito" }
-      : { chamada: AACD.api.recusarPedido, carregando: "Recusando...", texto: "Recusar", aviso: "recusado" };
-
-    if (acao === "recusar" && !(await confirmar(`Tem certeza que deseja recusar o pedido #${id}?`, "Recusar pedido"))) return;
-
-    botao.disabled = true;
-    botao.textContent = config.carregando;
-    try {
-      const atualizado = await config.chamada(id);
-      Object.assign(pedido, atualizado);
-      renderizar();
-      mostrarToast(`Pedido #${id} ${config.aviso}.`);
-    } catch (erro) {
-      botao.disabled = false;
-      botao.textContent = config.texto;
-      mostrarToast(erro.message, true);
-    }
-  }
-
   AACD.telas["tela-pedidos-aceitos"] = {
     iniciar() {
       el.lista = $("pa-lista");
@@ -120,13 +97,15 @@
         if (aba) selecionarStatus(aba.dataset.status);
       });
 
-      el.lista.addEventListener("click", e => {
-        const botao = e.target.closest("button[data-acao]");
-        if (!botao) return;
-        const id = botao.closest(".cartao-item").dataset.id;
-        if (botao.dataset.acao === "detalhes") alternarDetalhes(botao, "Ver detalhes");
-        else decidir(botao, id, botao.dataset.acao);
-      });
+el.lista.addEventListener("click", e => {
+  const botao = e.target.closest("button[data-acao]");
+  if (!botao) return;
+
+  if (botao.dataset.acao === "detalhes") {
+    alternarDetalhes(botao, "Ver detalhes");
+  }
+});
+
     },
 
     async aoEntrar() {
