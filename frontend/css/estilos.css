@@ -201,19 +201,6 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 }
 .usuario__cargo { font-size: 13px; }
 
-/* Decoração do canto superior direito das telas internas */
-.barra::after {
-  content: "";
-  position: absolute;
-  top: 100%; right: 0;
-  width: 230px; height: 170px;
-  pointer-events: none;
-  background:
-    radial-gradient(circle 150px at 190px 4px, var(--teal-escuro) 99%, transparent 100%),
-    radial-gradient(circle 157px at 190px 4px, var(--branco) 99%, transparent 100%),
-    radial-gradient(circle 170px at 170px 0, var(--teal-escuro) 99%, transparent 100%);
-}
-
 /* ===== 4. TELA INICIAL ===== */
 .inicio-hero {
   position: relative;
@@ -598,7 +585,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   position: relative;
   max-width: 1000px;
   margin: 0 auto;
-  padding: 120px 24px 80px; /* espaço para a decoração do canto */
+  padding: 64px 24px 80px;
 }
 .tela--estreita { max-width: 776px; }
 .tela--larga { max-width: 1490px; }
@@ -1087,7 +1074,6 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   .barra__menu:not(.aberto) { display: none; }
   .menu { flex-direction: column; align-items: stretch; gap: 0; }
   .menu .submenu { position: static; box-shadow: none; animation: none; margin-bottom: 6px; }
-  .barra::after { display: none; }
   .tela--app { padding-top: 48px; }
   .cartao-item--tres { grid-template-columns: 1fr auto; }
   .cartao-item--tres > .botao { grid-column: 1 / -1; justify-self: start; }
