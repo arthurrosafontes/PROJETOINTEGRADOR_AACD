@@ -68,7 +68,7 @@
           <button class="menu__botao" type="button" aria-expanded="false" aria-controls="sub-vol-pedidos">Pedidos</button>
           <ul class="submenu" id="sub-vol-pedidos" hidden>
             <li><a href="#/voluntario/pedidos-disponiveis">Pedidos disponíveis</a></li>
-            <li><a href="#/voluntario/pedidos-aceitos">Pedidos aceitos e recusados</a></li>
+            <li><a href="#/voluntario/pedidos-aceitos">Meus Pedidos</a></li>
           </ul>
         </li>
         <li class="menu__item">
@@ -619,8 +619,8 @@
   <main aria-labelledby="titulo-tela-pedidos-aceitos" class="tela tela--app" id="tela-pedidos-aceitos"
         data-rota="/voluntario/pedidos-aceitos" data-area="voluntario" data-titulo="Pedidos aceitos e recusados" hidden>
     <header class="cabecalho-pagina">
-      <h1 id="titulo-tela-pedidos-aceitos" tabindex="-1">Pedidos aceitos e recusados</h1>
-      <p>Pedidos que você aceitou e como eles estão andando.</p>
+      <h1 id="titulo-tela-pedidos-aceitos" tabindex="-1">Meus Pedidos</h1>
+      <p>Acompanhe seus pedidos aceitos e o andamento da produção.</p>
     </header>
 
     <search class="filtros">
@@ -631,12 +631,40 @@
     </search>
 
     <div class="abas-status" role="group" aria-label="Filtrar por status" id="pa-abas">
-      <button type="button" class="aba" data-status="todos" aria-pressed="true">Todos <span class="aba__numero" data-contador="todos">0</span></button>
-      <button type="button" class="aba" data-status="Pendente" aria-pressed="false">Pendente <span class="aba__numero" data-contador="Pendente">0</span></button>
-      <button type="button" class="aba" data-status="Em produção" aria-pressed="false">Em produção <span class="aba__numero" data-contador="Em produção">0</span></button>
-      <button type="button" class="aba" data-status="Concluído" aria-pressed="false">Concluído <span class="aba__numero" data-contador="Concluído">0</span></button>
-      <button type="button" class="aba" data-status="Recusado" aria-pressed="false">Recusado <span class="aba__numero" data-contador="Recusado">0</span></button>
-    </div>
+
+  <button type="button" class="aba" data-status="todos" aria-pressed="true">
+    Todos <span class="aba__numero" data-contador="todos">0</span>
+  </button>
+
+  <button type="button" class="aba" data-status="Aceito" aria-pressed="false">
+    Aceito <span class="aba__numero" data-contador="Aceito">0</span>
+  </button>
+
+  <button type="button" class="aba" data-status="Em produção" aria-pressed="false">
+    Em produção <span class="aba__numero" data-contador="Em produção">0</span>
+  </button>
+
+  <button type="button" class="aba" data-status="Aguardando envio" aria-pressed="false">
+    Aguardando envio <span class="aba__numero" data-contador="Aguardando envio">0</span>
+  </button>
+
+  <button type="button" class="aba" data-status="Aguardando validação" aria-pressed="false">
+    Aguardando validação <span class="aba__numero" data-contador="Aguardando validação">0</span>
+  </button>
+
+  <button type="button" class="aba" data-status="Concluído" aria-pressed="false">
+    Concluído <span class="aba__numero" data-contador="Concluído">0</span>
+  </button>
+
+  <button type="button" class="aba" data-status="Reprovado" aria-pressed="false">
+    Reprovado <span class="aba__numero" data-contador="Reprovado">0</span>
+  </button>
+
+  <button type="button" class="aba" data-status="Cancelado" aria-pressed="false">
+    Cancelado <span class="aba__numero" data-contador="Cancelado">0</span>
+  </button>
+
+</div>
 
     <ul class="lista-cartoes" id="pa-lista" aria-labelledby="titulo-tela-pedidos-aceitos"></ul>
     <p class="vazio" id="pa-vazio" role="status" hidden>Nenhum pedido encontrado.</p>
