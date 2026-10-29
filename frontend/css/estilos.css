@@ -1142,3 +1142,49 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   .cartao-form--grande .botao-form { min-width: 0; height: 56px; font-size: 17px; }
   .modal__campos { grid-template-columns: 1fr 1fr; }
 }
+
+/* ==========================================
+   PEDIDOS DISPONÍVEIS - MODAL DE IMPRESSORA
+   ========================================== */
+
+#pd-dialogo-impressora {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+
+    margin: 0;
+    padding: 24px;
+    width: 460px;
+    max-width: 90vw;
+    max-height: 90vh;
+
+    box-sizing: border-box;
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.25);
+    overflow: auto;
+}
+
+/* Fundo escurecido */
+#pd-dialogo-impressora::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+}
+
+/* Seleção da impressora */
+#pd-dialogo-select {
+    display: block;
+    width: 100%;
+    margin: 10px 0 22px;
+    padding: 10px;
+}
+
+/* Botões do modal */
+.pd-dialogo-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}

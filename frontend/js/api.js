@@ -80,8 +80,22 @@ AACD.api = (() => {
 
     // ----- Voluntário: pedidos disponíveis -----
     // Formato: { id, peca, material, quantidade, prazo, criado, prioridade, tempo, obs }
-    listarDisponiveis: () => requisitar("/disponiveis", { erroPadrao: "Não foi possível carregar os pedidos." }),
-    aceitarDisponivel: (id) => requisitar(`/disponiveis/${id}/aceitar`, { metodo: "PATCH", erroPadrao: "Não foi possível aceitar o pedido." }),
+    listarDisponiveis: () => requisitar("/disponiveis", {
+    comCookie: true,
+    erroPadrao: "Não foi possível carregar os pedidos."
+    }),
+    // Consulta somente impressoras pertencentes ao voluntário logado.
+    listarMinhasImpressoras: () => requisitar("/impressoras", {
+      comCookie: true,
+      erroPadrao: "Não foi possível carregar suas impressoras."
+    }),
+    // O backend ainda precisa implementar PATCH /api/disponiveis/:id/aceitar.
+    aceitarDisponivel: (id, idImpressoraMongo) => requisitar(`/disponiveis/${encodeURIComponent(id)}/aceitar`, {
+      metodo: "PATCH",
+      corpo: { id_impressora_mongo: idImpressoraMongo },
+      comCookie: true,
+      erroPadrao: "Não foi possível aceitar o pedido."
+    }),
 
     // ----- Voluntário: pedidos aceitos e recusados -----
     // Formato: { id, produto, categoria, status, aceito_em, material, prazo, obs }
