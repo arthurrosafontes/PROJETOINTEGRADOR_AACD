@@ -85,6 +85,31 @@ function obterDialogo() {
         </label>
 
         <select id="pd-dialogo-select" required></select>
+        <fieldset class="pd-dialogo-doacao">
+  <legend>
+    Deseja doar o material necessário para fabricar esta peça?
+  </legend>
+
+  <label>
+    <input
+      type="radio"
+      name="doacao_material"
+      value="sim"
+      required
+    >
+    Sim, utilizarei meu próprio material.
+  </label>
+
+  <label>
+    <input
+      type="radio"
+      name="doacao_material"
+      value="nao"
+      required
+    >
+    Não, precisarei que o material seja fornecido.
+  </label>
+</fieldset>
 
         <div class="pd-dialogo-acoes">
           <button type="button"
@@ -117,6 +142,8 @@ function obterDialogo() {
     }
 
     const dialogo = obterDialogo();
+    // Limpa a resposta anterior sempre que o formulário abrir
+    dialogo.querySelector("#pd-form-impressora").reset();
     const seletor = dialogo.querySelector("#pd-dialogo-select");
     const resumo = dialogo.querySelector("#pd-dialogo-resumo");
     resumo.textContent = `Pedido #${pedido.id} — ${pedido.peca} (${pedido.material}; ${pedido.quantidade} unidade(s))`;
@@ -134,9 +161,26 @@ function obterDialogo() {
       confirmar.disabled = false;
       const aoEnviar = e => {
         e.preventDefault();
-        if (!seletor.value) { seletor.reportValidity(); return; }
-        dialogo.close();
-        resolve(seletor.value);
+if (!seletor.value) {
+  seletor.reportValidity();
+  return;
+}
+
+const resposta = formulario.querySelector(
+  'input[name="doacao_material"]:checked'
+);
+
+if (!resposta) {
+  mostrarToast("Informe se deseja doar o material.", true);
+  return;
+}
+
+dialogo.close();
+
+resolve({
+  idImpressora: seletor.value,
+  doacaoMaterial: resposta.value === "sim"
+});
       };
       const aoFechar = () => {
         formulario.removeEventListener("submit", aoEnviar);
@@ -166,11 +210,16 @@ function obterDialogo() {
       botao.disabled = true;
       botao.textContent = "Carregando impressoras...";
       try {
-        const idImpressora = await escolherImpressora(pedido);
-        if (!idImpressora) return;
+const escolha = await escolherImpressora(pedido);
+
+if (!escolha) return;
         botao.textContent = "Aceitando...";
         // Passo seguinte: implementar essa rota no backend com transação MySQL.
-        await AACD.api.aceitarDisponivel(id, idImpressora);
+        await AACD.api.aceitarDisponivel(
+  id,
+  escolha.idImpressora,
+  escolha.doacaoMaterial
+);
         item.classList.add("saindo");
         setTimeout(() => {
           pedidos = pedidos.filter(p => String(p.id) !== id);

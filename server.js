@@ -388,8 +388,6 @@ app.use('/api/funcionario', require('./backend/routes/consulta-proteses'));
 app.use('/api/funcionario/demandas', require('./backend/routes/demandas'));
 // Produção do voluntário: listar pedidos aceitos e alterar o status
 
-app.use('/api/status_producao', require('./frontend/js/telas/status_producao.js'));
-
 // OBJETIVO 10 — Publicar demandas no MySQL
 
 app.post(
@@ -653,6 +651,13 @@ app.get('/api/disponiveis', ...somenteVoluntario, async (req, res) => {
 app.patch('/api/disponiveis/:id/aceitar', ...somenteVoluntario, async (req, res) => {
   const idDemanda = Number(req.params.id);
   const idImpressora = String(req.body?.id_impressora_mongo || '').trim();
+  const doacaoMaterial = req.body?.doacao_material;
+
+if (typeof doacaoMaterial !== 'boolean') {
+  return res.status(400).json({
+    erro: 'Informe se deseja doar o material para fabricação.'
+  });
+}
   const idVoluntario = req.usuario.id_voluntario;
 
   // Validar o ID da demanda
@@ -748,23 +753,24 @@ app.patch('/api/disponiveis/:id/aceitar', ...somenteVoluntario, async (req, res)
     }
 
     // Registrar o aceite no MySQL
-    const [resultado] = await conexao.execute(
-      `INSERT INTO pedido_producao (
-        id_demanda,
-        id_voluntario,
-        id_impressora_mongo,
-        quantidade_atribuida,
-        status
-      )
-      VALUES (?, ?, ?, ?, 'Aceito')`,
-      [
-        idDemanda,
-        idVoluntario,
-        idImpressora,
-        demanda.quantidade
-      ]
-    );
-
+   const [resultado] = await conexao.execute(
+  `INSERT INTO pedido_producao (
+    id_demanda,
+    id_voluntario,
+    id_impressora_mongo,
+    quantidade_atribuida,
+    status,
+    doacao_material
+  )
+  VALUES (?, ?, ?, ?, 'Aceito', ?)`,
+  [
+    idDemanda,
+    idVoluntario,
+    idImpressora,
+    demanda.quantidade,
+    doacaoMaterial ? 1 : 0
+  ]
+);
     // Atualizar status da demanda
     await conexao.execute(
       `UPDATE demanda
@@ -819,29 +825,48 @@ app.get('/api/pedidos', ...somenteVoluntario, async (req, res) => {
     const idVoluntario = req.usuario.id_voluntario;
 
     // Consultar pedidos no MySQL
-    const [linhas] = await pool.execute(
-      `SELECT
-        pp.id_pedido AS id,
-        pp.id_demanda AS demandaId,
-        pp.id_impressora_mongo AS impressoraId,
-        pp.quantidade_atribuida AS quantidade,
-        pp.status,
-        DATE_FORMAT(pp.data_aceite, '%Y-%m-%d') AS aceito_em,
-        p.nome AS produto,
-        p.tipo AS categoria,
-        d.tipo_filamento AS material,
-        DATE_FORMAT(d.prazo, '%Y-%m-%d') AS prazo,
-        d.observacoes AS obs
-      FROM pedido_producao pp
-      INNER JOIN demanda d
-        ON pp.id_demanda = d.id_demanda
-      INNER JOIN protese p
-        ON d.id_protese = p.id_protese
-      WHERE pp.id_voluntario = ?
-      ORDER BY pp.data_aceite DESC, pp.id_pedido DESC`,
-      [idVoluntario]
-    );
+const [linhas] = await pool.execute(
+  `SELECT
+    pp.id_pedido AS id,
+    pp.id_demanda AS demandaId,
+    pp.id_impressora_mongo AS impressoraId,
+    pp.quantidade_atribuida AS quantidade,
+    pp.status,
+    DATE_FORMAT(pp.data_aceite, '%Y-%m-%d') AS aceito_em,
+    DATE_FORMAT(pp.data_aceite, '%Y-%m-%dT%H:%i:%sZ') AS dataAceiteUTC,
+    DATE_FORMAT(pp.data_inicio, '%Y-%m-%dT%H:%i:%sZ') AS dataInicioUTC,
 
+    p.nome AS produto,
+    p.tipo AS categoria,
+    p.descricao,
+    p.altura_camada AS alturaCamada,
+    p.infill,
+    p.necessita_suporte AS necessitaSuporte,
+    p.orientacoes_impressao AS orientacoes,
+    p.arquivo_3d AS arquivo3d,
+
+    d.tipo_filamento AS material,
+    d.diametro_bico AS diametroBico,
+    d.largura_necessaria AS largura,
+    d.profundidade_necessaria AS profundidade,
+    d.altura_necessaria AS altura,
+    d.tempo_estimado_horas AS tempoHoras,
+    DATE_FORMAT(d.prazo, '%Y-%m-%d') AS prazo,
+    d.observacoes AS obs
+
+  FROM pedido_producao pp
+
+  INNER JOIN demanda d
+    ON pp.id_demanda = d.id_demanda
+
+  INNER JOIN protese p
+    ON d.id_protese = p.id_protese
+
+  WHERE pp.id_voluntario = ?
+
+  ORDER BY pp.data_aceite DESC, pp.id_pedido DESC`,
+  [idVoluntario]
+);
     // Consultar no MongoDB as impressoras utilizadas
     const idsImpressoras = [...new Set(
       linhas
@@ -868,22 +893,39 @@ app.get('/api/pedidos', ...somenteVoluntario, async (req, res) => {
     );
 
     // Organizar os dados para o frontend
-    const pedidos = linhas.map(p => ({
-      id: p.id,
-      demandaId: p.demandaId,
-      produto: p.produto,
-      categoria: p.categoria,
-      material: p.material,
-      quantidade: p.quantidade,
-      status: p.status,
-      aceito_em: p.aceito_em,
-      prazo: p.prazo,
-      obs: p.obs || '',
-      impressoraId: p.impressoraId,
-      impressora: nomesImpressoras.get(p.impressoraId)
-        || 'Impressora não encontrada'
-    }));
+const pedidos = linhas.map(p => ({
+  id: p.id,
+  demandaId: p.demandaId,
+  produto: p.produto,
+  categoria: p.categoria,
+  material: p.material,
+  quantidade: p.quantidade,
+  status: p.status,
+  aceito_em: p.aceito_em,
+  dataAceiteUTC: p.dataAceiteUTC,
+  dataInicioUTC: p.dataInicioUTC,
+  prazo: p.prazo,
+  obs: p.obs || '',
 
+  impressoraId: p.impressoraId,
+  impressora: nomesImpressoras.get(p.impressoraId)
+    || 'Impressora não encontrada',
+
+  // Informações técnicas
+  descricao: p.descricao || '',
+  largura: p.largura,
+  profundidade: p.profundidade,
+  altura: p.altura,
+  diametroBico: p.diametroBico,
+  tempoHoras: p.tempoHoras,
+  alturaCamada: p.alturaCamada,
+  infill: p.infill,
+  necessitaSuporte: Boolean(p.necessitaSuporte),
+  orientacoes: p.orientacoes || '',
+
+  // Indica a disponibilidade, sem expor o caminho físico
+  possuiArquivo3d: Boolean(p.arquivo3d)
+}));
     return res.status(200).json(pedidos);
 
   } catch (erro) {
@@ -891,6 +933,116 @@ app.get('/api/pedidos', ...somenteVoluntario, async (req, res) => {
 
     return res.status(500).json({
       erro: 'Não foi possível carregar os pedidos aceitos.'
+    });
+  }
+});
+
+// OBJETIVO 16 — Download protegido do arquivo 3D
+
+app.get('/api/pedidos/:id/arquivo-3d', ...somenteVoluntario, async (req, res) => {
+  const idPedido = Number(req.params.id);
+
+  if (!Number.isSafeInteger(idPedido) || idPedido <= 0) {
+    return res.status(400).json({
+      erro: 'ID do pedido inválido.'
+    });
+  }
+
+  try {
+    const [pedidos] = await pool.execute(
+      `SELECT p.arquivo_3d
+       FROM pedido_producao pp
+       INNER JOIN demanda d ON d.id_demanda = pp.id_demanda
+       INNER JOIN protese p ON p.id_protese = d.id_protese
+       WHERE pp.id_pedido = ?
+         AND pp.id_voluntario = ?
+       LIMIT 1`,
+      [idPedido, req.usuario.id_voluntario]
+    );
+
+    if (pedidos.length === 0) {
+      return res.status(404).json({
+        erro: 'Pedido não encontrado.'
+      });
+    }
+
+    const arquivo = pedidos[0].arquivo_3d;
+
+    if (!arquivo) {
+      return res.status(404).json({
+        erro: 'Arquivo 3D ainda não disponibilizado pela AACD.'
+      });
+    }
+
+    // Impede o acesso a caminhos externos à pasta de próteses.
+    const nomeArquivo = path.basename(arquivo);
+
+    if (
+      arquivo.replace(/\\/g, '/') !== `uploads/proteses/${nomeArquivo}` ||
+      !/^[a-zA-Z0-9_-]+\.(stl|obj|3mf)$/i.test(nomeArquivo)
+    ) {
+      return res.status(400).json({
+        erro: 'Caminho do arquivo inválido.'
+      });
+    }
+
+    const caminhoCompleto = path.join(PASTA_UPLOADS_PROTESE, nomeArquivo);
+
+    return res.download(caminhoCompleto, nomeArquivo, erro => {
+      if (erro) {
+        console.error('Erro ao baixar arquivo 3D:', erro);
+      }
+    });
+
+  } catch (erro) {
+    console.error('Erro ao consultar arquivo 3D:', erro);
+
+    return res.status(500).json({
+      erro: 'Não foi possível consultar o arquivo 3D.'
+    });
+  }
+});
+
+// OBJETIVO 17 — Iniciar produção do pedido
+
+app.patch('/api/pedidos/:id/iniciar', ...somenteVoluntario, async (req, res) => {
+  const idPedido = Number(req.params.id);
+  const idVoluntario = req.usuario.id_voluntario;
+
+  if (!Number.isSafeInteger(idPedido) || idPedido <= 0) {
+    return res.status(400).json({
+      erro: 'ID do pedido inválido.'
+    });
+  }
+
+  try {
+    const [resultado] = await pool.execute(
+      `UPDATE pedido_producao
+       SET status = 'Em produção',
+           data_inicio = NOW()
+       WHERE id_pedido = ?
+         AND id_voluntario = ?
+         AND status = 'Aceito'`,
+      [idPedido, idVoluntario]
+    );
+
+    if (resultado.affectedRows === 0) {
+      return res.status(409).json({
+        erro: 'Pedido não encontrado ou não está com status Aceito.'
+      });
+    }
+
+    return res.status(200).json({
+      mensagem: 'Produção iniciada com sucesso!',
+      id_pedido: idPedido,
+      status: 'Em produção'
+    });
+
+  } catch (erro) {
+    console.error('Erro ao iniciar produção:', erro);
+
+    return res.status(500).json({
+      erro: 'Não foi possível iniciar a produção.'
     });
   }
 });

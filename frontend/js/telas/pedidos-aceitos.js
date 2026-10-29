@@ -5,7 +5,16 @@
 "use strict";
 
 (() => {
-  const { $, escapar, formatarData, mostrarToast, confirmar, alternarDetalhes, listaDescricao } = AACD.util;
+  const {
+  $,
+  escapar,
+  formatarData,
+  formatarDataHora,
+  mostrarToast,
+  confirmar,
+  alternarDetalhes,
+  listaDescricao
+} = AACD.util;
 
 const classeStatus = {
   "Aceito": "pendente",
@@ -51,10 +60,24 @@ const classeStatus = {
           <p class="cartao-item__subtitulo">${escapar(p.produto)} · ${escapar(p.categoria)}</p>
         </article>
         <p class="cartao-item__lateral">
-          <span>Aceito em <time datetime="${escapar(p.aceito_em)}">${formatarData(p.aceito_em)}</time></span>
+          <span>
+  Aceito em
+  <time datetime="${escapar(p.dataAceiteUTC || "")}">
+    ${p.dataAceiteUTC
+      ? formatarDataHora(p.dataAceiteUTC)
+      : formatarData(p.aceito_em)}
+  </time>
+</span>
           <span class="selo selo--${classeStatus[p.status] || ""}">${escapar(p.status)}</span>
         </p>
         <div class="cartao-item__acoes">
+        ${p.status === "Aceito" ? `
+  <button type="button"
+          class="botao botao--primario"
+          data-acao="iniciar-producao">
+    Iniciar produção
+  </button>
+` : ""}
           <button type="button" class="botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="pa-extra-${id}">Ver detalhes</button>
         </div>
@@ -65,8 +88,32 @@ const classeStatus = {
             ["Material:", escapar(p.material)],
             ["Quantidade:", escapar(p.quantidade)],
             ["Impressora:", escapar(p.impressora)],
-            ["Prazo:", `<time datetime="${escapar(p.prazo)}">${formatarData(p.prazo)}</time>`],
-            ["Observações:", escapar(p.obs)]
+            ["Início da produção:",
+  p.dataInicioUTC
+    ? formatarDataHora(p.dataInicioUTC)
+    : "Produção ainda não iniciada"
+],
+["Prazo:", `<time datetime="${escapar(p.prazo)}">${formatarData(p.prazo)}</time>`],
+["Descrição:", escapar(p.descricao || "Não informada")],
+["Largura:", `${escapar(p.largura ?? "Não informada")} mm`],
+["Profundidade:", `${escapar(p.profundidade ?? "Não informada")} mm`],
+["Altura:", `${escapar(p.altura ?? "Não informada")} mm`],
+["Diâmetro do bico:", `${escapar(p.diametroBico ?? "Não informado")} mm`],
+["Tempo estimado:", `${escapar(p.tempoHoras ?? "Não informado")} horas`],
+["Altura da camada:", `${escapar(p.alturaCamada ?? "Não informada")} mm`],
+["Preenchimento:", `${escapar(p.infill ?? "Não informado")}%`],
+["Necessita suporte:", p.necessitaSuporte ? "Sim" : "Não"],
+["Orientações de impressão:", escapar(p.orientacoes || "Não informadas")],
+["Observações:", escapar(p.obs)],
+["Arquivo 3D:", p.possuiArquivo3d
+  ? `<button type="button"
+             class="botao botao--primario"
+             data-acao="baixar-arquivo"
+             data-id="${id}">
+       Baixar arquivo 3D
+     </button>`
+  : "Arquivo ainda não disponibilizado pela AACD."
+]
           ])}
         </div>
       </li>`;
@@ -97,13 +144,55 @@ const classeStatus = {
         if (aba) selecionarStatus(aba.dataset.status);
       });
 
-el.lista.addEventListener("click", e => {
+el.lista.addEventListener("click", async e => {
   const botao = e.target.closest("button[data-acao]");
   if (!botao) return;
 
   if (botao.dataset.acao === "detalhes") {
     alternarDetalhes(botao, "Ver detalhes");
+    return;
   }
+
+  if (botao.dataset.acao === "baixar-arquivo") {
+    const id = botao.dataset.id;
+
+    botao.disabled = true;
+    const textoOriginal = botao.textContent;
+    botao.textContent = "Baixando...";
+
+    try {
+      await AACD.api.baixarArquivo3d(id);
+    } catch (erro) {
+      mostrarToast(erro.message, true);
+    } finally {
+      botao.disabled = false;
+      botao.textContent = textoOriginal;
+    }
+  }
+  if (botao.dataset.acao === "iniciar-producao") {
+  const id = botao.closest(".cartao-item").dataset.id;
+
+  if (!confirm("Deseja iniciar a produção deste pedido?")) {
+    return;
+  }
+
+  botao.disabled = true;
+  botao.textContent = "Iniciando...";
+
+  try {
+    await AACD.api.iniciarProducao(id);
+
+    pedidos = await AACD.api.listarPedidos();
+    renderizar();
+
+    mostrarToast("Produção iniciada com sucesso!");
+
+  } catch (erro) {
+    botao.disabled = false;
+    botao.textContent = "Iniciar produção";
+    mostrarToast(erro.message, true);
+  }
+}
 });
 
     },

@@ -92,7 +92,8 @@ AACD.api = (() => {
     // O backend ainda precisa implementar PATCH /api/disponiveis/:id/aceitar.
     aceitarDisponivel: (id, idImpressoraMongo) => requisitar(`/disponiveis/${encodeURIComponent(id)}/aceitar`, {
       metodo: "PATCH",
-      corpo: { id_impressora_mongo: idImpressoraMongo },
+      corpo: {   id_impressora_mongo: idImpressora,
+      doacao_material: doacaoMaterial },
       comCookie: true,
       erroPadrao: "Não foi possível aceitar o pedido."
     }),
@@ -103,6 +104,36 @@ AACD.api = (() => {
     comCookie: true,
     erroPadrao: "Não foi possível carregar os pedidos."
     }),
+    iniciarProducao: (id) =>
+  requisitar(`/pedidos/${encodeURIComponent(id)}/iniciar`, {
+    metodo: "PATCH",
+    comCookie: true,
+    erroPadrao: "Não foi possível iniciar a produção."
+  }),
+    baixarArquivo3d: async (id) => {
+  const resposta = await fetch(
+    `${API_URL}/pedidos/${encodeURIComponent(id)}/arquivo-3d`,
+    { credentials: "include" }
+  );
+
+  if (!resposta.ok) {
+    const dados = await resposta.json().catch(() => ({}));
+    throw new Error(dados.erro || "Não foi possível baixar o arquivo 3D.");
+  }
+
+  const arquivo = await resposta.blob();
+  const url = URL.createObjectURL(arquivo);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `pedido-${id}-arquivo-3d.3mf`;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+},
     aceitarPedido: (id) => requisitar(`/pedidos/${id}/aceitar`, { metodo: "PATCH", erroPadrao: "Não foi possível aceitar o pedido." }),
     recusarPedido: (id) => requisitar(`/pedidos/${id}/recusar`, { metodo: "PATCH", erroPadrao: "Não foi possível recusar o pedido." }),
 
