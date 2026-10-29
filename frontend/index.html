@@ -27,6 +27,7 @@
   <script src="js/telas/pedidos-aceitos.js" defer></script>
   <script src="js/telas/producao.js" defer></script>
   <script src="js/telas/cadastrar-impressora.js" defer></script>
+  <script src="js/telas/lista-impressoras-voluntario.js" defer></script>
   <script src="js/telas/cadastrar-demanda.js" defer></script>
   <script src="js/telas/lista-voluntarios.js" defer></script>
   <script src="js/telas/lista-demandas.js" defer></script>
@@ -74,7 +75,7 @@
           <button class="menu__botao" type="button" aria-expanded="false" aria-controls="sub-vol-impressora">Impressora</button>
           <ul class="submenu" id="sub-vol-impressora" hidden>
             <li><a href="#/voluntario/impressora/cadastrar">Cadastrar impressora</a></li>
-            <li><a href="#/voluntario/em-construcao">Editar impressora cadastrada</a></li>
+            <li><a href="#/voluntario/impressora/lista">Lista de impressoras cadastradas</a></li>
           </ul>
         </li>
         <li class="menu__item">
@@ -1197,6 +1198,44 @@
 
 
   <!-- =====================================================
+       TELA: LISTA DE IMPRESSORAS CADASTRADAS (voluntário)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-lista-impressoras-vol" class="tela tela--app" id="tela-lista-impressoras-vol"
+        data-rota="/voluntario/impressora/lista" data-area="voluntario" data-titulo="Lista de impressoras cadastradas" hidden>
+    <header class="cabecalho-pagina">
+      <h1 id="titulo-tela-lista-impressoras-vol" tabindex="-1">Lista de impressoras cadastradas</h1>
+      <p>Impressoras 3D da rede de voluntários. Você só pode editar as impressoras que você cadastrou.</p>
+    </header>
+
+    <search class="filtros">
+      <p class="filtros__busca">
+        <label class="visualmente-oculto" for="liv-busca">Buscar por nome, modelo, voluntário ou cidade</label>
+        <input type="search" id="liv-busca" placeholder="Buscar por nome, modelo, voluntário ou cidade...">
+      </p>
+      <p>
+        <label class="visualmente-oculto" for="liv-dono">Filtrar por dono</label>
+        <select id="liv-dono">
+          <option value="todas">Todas as impressoras</option>
+          <option value="minhas">Somente as minhas</option>
+        </select>
+      </p>
+      <p>
+        <label class="visualmente-oculto" for="liv-ordenar">Ordenar</label>
+        <select id="liv-ordenar">
+          <option value="recentes">Mais recentes</option>
+          <option value="nome">Nome (A-Z)</option>
+          <option value="voluntario">Voluntário (A-Z)</option>
+        </select>
+      </p>
+    </search>
+
+    <p class="contador" id="liv-contador" role="status"></p>
+    <ul class="lista-cartoes" id="liv-lista" aria-labelledby="titulo-tela-lista-impressoras-vol"></ul>
+    <p class="vazio" id="liv-vazio" hidden>Nenhuma impressora encontrada.</p>
+  </main>
+
+
+  <!-- =====================================================
        TELA: IMPRESSORAS CADASTRADAS (funcionário)
        ===================================================== -->
   <main aria-labelledby="titulo-tela-impressoras" class="tela tela--app" id="tela-impressoras"
@@ -1458,6 +1497,73 @@
       <div class="modal__acoes">
         <button type="button" class="botao botao--secundario" data-fechar>Cancelar</button>
         <button type="submit" class="botao botao--escuro" id="modal-impressora-salvar">Salvar alterações</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="modal-minha-impressora" aria-labelledby="modal-minha-impressora-titulo">
+    <form class="modal__form" id="form-minha-impressora" method="dialog" novalidate>
+      <div class="modal__cabecalho">
+        <h2 id="modal-minha-impressora-titulo">Editar minha impressora</h2>
+        <button type="button" class="modal__fechar" data-fechar>
+          <span aria-hidden="true">✕</span><span class="visualmente-oculto">Fechar</span>
+        </button>
+      </div>
+
+      <p class="modal__sub" id="modal-minha-impressora-sub"></p>
+
+      <div class="modal__campos">
+        <p class="campo campo--inteiro">
+          <label for="mvi-nome">Nome da impressora <abbr title="obrigatório">*</abbr></label>
+          <input type="text" id="mvi-nome" name="nome" required maxlength="100">
+        </p>
+        <p class="campo">
+          <label for="mvi-marca">Marca <abbr title="obrigatório">*</abbr></label>
+          <input type="text" id="mvi-marca" name="marca" required maxlength="100">
+        </p>
+        <p class="campo">
+          <label for="mvi-modelo">Modelo <abbr title="obrigatório">*</abbr></label>
+          <input type="text" id="mvi-modelo" name="modelo" required maxlength="100">
+        </p>
+        <p class="campo">
+          <label for="mvi-bico">Bico (mm) <abbr title="obrigatório">*</abbr></label>
+          <input type="number" id="mvi-bico" name="bico" step="0.05" min="0.1" max="2" required>
+        </p>
+        <p class="campo">
+          <label for="mvi-diametro">Diâmetro do filamento (mm) <abbr title="obrigatório">*</abbr></label>
+          <input type="number" id="mvi-diametro" name="diametro" step="0.01" min="0.1" required>
+        </p>
+        <p class="campo">
+          <label for="mvi-largura">Largura (mm) <abbr title="obrigatório">*</abbr></label>
+          <input type="number" id="mvi-largura" name="largura" min="1" step="1" required>
+        </p>
+        <p class="campo">
+          <label for="mvi-profundidade">Profundidade (mm) <abbr title="obrigatório">*</abbr></label>
+          <input type="number" id="mvi-profundidade" name="profundidade" min="1" step="1" required>
+        </p>
+        <p class="campo">
+          <label for="mvi-altura">Altura (mm) <abbr title="obrigatório">*</abbr></label>
+          <input type="number" id="mvi-altura" name="altura" min="1" step="1" required>
+        </p>
+        <p class="campo">
+          <label for="mvi-temp-bico">Temp. máx. do bico (°C)</label>
+          <input type="number" id="mvi-temp-bico" name="tempBico" min="1" step="1">
+        </p>
+        <p class="campo campo--inteiro">
+          <label for="mvi-materiais">Materiais <abbr title="obrigatório">*</abbr></label>
+          <input type="text" id="mvi-materiais" name="materiais" required maxlength="200" placeholder="Ex: PLA, PETG, TPU">
+        </p>
+        <p class="campo campo--inteiro">
+          <label for="mvi-obs">Observações</label>
+          <textarea id="mvi-obs" name="obs" rows="3" maxlength="500"></textarea>
+        </p>
+      </div>
+
+      <p class="modal__erro" id="modal-minha-impressora-erro" role="alert" hidden></p>
+
+      <div class="modal__acoes">
+        <button type="button" class="botao botao--secundario" data-fechar>Cancelar</button>
+        <button type="submit" class="botao botao--escuro" id="modal-minha-impressora-salvar">Salvar alterações</button>
       </div>
     </form>
   </dialog>

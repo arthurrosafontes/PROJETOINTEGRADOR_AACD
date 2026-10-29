@@ -83,6 +83,45 @@ app.get('/api/impressoras', ...somenteVoluntario, async (req, res) => {
   }
 });
 
+const MSG_SOMENTE_DONO = 'Você precisa ser o dono do cadastro desta impressora para editá-la.';
+
+// Nome dos voluntários (MySQL) indexado pelo id_voluntario
+async function buscarVoluntariosPorId(impressoras) {
+  const ids = [...new Set(impressoras.map(i => Number(i.id_voluntario)).filter(Number.isInteger))];
+  if (ids.length === 0) return new Map();
+  const marcadores = ids.map(() => '?').join(',');
+  const [linhas] = await pool.query(
+    `SELECT v.id_voluntario, u.nome, u.email, u.telefone, v.status_homologacao
+     FROM voluntario v
+     INNER JOIN usuario u ON u.id_usuario = v.id_usuario
+     WHERE v.id_voluntario IN (${marcadores})`,
+    ids
+  );
+  return new Map(linhas.map(v => [Number(v.id_voluntario), v]));
+}
+
+// Lista de impressoras cadastradas na rede, vista pelo voluntário.
+// Não expõe o endereço completo nem contatos dos outros voluntários.
+app.get('/api/voluntario/impressoras', ...somenteVoluntario, async (req, res) => {
+  try {
+    const impressoras = await FichaImpressora.find()
+      .select('-localizacao.endereco.logradouro -localizacao.endereco.numero -localizacao.endereco.cep ' +
+              '-localizacao.endereco.complemento -informacoes_adicionais')
+      .sort({ data_cadastro: -1 })
+      .lean();
+    const porId = await buscarVoluntariosPorId(impressoras);
+    const meuId = Number(req.usuario.id_voluntario);
+    res.json(impressoras.map(i => ({
+      ...i,
+      voluntarioNome: porId.get(Number(i.id_voluntario))?.nome || `Voluntário #${i.id_voluntario}`,
+      minha: Number(i.id_voluntario) === meuId
+    })));
+  } catch (erro) {
+    console.error('Erro ao listar impressoras (voluntário):', erro);
+    res.status(500).json({ erro: 'Não foi possível listar as impressoras.' });
+  }
+});
+
 app.get('/api/impressoras/:id', ...somenteVoluntario, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
     return res.status(400).json({ erro: 'ID de impressora inválido.' });
@@ -109,6 +148,11 @@ app.put('/api/impressoras/:id', ...somenteVoluntario, async (req, res) => {
     return res.status(400).json({ erro: 'Nenhum campo editável foi informado.' });
   }
   try {
+    const existente = await FichaImpressora.findById(req.params.id).select('id_voluntario').lean();
+    if (!existente) return res.status(404).json({ erro: 'Impressora não encontrada.' });
+    if (Number(existente.id_voluntario) !== Number(req.usuario.id_voluntario)) {
+      return res.status(403).json({ erro: MSG_SOMENTE_DONO });
+    }
     const impressoraAtualizada = await FichaImpressora.findOneAndUpdate(
       { _id: req.params.id, id_voluntario: req.usuario.id_voluntario },
       { $set: { ...dados, data_atualizacao: new Date() } },
@@ -138,32 +182,7 @@ app.get(
         .sort({ data_cadastro: -1 })
         .lean();
 
-      const ids = [...new Set(
-        impressoras.map(i => Number(i.id_voluntario))
-          .filter(Number.isInteger)
-      )];
-
-      let voluntarios = [];
-
-      if (ids.length > 0) {
-        const marcadores = ids.map(() => '?').join(',');
-
-        const [linhas] = await pool.query(
-          `SELECT v.id_voluntario, u.nome, u.email,
-                  u.telefone, v.status_homologacao
-           FROM voluntario v
-           INNER JOIN usuario u
-             ON u.id_usuario = v.id_usuario
-           WHERE v.id_voluntario IN (${marcadores})`,
-          ids
-        );
-
-        voluntarios = linhas;
-      }
-
-      const porId = new Map(
-        voluntarios.map(v => [Number(v.id_voluntario), v])
-      );
+      const porId = await buscarVoluntariosPorId(impressoras);
 
       const resultado = impressoras.map(i => {
         const voluntario = porId.get(Number(i.id_voluntario));
