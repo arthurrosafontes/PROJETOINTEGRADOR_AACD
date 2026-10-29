@@ -169,6 +169,44 @@ AACD.api = (() => {
       erroPadrao: "Não foi possível cadastrar a impressora."
     }),
 
+    // ----- Voluntário: lista de impressoras cadastradas -----
+    // Formato: { id, nome, marca, modelo, tecnologia, bico, largura, profundidade, altura,
+    //            diametroFilamento, tempBico, materiais, cidade, estado, status, obs,
+    //            cadastro, atualizacao, voluntarioNome, minha }
+    listarImpressorasVoluntario: async () => {
+      const impressoras = await requisitar("/voluntario/impressoras", {
+        comCookie: true,
+        erroPadrao: "Não foi possível carregar as impressoras."
+      });
+      return impressoras.map(i => ({
+        id: i._id,
+        nome: i.nome_da_impressora || "",
+        marca: i.marca_da_impressora || "",
+        modelo: i.modelo_da_impressora || "",
+        tecnologia: i.tecnologia_da_impressora || "",
+        bico: i.diametro_bico_mm ?? null,
+        largura: i.volume_impressao?.largura_mm ?? null,
+        profundidade: i.volume_impressao?.profundidade_mm ?? null,
+        altura: i.volume_impressao?.altura_mm ?? null,
+        diametroFilamento: i.diametro_filamento_mm ?? null,
+        tempBico: i.temperatura_maxima_bico ?? null,
+        materiais: (i.filamentos_compativeis || []).join(", "),
+        cidade: i.localizacao?.endereco?.cidade || "",
+        estado: i.localizacao?.endereco?.estado || "",
+        status: i.status || "",
+        obs: i.observacoes || "",
+        cadastro: i.data_cadastro || "",
+        atualizacao: i.data_atualizacao || "",
+        voluntarioNome: i.voluntarioNome || `Voluntário #${i.id_voluntario}`,
+        minha: Boolean(i.minha)
+      }));
+    },
+    // Só o dono do cadastro consegue editar (o servidor responde 403 para os demais)
+    editarMinhaImpressora: (id, dados) => requisitar(`/impressoras/${encodeURIComponent(id)}`, {
+      metodo: "PUT", corpo: dados, comCookie: true,
+      erroPadrao: "Não foi possível salvar as alterações."
+    }),
+
     // ----- Funcionário: impressoras -----
     // Formato: { id, modelo, tecnologia, bico, largura, profundidade, altura, materiais, obs,
     //            cadastro, voluntarioId, voluntarioNome, voluntarioCidade, voluntarioStatus,
