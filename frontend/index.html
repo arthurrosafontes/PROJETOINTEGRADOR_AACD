@@ -1205,27 +1205,19 @@
         data-rota="/voluntario/impressora/lista" data-area="voluntario" data-titulo="Lista de impressoras cadastradas" hidden>
     <header class="cabecalho-pagina">
       <h1 id="titulo-tela-lista-impressoras-vol" tabindex="-1">Lista de impressoras cadastradas</h1>
-      <p>Impressoras 3D da rede de voluntários. Você só pode editar as impressoras que você cadastrou.</p>
+      <p>Impressoras 3D que você cadastrou.</p>
     </header>
 
     <search class="filtros">
       <p class="filtros__busca">
-        <label class="visualmente-oculto" for="liv-busca">Buscar por nome, modelo, voluntário ou cidade</label>
-        <input type="search" id="liv-busca" placeholder="Buscar por nome, modelo, voluntário ou cidade...">
-      </p>
-      <p>
-        <label class="visualmente-oculto" for="liv-dono">Filtrar por dono</label>
-        <select id="liv-dono">
-          <option value="todas">Todas as impressoras</option>
-          <option value="minhas">Somente as minhas</option>
-        </select>
+        <label class="visualmente-oculto" for="liv-busca">Buscar por nome, marca, modelo ou cidade</label>
+        <input type="search" id="liv-busca" placeholder="Buscar por nome, marca, modelo ou cidade...">
       </p>
       <p>
         <label class="visualmente-oculto" for="liv-ordenar">Ordenar</label>
         <select id="liv-ordenar">
           <option value="recentes">Mais recentes</option>
           <option value="nome">Nome (A-Z)</option>
-          <option value="voluntario">Voluntário (A-Z)</option>
         </select>
       </p>
     </search>
