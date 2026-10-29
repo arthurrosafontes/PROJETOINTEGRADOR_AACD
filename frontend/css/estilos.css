@@ -1193,3 +1193,33 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 #pa-lista .cartao-item__extra dd {
     white-space: pre-line;
 }
+
+/* Doação de material — formulário de aceite */
+
+.pd-dialogo-doacao {
+  border: none;
+  padding: 0;
+  margin: 24px 0 20px;
+  min-width: 0;
+}
+
+.pd-dialogo-doacao legend {
+  font-weight: 600;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.pd-dialogo-doacao label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.pd-dialogo-doacao input[type="radio"] {
+  flex-shrink: 0;
+  margin: 5px 0 0;
+  accent-color: #138b8b;
+}

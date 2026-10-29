@@ -30,6 +30,32 @@ AACD.util = (() => {
     return `${dia}/${mes}/${ano}`;
   }
 
+  // Converte data e horário UTC para o horário de Brasília
+function formatarDataHora(utc) {
+  if (!utc) return "-";
+
+  // Recebe valores como "2026-10-29 15:05:29"
+  const texto = String(utc).trim();
+
+  // Informa que a data recebida está em UTC
+  const dataUTC = new Date(
+    texto.replace(" ", "T").replace(/Z?$/, "Z")
+  );
+
+  if (Number.isNaN(dataUTC.getTime())) return "-";
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false
+  }).format(dataUTC);
+}
+
   // Data de hoje no formato AAAA-MM-DD (horário local)
   function hojeISO() {
     const hoje = new Date();
@@ -127,8 +153,9 @@ AACD.util = (() => {
 
   const emailValido = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v).trim());
 
-  return {
-    $, escapar, formatarData, hojeISO, digitos, mostrarToast, confirmar,
-    alternarDetalhes, listaDescricao, armazenamento, sessao, mascaras, emailValido
-  };
+return {
+  $, escapar, formatarData, formatarDataHora, hojeISO, digitos,
+  mostrarToast, confirmar, alternarDetalhes, listaDescricao,
+  armazenamento, sessao, mascaras, emailValido
+};
 })();
