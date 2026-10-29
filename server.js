@@ -812,7 +812,6 @@ app.patch('/api/disponiveis/:id/aceitar', ...somenteVoluntario, async (req, res)
   }
 });
 
-<<<<<<< HEAD
 // OBJETIVO 15 — Listar pedidos aceitos pelo voluntário
 
 app.get('/api/pedidos', ...somenteVoluntario, async (req, res) => {
@@ -896,7 +895,6 @@ app.get('/api/pedidos', ...somenteVoluntario, async (req, res) => {
   }
 });
 
-app.listen(PORTA,() => console.log(`Servidor rodando com sucesso na porta ${PORTA}`));
-=======
-app.listen(PORTA,() => console.log(`Servidor rodando com sucesso na porta ${PORTA}`));
->>>>>>> f8774a4d2a3759efc88cb3ba54492d890d6c3f11
+app.listen(PORTA, () => {
+  console.log(`Servidor rodando com sucesso na porta ${PORTA}`);
+});
