@@ -75,7 +75,8 @@ app.post('/api/impressoras', ...somenteVoluntario, async (req, res) => {
 
 app.get('/api/impressoras', ...somenteVoluntario, async (req, res) => {
   try {
-    const impressoras = await FichaImpressora.find({ id_voluntario: req.usuario.id_voluntario });
+    const impressoras = await FichaImpressora.find({ id_voluntario: req.usuario.id_voluntario })
+      .sort({ data_cadastro: -1 });
     res.status(200).json(impressoras);
   } catch (erro) {
     console.error('Erro ao listar impressoras:', erro);
@@ -99,28 +100,6 @@ async function buscarVoluntariosPorId(impressoras) {
   );
   return new Map(linhas.map(v => [Number(v.id_voluntario), v]));
 }
-
-// Lista de impressoras cadastradas na rede, vista pelo voluntário.
-// Não expõe o endereço completo nem contatos dos outros voluntários.
-app.get('/api/voluntario/impressoras', ...somenteVoluntario, async (req, res) => {
-  try {
-    const impressoras = await FichaImpressora.find()
-      .select('-localizacao.endereco.logradouro -localizacao.endereco.numero -localizacao.endereco.cep ' +
-              '-localizacao.endereco.complemento -informacoes_adicionais')
-      .sort({ data_cadastro: -1 })
-      .lean();
-    const porId = await buscarVoluntariosPorId(impressoras);
-    const meuId = Number(req.usuario.id_voluntario);
-    res.json(impressoras.map(i => ({
-      ...i,
-      voluntarioNome: porId.get(Number(i.id_voluntario))?.nome || `Voluntário #${i.id_voluntario}`,
-      minha: Number(i.id_voluntario) === meuId
-    })));
-  } catch (erro) {
-    console.error('Erro ao listar impressoras (voluntário):', erro);
-    res.status(500).json({ erro: 'Não foi possível listar as impressoras.' });
-  }
-});
 
 app.get('/api/impressoras/:id', ...somenteVoluntario, async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
