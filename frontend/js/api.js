@@ -105,8 +105,11 @@ AACD.api = (() => {
 
     // ----- Voluntário: produção -----
     // Formato: { id, paciente, peca, status, entrega, enviado, concluido, material, impressora, progresso, obs }
-    listarProducao: () => requisitar("/producao", { erroPadrao: "Não foi possível carregar as peças." }),
-    enviarParaValidacao: (id) => requisitar(`/producao/${id}/enviar`, { metodo: "PATCH", erroPadrao: "Não foi possível enviar a peça." }),
+    listarProducao: () => requisitar("/status_producao", { comCookie: true, erroPadrao: "Não foi possível carregar as peças." }),
+  alterarStatusProducao: (id, status) => requisitar(`/status_producao/${encodeURIComponent(id)}/status`, {
+  metodo: "PATCH", corpo: { status }, comCookie: true,
+  erroPadrao: "Não foi possível alterar o status."
+}),
 
     // ----- Funcionário: voluntários -----
     // Formato: { id, nome, email, telefone, tipo, documento, razaoSocial, endereco, cep,
