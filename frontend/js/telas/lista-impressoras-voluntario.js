@@ -7,8 +7,6 @@
 (() => {
   const { $, escapar, formatarData, mostrarToast, alternarDetalhes, listaDescricao } = AACD.util;
 
-  const MSG_SOMENTE_DONO = "Você precisa ser o dono do cadastro desta impressora para editá-la.";
-
   let impressoras = [];
   let idEmEdicao = null;
   const el = {};
@@ -23,15 +21,12 @@
 
   function filtrar() {
     const termo = el.busca.value.trim().toLowerCase();
-    const somenteMinhas = el.dono.value === "minhas";
     const resultado = impressoras.filter(i =>
-      `${i.nome} ${i.marca} ${i.modelo} ${i.voluntarioNome} ${i.cidade}`.toLowerCase().includes(termo)
-      && (!somenteMinhas || i.minha));
+      `${i.nome} ${i.marca} ${i.modelo} ${i.cidade}`.toLowerCase().includes(termo));
 
     const texto = (v) => String(v || "");
     if (el.ordenar.value === "recentes") resultado.sort((a, b) => texto(b.cadastro).localeCompare(texto(a.cadastro)));
     if (el.ordenar.value === "nome") resultado.sort((a, b) => texto(a.nome).localeCompare(texto(b.nome)));
-    if (el.ordenar.value === "voluntario") resultado.sort((a, b) => texto(a.voluntarioNome).localeCompare(texto(b.voluntarioNome)));
     return resultado;
   }
 
@@ -45,11 +40,9 @@
           <header class="cartao-item__titulo">
             <h2 id="liv-titulo-${id}">${escapar(i.nome || i.modelo)}</h2>
             <span class="selo selo--${escapar(i.tecnologia)}">${escapar(i.tecnologia)}</span>
-            ${i.minha ? '<span class="selo selo--concluido">Minha impressora</span>' : ""}
           </header>
           <p class="cartao-item__detalhes">
             <span>Marca/Modelo: <strong>${escapar(i.marca)} ${escapar(i.modelo)}</strong></span>
-            <span>Dono: <strong>${i.minha ? "Você" : escapar(i.voluntarioNome)}</strong></span>
             <span>Cidade: <strong>${escapar(local(i)) || "-"}</strong></span>
             <span>Materiais: <strong>${escapar(i.materiais) || "-"}</strong></span>
           </p>
@@ -72,7 +65,6 @@
             ["Materiais:", escapar(i.materiais)],
             ["Status:", escapar(i.status)],
             ["Cidade:", escapar(local(i))],
-            ["Dono do cadastro:", i.minha ? "Você" : escapar(i.voluntarioNome)],
             ["Cadastrada em:", `<time datetime="${escapar(i.cadastro)}">${formatarData(i.cadastro)}</time>`],
             ["Atualizada em:", i.atualizacao ? `<time datetime="${escapar(i.atualizacao)}">${formatarData(i.atualizacao)}</time>` : ""],
             ["Observações:", escapar(i.obs)]
@@ -87,12 +79,10 @@
     el.vazio.hidden = itens.length > 0;
   }
 
-  // ===== Modal de edição (só para o dono) =====
+  // ===== Modal de edição =====
+  // A lista só traz as impressoras do usuário; o servidor ainda recusa (403)
+  // a edição de impressora de outro voluntário, e a mensagem aparece no modal.
   function abrirModal(impressora) {
-    if (!impressora.minha) {
-      mostrarToast(MSG_SOMENTE_DONO, true);
-      return;
-    }
     idEmEdicao = impressora.id;
     const f = el.form;
     f.nome.value = impressora.nome;
@@ -212,7 +202,6 @@
     iniciar() {
       el.lista = $("liv-lista");
       el.busca = $("liv-busca");
-      el.dono = $("liv-dono");
       el.ordenar = $("liv-ordenar");
       el.contador = $("liv-contador");
       el.vazio = $("liv-vazio");
@@ -222,7 +211,6 @@
       el.salvar = $("modal-minha-impressora-salvar");
 
       el.busca.addEventListener("input", () => renderizar());
-      el.dono.addEventListener("change", () => renderizar());
       el.ordenar.addEventListener("change", () => renderizar());
 
       el.form.addEventListener("submit", salvar);
