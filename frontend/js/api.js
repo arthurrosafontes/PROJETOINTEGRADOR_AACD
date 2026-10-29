@@ -169,12 +169,12 @@ AACD.api = (() => {
       erroPadrao: "Não foi possível cadastrar a impressora."
     }),
 
-    // ----- Voluntário: lista de impressoras cadastradas -----
+    // ----- Voluntário: lista das impressoras que ELE cadastrou -----
     // Formato: { id, nome, marca, modelo, tecnologia, bico, largura, profundidade, altura,
     //            diametroFilamento, tempBico, materiais, cidade, estado, status, obs,
-    //            cadastro, atualizacao, voluntarioNome, minha }
+    //            cadastro, atualizacao }
     listarImpressorasVoluntario: async () => {
-      const impressoras = await requisitar("/voluntario/impressoras", {
+      const impressoras = await requisitar("/impressoras", {
         comCookie: true,
         erroPadrao: "Não foi possível carregar as impressoras."
       });
@@ -196,9 +196,7 @@ AACD.api = (() => {
         status: i.status || "",
         obs: i.observacoes || "",
         cadastro: i.data_cadastro || "",
-        atualizacao: i.data_atualizacao || "",
-        voluntarioNome: i.voluntarioNome || `Voluntário #${i.id_voluntario}`,
-        minha: Boolean(i.minha)
+        atualizacao: i.data_atualizacao || ""
       }));
     },
     // Só o dono do cadastro consegue editar (o servidor responde 403 para os demais)
