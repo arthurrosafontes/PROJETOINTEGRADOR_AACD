@@ -1209,3 +1209,17 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   margin: 5px 0 0;
   accent-color: #138b8b;
 }
+
+/* ===== Meu perfil ===== */
+.perfil-foto {
+  display: block;
+  width: 150px; height: 150px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #d8c5bc;
+}
+.perfil-trocar { display: block; width: fit-content; margin: 0 auto 28px; cursor: pointer; }
+#tela-meu-perfil dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; max-width: 420px; margin: 0 auto; }
+#tela-meu-perfil dt { color: var(--texto-suave); }
+#tela-meu-perfil dd { font-weight: 700; word-break: break-word; }
