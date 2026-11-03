@@ -45,6 +45,17 @@ AACD.api = (() => {
     logout: () =>
       requisitar("/auth/logout", { metodo: "POST", comCookie: true }),
 
+    // ----- Meu perfil -----
+    meuPerfil: () =>
+      requisitar("/auth/perfil", { comCookie: true, erroPadrao: "Não foi possível carregar o perfil." }),
+    // O "?t=" muda a cada chamada para o navegador não mostrar a foto antiga guardada
+    urlFotoPerfil: () => `${API_URL}/auth/perfil/foto?t=${Date.now()}`,
+    enviarFotoPerfil: (arquivo) => {
+      const formulario = new FormData();
+      formulario.append("foto", arquivo);
+      return requisitar("/auth/perfil/foto", { metodo: "PUT", corpo: formulario, comCookie: true, erroPadrao: "Não foi possível enviar a foto." });
+    },
+
     // ----- Cadastro de voluntário -----
     cadastrarVoluntario: (dados) =>
       requisitar("/voluntarios", {

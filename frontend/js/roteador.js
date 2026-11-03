@@ -86,7 +86,7 @@ async function verificarAutenticacao() {
     // Menu do perfil certo
     menu.querySelectorAll("[data-perfil]").forEach(lista => { lista.hidden = lista.dataset.perfil !== area; });
     $("barra-logo").href = `#/${area}`;
-    barra.querySelectorAll("[data-link-area]").forEach(link => { link.href = `#/${area}/em-construcao`; });
+    barra.querySelectorAll("[data-link-area]").forEach(link => { link.href = `#/${area}/${link.dataset.linkArea}`; });
 
     // Nome e cargo do usuário logado
     const usuario = sessao.obter();

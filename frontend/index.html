@@ -33,6 +33,7 @@
   <script src="js/telas/lista-demandas.js" defer></script>
   <script src="js/telas/impressoras.js" defer></script>
   <script src="js/telas/cadastrar-protese.js" defer></script>
+  <script src="js/telas/meu-perfil.js" defer></script>
   <script src="js/roteador.js" defer></script>
   <script src="js/telas/status_producao.js" defer></script>
 </head>
@@ -127,8 +128,8 @@
         <span class="visualmente-oculto">— menu da conta</span>
       </button>
       <ul class="submenu submenu--direita" id="sub-usuario" hidden>
-        <li><a href="#/voluntario/em-construcao" data-link-area>Meu perfil</a></li>
-        <li><a href="#/voluntario/em-construcao" data-link-area>Configurações</a></li>
+        <li><a href="#/voluntario/meu-perfil" data-link-area="meu-perfil">Meu perfil</a></li>
+        <li><a href="#/voluntario/em-construcao" data-link-area="em-construcao">Configurações</a></li>
         <li><button type="button" id="botao-sair">Sair</button></li>
       </ul>
     </div>
@@ -1435,6 +1436,27 @@
         <button type="submit" class="botao-form" id="cp-proximo">Próximo <span aria-hidden="true">→</span></button>
       </div>
     </form>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: MEU PERFIL (voluntário e funcionário)
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-meu-perfil" class="tela tela--app tela--estreita" id="tela-meu-perfil"
+        data-rota="/voluntario/meu-perfil /funcionario/meu-perfil" data-area="auto"
+        data-titulo="Meu perfil" hidden>
+    <header class="cabecalho-pagina">
+      <h1 id="titulo-tela-meu-perfil" tabindex="-1">Meu perfil</h1>
+    </header>
+
+    <img class="perfil-foto" id="perfil-foto" alt="">
+    <label class="botao botao--primario perfil-trocar">
+      Trocar foto (JPG ou PNG, até 2 MB)
+      <input type="file" id="perfil-arquivo" accept="image/jpeg,image/png" hidden>
+    </label>
+
+    <!-- Preenchido pelo js/telas/meu-perfil.js -->
+    <dl id="perfil-dados"></dl>
   </main>
 
 

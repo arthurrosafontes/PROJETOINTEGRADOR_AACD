@@ -1,6 +1,12 @@
+const fs = require('fs');
+const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/mysql');
+
+// Fotos de perfil: uploads/fotos-perfil/<id_usuario>.jpg ou .png (uma por usuário)
+const PASTA_FOTOS = path.join(__dirname, '..', '..', 'uploads', 'fotos-perfil');
+fs.mkdirSync(PASTA_FOTOS, { recursive: true });
 
 const COOKIE_NAME = 'aacd_sessao';
 const normalizar = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -72,4 +78,61 @@ function sair(req, res) {
   res.clearCookie(COOKIE_NAME, cookieOptions());
   return res.json({ mensagem: 'Sessão encerrada.' });
 }
-module.exports = { login, sair };
+
+// ===== Meu perfil =====
+
+// Foto atual do usuário (ou null se ele ainda não tiver foto)
+function caminhoFoto(idUsuario) {
+  const opcoes = ['.jpg', '.png'].map(ext => path.join(PASTA_FOTOS, `${Number(idUsuario)}${ext}`));
+  return opcoes.find(arquivo => fs.existsSync(arquivo)) || null;
+}
+
+// Dados da conta do usuário logado (os de voluntário ou de funcionário vêm vazios para o outro perfil)
+async function perfil(req, res) {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT u.nome, u.email, u.telefone,
+              f.setor, f.cargo,
+              v.tipo_voluntario, v.cpf_cnpj, v.razao_social, v.status_homologacao,
+              v.logradouro, v.numero, v.complemento, v.bairro, v.cidade, v.estado, v.cep
+       FROM usuario u
+       LEFT JOIN funcionario_aacd f ON f.id_usuario = u.id_usuario
+       LEFT JOIN voluntario v ON v.id_usuario = u.id_usuario
+       WHERE u.id_usuario = ? LIMIT 1`,
+      [req.usuario.id_usuario]
+    );
+    if (!rows[0]) return res.status(404).json({ erro: 'Usuário não encontrado.' });
+    return res.json({ ...rows[0], perfil: req.usuario.perfil, temFoto: caminhoFoto(req.usuario.id_usuario) !== null });
+  } catch (erro) {
+    console.error('Erro ao carregar perfil:', erro);
+    return res.status(500).json({ erro: 'Não foi possível carregar o perfil.' });
+  }
+}
+
+function verFoto(req, res) {
+  const foto = caminhoFoto(req.usuario.id_usuario);
+  if (!foto) return res.status(404).json({ erro: 'Sem foto de perfil.' });
+  return res.sendFile(foto);
+}
+
+// Salva a foto enviada (req.file vem do multer). O tipo é conferido pelos
+// primeiros bytes do arquivo, e não pela extensão, que pode ser falsa.
+async function enviarFoto(req, res) {
+  const bytes = req.file ? req.file.buffer : Buffer.alloc(0);
+  const extensao = bytes[0] === 0xff && bytes[1] === 0xd8 ? '.jpg'
+    : bytes.toString('ascii', 1, 4) === 'PNG' ? '.png'
+    : null;
+  if (!extensao) return res.status(400).json({ erro: 'Envie uma imagem JPG ou PNG.' });
+
+  try {
+    const antiga = caminhoFoto(req.usuario.id_usuario);
+    if (antiga) await fs.promises.unlink(antiga);
+    await fs.promises.writeFile(path.join(PASTA_FOTOS, `${Number(req.usuario.id_usuario)}${extensao}`), bytes);
+    return res.json({ mensagem: 'Foto atualizada.' });
+  } catch (erro) {
+    console.error('Erro ao salvar foto de perfil:', erro);
+    return res.status(500).json({ erro: 'Não foi possível salvar a foto.' });
+  }
+}
+
+module.exports = { login, sair, perfil, verFoto, enviarFoto };
