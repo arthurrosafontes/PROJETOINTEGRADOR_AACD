@@ -16,7 +16,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Lato:wght@400;700&amp;display=swap">
+  <!-- Bootstrap 5.3 (carregado antes do estilos.css para que os estilos do projeto tenham prioridade) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link rel="stylesheet" href="css/estilos.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" defer></script>
 
   <script src="js/utilitarios.js" defer></script>
   <script src="js/api.js" defer></script>
@@ -34,6 +40,7 @@
   <script src="js/telas/impressoras.js" defer></script>
   <script src="js/telas/cadastrar-protese.js" defer></script>
   <script src="js/telas/meu-perfil.js" defer></script>
+  <script src="js/telas/status-protese.js" defer></script>
   <script src="js/roteador.js" defer></script>
   <script src="js/telas/status_producao.js" defer></script>
 </head>
@@ -111,7 +118,7 @@
           <button class="menu__botao" type="button" aria-expanded="false" aria-controls="sub-func-proteses">Próteses</button>
           <ul class="submenu" id="sub-func-proteses" hidden>
             <li><a href="#/funcionario/proteses/cadastrar">Cadastrar prótese</a></li>
-            <li><a href="#/funcionario/em-construcao">Status da produção</a></li>
+            <li><a href="#/funcionario/proteses/status">Status da produção</a></li>
             <li><a href="#/funcionario/em-construcao">Modelos 3D</a></li>
           </ul>
         </li>
@@ -1412,6 +1419,46 @@
 
     <!-- Preenchido pelo js/telas/meu-perfil.js -->
     <dl id="perfil-dados"></dl>
+  </main>
+
+
+  <!-- =====================================================
+       TELA: STATUS DA PRODUÇÃO DAS PRÓTESES (funcionário)
+       Mesmo padrão das outras listas (abas-status + lista-cartoes);
+       preenchida pelo js/telas/status-protese.js
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-status-protese" class="tela tela--app" id="tela-status-protese"
+        data-rota="/funcionario/proteses/status" data-area="funcionario"
+        data-titulo="Status da produção" hidden>
+    <header class="cabecalho-pagina">
+      <h1 id="titulo-tela-status-protese" tabindex="-1">Status da produção</h1>
+      <p>Acompanhe as próteses em cada etapa da produção.</p>
+    </header>
+
+    <search class="filtros">
+      <p class="filtros__busca">
+        <label class="visualmente-oculto" for="sp-busca">Buscar pelo número da demanda, prótese ou paciente</label>
+        <input type="search" id="sp-busca" placeholder="Buscar pelo número da demanda, prótese ou paciente...">
+      </p>
+    </search>
+
+    <div class="abas-status" role="group" aria-label="Filtrar por status" id="sp-abas">
+      <button type="button" class="aba" data-status="todos" aria-pressed="true">
+        Todos <span class="aba__numero" data-contador="todos">0</span>
+      </button>
+      <button type="button" class="aba" data-status="Em produção" aria-pressed="false">
+        Em produção <span class="aba__numero" data-contador="Em produção">0</span>
+      </button>
+      <button type="button" class="aba" data-status="Aguardando validação" aria-pressed="false">
+        Aguardando validação <span class="aba__numero" data-contador="Aguardando validação">0</span>
+      </button>
+      <button type="button" class="aba" data-status="Concluída" aria-pressed="false">
+        Concluídas <span class="aba__numero" data-contador="Concluída">0</span>
+      </button>
+    </div>
+
+    <ul class="lista-cartoes" id="sp-lista" aria-labelledby="titulo-tela-status-protese"></ul>
+    <p class="vazio" id="sp-vazio" role="status" hidden>Nenhuma prótese neste status.</p>
   </main>
 
 
