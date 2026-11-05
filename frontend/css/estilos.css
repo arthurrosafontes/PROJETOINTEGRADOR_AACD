@@ -80,6 +80,17 @@ ul[class], ol[class] { list-style: none; }
 fieldset { border: none; min-width: 0; }
 [hidden] { display: none !important; }
 
+/* Compatibilidade com o Bootstrap: o "reboot" dele adiciona margens, tamanhos de
+   título e float na legend. Aqui voltamos ao comportamento original do projeto,
+   sem impedir o uso das classes do Bootstrap (.btn, .row, .mb-3, .h1 etc.). */
+body { line-height: normal; }
+p, ul, ol, dl, dd, blockquote, figure,
+h1, h2, h3, h4, h5, h6 { margin: 0; }
+ul, ol { padding: 0; }
+h1, h2, h3, h4, h5, h6 { font-size: revert; font-weight: revert; line-height: revert; color: inherit; }
+legend { float: none; width: auto; margin: 0; font-size: revert; line-height: inherit; }
+label { display: inline; }
+
 :focus-visible { outline: 3px solid var(--amarelo); outline-offset: 2px; }
 h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 
@@ -958,6 +969,18 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   font-family: var(--fonte-app);
   box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
 }
+/* O Bootstrap também tem uma classe .modal (display: none, tela cheia).
+   Aqui ela é um <dialog> nativo, então desfazemos o que o Bootstrap aplica. */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  height: fit-content;
+  z-index: auto;
+  overflow: auto;
+  background: var(--branco);
+}
+.modal[open] { display: block; }
 .modal::backdrop { background: rgba(0, 0, 0, .45); }
 .modal[open] { animation: aparecer .2s ease; }
 .modal--confirmacao { width: min(420px, calc(100% - 32px)); }
@@ -1006,6 +1029,8 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   transform: translate(-50%, calc(100% + 40px));
   transition: transform .3s, visibility 0s .3s;
 }
+/* O Bootstrap esconde .toast sem a classe .show; aqui o controle é feito por .visivel */
+.toast, .toast:not(.show) { display: block; border: none; font-size: 1rem; pointer-events: auto; }
 .toast.visivel { visibility: visible; transform: translate(-50%, 0); transition: transform .3s; }
 .toast.erro { background: var(--perigo); }
 
