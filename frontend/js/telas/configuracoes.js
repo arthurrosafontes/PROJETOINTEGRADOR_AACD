@@ -92,7 +92,10 @@
   // ===== Conta =====
   async function sairDaConta() {
     if (await confirmar("Deseja sair da sua conta neste navegador?", "Sair")) {
-      $("botao-sair").click(); // reaproveita o logout da barra
+      // Encerra a sessão no servidor (se ele estiver no ar) e volta ao início
+      try { await AACD.api.logout(); } catch { /* servidor fora do ar: sai mesmo assim */ }
+      AACD.util.sessao.limpar();
+      location.hash = "#/";
     }
   }
 

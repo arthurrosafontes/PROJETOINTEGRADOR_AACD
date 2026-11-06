@@ -110,13 +110,6 @@ async function verificarAutenticacao() {
     };
     menu.addEventListener("shown.bs.collapse", atualizarRotuloMenu);
     menu.addEventListener("hidden.bs.collapse", atualizarRotuloMenu);
-
-    // Sair: encerra a sessão no servidor (se ele estiver no ar) e volta ao início
-    $("botao-sair").addEventListener("click", async () => {
-      try { await AACD.api.logout(); } catch { /* servidor fora do ar: sai mesmo assim */ }
-      sessao.limpar();
-      location.hash = "#/";
-    });
   }
 
   // ===== Troca de tela =====
