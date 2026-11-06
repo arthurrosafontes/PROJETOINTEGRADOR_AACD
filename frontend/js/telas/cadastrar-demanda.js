@@ -31,6 +31,21 @@
   let etapaAtual = 0;
   let etapaMaxima = 0;
   let publicando = false;
+  // Só a assinatura do formulário e a chave da tentativa ficam na sessão da aba.
+  const CHAVE_TENTATIVA = "aacd.publicacaoPendente";
+  let tentativaEmMemoria = null;
+
+  async function chaveDaPublicacao(demanda) {
+    const dados = new TextEncoder().encode(JSON.stringify(demanda));
+    const hash = await crypto.subtle.digest("SHA-256", dados);
+    const assinatura = Array.from(new Uint8Array(hash), n => n.toString(16).padStart(2, "0")).join("");
+    let anterior = tentativaEmMemoria;
+    try { anterior ??= JSON.parse(sessionStorage.getItem(CHAVE_TENTATIVA)); } catch {}
+    if (anterior?.assinatura === assinatura) return anterior.chave;
+    tentativaEmMemoria = { assinatura, chave: crypto.randomUUID() };
+    try { sessionStorage.setItem(CHAVE_TENTATIVA, JSON.stringify(tentativaEmMemoria)); } catch {}
+    return tentativaEmMemoria.chave;
+  }
   let rascunhoVerificado = false;
   const el = {};
 
@@ -212,9 +227,13 @@
     el.btnProximo.disabled = true;
     el.btnProximo.textContent = "Publicando...";
     try {
-      const salva = await AACD.api.publicarDemanda(montarDemanda());
+      const demanda = montarDemanda();
+      demanda.chavePublicacao = await chaveDaPublicacao(demanda);
+      const salva = await AACD.api.publicarDemanda(demanda);
+      tentativaEmMemoria = null;
+      try { sessionStorage.removeItem(CHAVE_TENTATIVA); } catch {}
       armazenamento.apagar(CHAVE_RASCUNHO);
-      mostrarToast(`Demanda "${salva.nome || valor("nome")}" publicada para os voluntários!`);
+      mostrarToast(`Demanda #${salva.id_demanda} "${demanda.nome}" publicada para os voluntários!`);
       el.form.reset();
       el.form.querySelectorAll(".invalido").forEach(c => c.classList.remove("invalido"));
       el.form.querySelectorAll("[aria-invalid]").forEach(c => c.removeAttribute("aria-invalid"));

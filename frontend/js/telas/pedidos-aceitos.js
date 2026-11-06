@@ -56,7 +56,7 @@ const classeStatus = {
       return `
       <li class="card cartao-item cartao-item--tres cartao-item--grande" data-id="${id}">
         <article aria-labelledby="pa-titulo-${id}">
-          <h2 class="cartao-item__titulo" id="pa-titulo-${id}">Pedido #${id}</h2>
+          <h2 class="cartao-item__titulo" id="pa-titulo-${id}">Pedido #${id} · Demanda #${escapar(p.demandaId)}</h2>
           <p class="cartao-item__subtitulo">${escapar(p.produto)} · ${escapar(p.categoria)}</p>
         </article>
         <p class="cartao-item__lateral">
@@ -86,6 +86,7 @@ const classeStatus = {
             ["Produto:", escapar(p.produto)],
             ["Categoria:", escapar(p.categoria)],
             ["Material:", escapar(p.material)],
+            ["Doação de material:", ({ 1: "Sim", 0: "Não" })[p.doacaoMaterial] ?? "Não informado"],
             ["Quantidade:", escapar(p.quantidade)],
             ["Impressora:", escapar(p.impressora)],
             ["Início da produção:",
