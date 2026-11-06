@@ -77,14 +77,14 @@
       const info = infoStatus[p.status] || {};
       // Só peças em produção podem ser enviadas para validação
       const botaoEnviar = p.status === "Em produção"
-        ? `<button type="button" class="botao botao--primario" data-acao="enviar">Enviar para validação</button>`
+        ? `<button type="button" class="btn btn-primary botao botao--primario" data-acao="enviar">Enviar para validação</button>`
         : "";
       return `
-      <li class="cartao-item cartao-item--tres cartao-item--grande" data-id="${id}">
+      <li class="card cartao-item cartao-item--tres cartao-item--grande" data-id="${id}">
         <article aria-labelledby="pr-item-${id}">
           <header class="cartao-item__titulo">
             <h2 id="pr-item-${id}">${escapar(p.paciente)}</h2>
-            <span class="selo selo--${info.classe || ""}">${escapar(p.status)}</span>
+            <span class="badge rounded-pill selo selo--${info.classe || ""}">${escapar(p.status)}</span>
           </header>
           <p class="cartao-item__subtitulo">${escapar(p.peca)}</p>
         </article>
@@ -92,7 +92,7 @@
           <span>${prazo.rotulo}: <time datetime="${escapar(prazo.data)}">${formatarData(prazo.data)}</time></span>
           <span class="prazo-status ${prazo.classe ? `prazo-status--${prazo.classe}` : ""}">${prazo.texto}</span>
         </p>
-        <button type="button" class="botao botao--secundario" data-acao="detalhes"
+        <button type="button" class="btn btn-outline-primary botao botao--secundario" data-acao="detalhes"
                 aria-expanded="false" aria-controls="pr-extra-${id}">Ver detalhes</button>
         <div class="cartao-item__extra" id="pr-extra-${id}" hidden>
           ${listaDescricao([

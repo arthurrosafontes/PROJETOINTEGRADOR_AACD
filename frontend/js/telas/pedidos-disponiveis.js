@@ -33,11 +33,11 @@
   function renderizar() {
     const itens = filtrar();
     el.lista.innerHTML = itens.map(p => `
-      <li class="cartao-item cartao-item--faixa" data-id="${escapar(p.id)}">
+      <li class="card cartao-item cartao-item--faixa" data-id="${escapar(p.id)}">
         <article aria-labelledby="pd-titulo-${escapar(p.id)}">
           <header class="cartao-item__titulo">
             <h2 id="pd-titulo-${escapar(p.id)}">${escapar(p.peca)}</h2>
-            <span class="selo selo--${escapar(p.prioridade)}">Prioridade ${escapar(p.prioridade)}</span>
+            <span class="badge rounded-pill selo selo--${escapar(p.prioridade)}">Prioridade ${escapar(p.prioridade)}</span>
             <span class="cartao-item__codigo">#${escapar(p.id)}</span>
           </header>
           <p class="cartao-item__detalhes">
@@ -48,9 +48,9 @@
           </p>
         </article>
         <div class="cartao-item__acoes">
-          <button type="button" class="botao botao--secundario" data-acao="detalhes"
+          <button type="button" class="btn btn-outline-primary botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="pd-extra-${escapar(p.id)}">Detalhes</button>
-          <button type="button" class="botao botao--primario" data-acao="aceitar">Aceitar</button>
+          <button type="button" class="btn btn-primary botao botao--primario" data-acao="aceitar">Aceitar</button>
         </div>
         <div class="cartao-item__extra" id="pd-extra-${escapar(p.id)}" hidden>
           ${listaDescricao([
@@ -84,7 +84,7 @@ function obterDialogo() {
           Impressora para produzir o pedido
         </label>
 
-        <select id="pd-dialogo-select" required></select>
+        <select id="pd-dialogo-select" class="form-select" required></select>
         <fieldset class="pd-dialogo-doacao">
   <legend>
     Deseja doar o material necessário para fabricar esta peça?
@@ -93,6 +93,7 @@ function obterDialogo() {
   <label>
     <input
       type="radio"
+      class="form-check-input"
       name="doacao_material"
       value="sim"
       required
@@ -103,6 +104,7 @@ function obterDialogo() {
   <label>
     <input
       type="radio"
+      class="form-check-input"
       name="doacao_material"
       value="nao"
       required
@@ -113,13 +115,13 @@ function obterDialogo() {
 
         <div class="pd-dialogo-acoes">
           <button type="button"
-                  class="botao botao--secundario"
+                  class="btn btn-outline-primary botao botao--secundario"
                   id="pd-dialogo-cancelar">
             Cancelar
           </button>
 
           <button type="submit"
-                  class="botao botao--primario"
+                  class="btn btn-primary botao botao--primario"
                   id="pd-dialogo-confirmar">
             Confirmar aceite
           </button>

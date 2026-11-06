@@ -73,12 +73,12 @@ function filtrar() {
       const id = escapar(v.id);
       const status = escapar(v.status);
       return `
-      <li class="cartao-item cartao-item--faixa cartao-item--avatar cartao-item--${status}" data-id="${id}">
+      <li class="card cartao-item cartao-item--faixa cartao-item--avatar cartao-item--${status}" data-id="${id}">
         <span class="iniciais" aria-hidden="true">${escapar(iniciais(v.nome))}</span>
         <article aria-labelledby="lvol-titulo-${id}">
           <header class="cartao-item__titulo">
             <h2 id="lvol-titulo-${id}">${escapar(v.nome)}</h2>
-            <span class="selo selo--${status}">${status}</span>
+            <span class="badge rounded-pill selo selo--${status}">${status}</span>
             <span class="cartao-item__codigo">#${id}</span>
           </header>
           <p class="cartao-item__detalhes">
@@ -89,11 +89,11 @@ function filtrar() {
           </p>
         </article>
         <div class="cartao-item__acoes">
-          <button type="button" class="botao botao--secundario" data-acao="detalhes"
+          <button type="button" class="btn btn-outline-primary botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="lvol-extra-${id}">Detalhes</button>
-          ${v.status === "Pendente" ? `<button type="button" class="botao botao--escuro" data-acao="aceitar">Aceitar</button>` : ""}
+          ${v.status === "Pendente" ? `<button type="button" class="btn btn-primary botao botao--escuro" data-acao="aceitar">Aceitar</button>` : ""}
           ${v.status === "Pendente" || v.status === "Aprovado"
-           ? `<button type="button" class="botao botao--perigo" data-acao="remover">Reprovar</button>`
+           ? `<button type="button" class="btn btn-outline-danger botao botao--perigo" data-acao="remover">Reprovar</button>`
            : ""}
         </div>
         <div class="cartao-item__extra" id="lvol-extra-${id}" hidden>

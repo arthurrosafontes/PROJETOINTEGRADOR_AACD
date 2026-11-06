@@ -58,12 +58,12 @@
       const editavel = STATUS_EDITAVEIS.includes(d.status);
       const cancelavel = STATUS_CANCELAVEIS.includes(d.status);
       return `
-      <li class="cartao-item cartao-item--faixa cartao-item--demanda-${status}${String(d.id) === String(destacarId) ? " atualizado" : ""}" data-id="${id}">
+      <li class="card cartao-item cartao-item--faixa cartao-item--demanda-${status}${String(d.id) === String(destacarId) ? " atualizado" : ""}" data-id="${id}">
         <article aria-labelledby="ldem-titulo-${id}">
           <header class="cartao-item__titulo">
             <h2 id="ldem-titulo-${id}">Demanda #${id} — ${escapar(d.protese || d.nome)}</h2>
-            <span class="selo selo--st-${status}">${escapar(d.status) || "-"}</span>
-            <span class="selo selo--${escapar(d.prioridade)}">${escapar(d.prioridade) || "-"}</span>
+            <span class="badge rounded-pill selo selo--st-${status}">${escapar(d.status) || "-"}</span>
+            <span class="badge rounded-pill selo selo--${escapar(d.prioridade)}">${escapar(d.prioridade) || "-"}</span>
           </header>
           <p class="cartao-item__subtitulo">${escapar(d.nome)}</p>
           <p class="cartao-item__detalhes">
@@ -75,12 +75,12 @@
           </p>
         </article>
         <div class="cartao-item__acoes">
-          <button type="button" class="botao botao--secundario" data-acao="detalhes"
+          <button type="button" class="btn btn-outline-primary botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="ldem-extra-${id}">Detalhes</button>
           ${editavel
-            ? `<button type="button" class="botao botao--escuro" data-acao="editar">Editar</button>`
-            : `<button type="button" class="botao botao--escuro" data-acao="observacao">Adicionar observação</button>`}
-          ${cancelavel ? `<button type="button" class="botao botao--perigo" data-acao="cancelar">Cancelar</button>` : ""}
+            ? `<button type="button" class="btn btn-primary botao botao--escuro" data-acao="editar">Editar</button>`
+            : `<button type="button" class="btn btn-primary botao botao--escuro" data-acao="observacao">Adicionar observação</button>`}
+          ${cancelavel ? `<button type="button" class="btn btn-outline-danger botao botao--perigo" data-acao="cancelar">Cancelar</button>` : ""}
         </div>
         <div class="cartao-item__extra cartao-item__extra--colunas" id="ldem-extra-${id}" hidden>
           <section aria-label="Identificação">
