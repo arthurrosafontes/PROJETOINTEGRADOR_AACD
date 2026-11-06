@@ -53,17 +53,42 @@
     return resultado;
   }
 
-  function especificacoes(d, dadosDosPedidos = []) {
+  function especificacoes(d) {
     return listaDescricao([
       ["Quantidade:", escapar(unidades(d.quantidade))],
       ["Material:", escapar(d.material)],
-      ...dadosDosPedidos,
       ["Bico:", escapar(medida(d.bico, "mm"))],
       ["Dimensões:", [d.largura, d.profundidade, d.altura].every(v => v !== null && v !== undefined)
         ? escapar(`${d.largura} × ${d.profundidade} × ${d.altura} mm`) : ""],
       ["Tempo estimado:", escapar(medida(d.tempoHoras, "h"))],
       ["Observações:", escapar(d.observacoes)]
     ]);
+  }
+
+  function tabelaEtapa(titulo, linhas, vazio) {
+    const corpo = linhas.map(([rotulo, valor]) =>
+      `<tr><th scope="row">${rotulo}</th><td>${valor || "—"}</td></tr>`).join("");
+    return `<div class="col-12 col-xl-4"><table class="table table-sm tabela-etapa">
+      <caption class="caption-top">${titulo}</caption>
+      <tbody>${corpo || `<tr><td colspan="2">${vazio}</td></tr>`}</tbody>
+    </table></div>`;
+  }
+
+  function etapasPedido(pedido) {
+    const respostas = { 1: "Sim", 0: "Não" };
+    const aceite = [
+      ["Aceito por:", escapar(pedido.nomeVoluntario || "Nome indisponível")],
+      ["Status atual:", escapar(pedido.status)],
+      ["Doação de material:", respostas[pedido.doacaoMaterial] ?? "Não informado"]
+    ];
+    return `<section class="etapas-pedido">
+      <h3>Pedido #${escapar(pedido.id)} · Produção pelo voluntário</h3>
+      <div class="row g-3">
+        ${tabelaEtapa("Aceito", aceite)}
+        ${tabelaEtapa("Impressão", AACD.conclusao.detalhes(pedido.conclusao), "Sem registro de conclusão.")}
+        ${tabelaEtapa("Envio da peça", AACD.envio.detalhes(pedido.envio), "Sem registro de envio.")}
+      </div>
+    </section>`;
   }
 
   function renderizar(destacarId = null) {
@@ -115,10 +140,10 @@
           </section>
           <section aria-label="Especificações">
             <h3>Especificações</h3>
-            <div data-especificacoes aria-live="polite">${especificacoes(d)}</div>
+            ${especificacoes(d)}
           </section>
-          <section aria-label="Entrega">
-            <h3>Entrega</h3>
+          <section aria-label="Entrega prevista">
+            <h3>Entrega prevista</h3>
             ${listaDescricao([
               ["Prazo:", formatarData(d.prazo)],
               ["Forma:", escapar(d.formaEntrega)],
@@ -127,6 +152,7 @@
               ["Instruções:", escapar(d.instrucoes)]
             ])}
           </section>
+          <div class="etapas-voluntario" data-etapas-voluntario aria-live="polite"></div>
         </div>
       </li>`;
     }).join("");
@@ -372,24 +398,15 @@
           alternarDetalhes(botao, "Detalhes");
           if (botao.getAttribute("aria-expanded") === "false") return;
 
-          const campo = item.querySelector("[data-especificacoes]");
+          const campo = item.querySelector("[data-etapas-voluntario]");
           if (campo.getAttribute("aria-busy") === "true") return;
           campo.setAttribute("aria-busy", "true");
-          campo.innerHTML = especificacoes(demanda, [["Pedido:", "Consultando…"]]);
+          campo.textContent = "Consultando pedidos…";
           try {
             const pedidos = await AACD.api.listarPedidosDaDemanda(demanda.id);
-            const respostas = { 1: "Sim", 0: "Não" };
-            const linhas = pedidos.flatMap(pedido => [
-              ["Pedido:", "#" + escapar(pedido.id)],
-              ["Aceito por:", escapar(pedido.nomeVoluntario || "Nome indisponível")],
-              ["Status do pedido:", escapar(pedido.status)],
-              ["Doação de material:", respostas[pedido.doacaoMaterial] ?? "Não informado"],
-              ...AACD.conclusao.detalhes(pedido.conclusao)
-            ]);
-            if (!linhas.length) linhas.push(["Pedido:", "Nenhum pedido vinculado"]);
-            campo.innerHTML = especificacoes(demanda, linhas);
+            campo.innerHTML = pedidos.length ? pedidos.map(etapasPedido).join("") : "Nenhum pedido vinculado.";
           } catch (erro) {
-            campo.innerHTML = especificacoes(demanda, [["Pedido:", escapar(erro.message)]]);
+            campo.textContent = erro.message;
           } finally {
             campo.removeAttribute("aria-busy");
           }

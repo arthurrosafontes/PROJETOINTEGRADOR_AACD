@@ -71,6 +71,7 @@ const classeStatus = {
           <span class="badge rounded-pill selo selo--${classeStatus[p.status] || ""}">${escapar(p.status)}</span>
         </p>
         <div class="cartao-item__acoes">
+          ${p.status === "Aguardando envio" ? '<button type="button" class="btn btn-primary botao" data-acao="envio">Registrar envio</button>' : ""}
           ${p.status === "Em produção" ? '<button type="button" class="btn btn-primary botao" data-acao="finalizar">Finalizar impressão</button>' : ""}
         ${p.status === "Aceito" ? `
   <button type="button"
@@ -90,6 +91,7 @@ const classeStatus = {
             ["Doação de material:", ({ 1: "Sim", 0: "Não" })[p.doacaoMaterial] ?? "Não informado"],
             ["Quantidade:", escapar(p.quantidade)],
             ...AACD.conclusao.detalhes(p.conclusao),
+            ...AACD.envio.detalhes(p.envio),
             ["Impressora:", escapar(p.impressora)],
             ["Início da produção:",
   p.dataInicioUTC
@@ -151,6 +153,17 @@ el.lista.addEventListener("click", async e => {
   const botao = e.target.closest("button[data-acao]");
   if (!botao) return;
 
+  if (botao.dataset.acao === "envio") {
+    const pedido = pedidos.find(p => String(p.id) === botao.closest(".cartao-item").dataset.id);
+    if (pedido && await AACD.envio.abrir(pedido)) {
+      pedido.status = "Aguardando validação";
+      mostrarToast("Envio registrado. O pedido aguarda validação pela AACD.");
+      try { pedidos = await AACD.api.listarPedidos(); }
+      catch { mostrarToast("Envio salvo. Reabra a lista para atualizar os detalhes.", true); }
+      selecionarStatus("Aguardando validação");
+    }
+    return;
+  }
   if (botao.dataset.acao === "finalizar") {
     const pedido = pedidos.find(p => String(p.id) === botao.closest(".cartao-item").dataset.id);
     if (pedido && await AACD.conclusao.abrir(pedido)) {

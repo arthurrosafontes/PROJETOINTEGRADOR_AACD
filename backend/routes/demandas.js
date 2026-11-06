@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../config/mysql');
 const { camposConclusao } = require('./conclusao');
+const { camposEnvio } = require('./envio');
 const { exigirAutenticacao, exigirPerfil } = require('../middleware/autenticacao');
 
 const router = express.Router();
@@ -12,36 +13,7 @@ const STATUS_EDITAVEIS = ['Aberta'];
 // Depois que a peça foi enviada para validação, a demanda não é mais cancelada por aqui
 const STATUS_CANCELAVEIS = ['Rascunho', 'Aberta', 'Aceita', 'Em produção'];
 
-// A rota de publicação guarda nome, paciente, entrega etc. no campo "observacoes",
-// uma informação por linha ("Rótulo: valor"). Aqui essas linhas viram campos.
-const ROTULOS_OBS = {
-  nome: 'Nome da demanda',
-  paciente: 'Paciente',
-  formaEntrega: 'Forma de entrega',
-  responsavel: 'Responsável',
-  instrucoes: 'Instruções',
-  observacoes: 'Observações'
-};
-
-function lerObservacoes(texto) {
-  const campos = {};
-  const linhas = String(texto || '').split('\n');
-  let atual = null;
-  for (const linha of linhas) {
-    const chave = Object.keys(ROTULOS_OBS).find(k => linha.startsWith(`${ROTULOS_OBS[k]}:`));
-    if (chave) {
-      atual = chave;
-      campos[chave] = linha.slice(ROTULOS_OBS[chave].length + 1).trim();
-    } else if (atual) {
-      campos[atual] += `\n${linha}`; // texto com quebra de linha continua no campo anterior
-    }
-  }
-  return campos;
-}
-
-function montarObservacoes(campos) {
-  return Object.keys(ROTULOS_OBS).map(k => `${ROTULOS_OBS[k]}: ${campos[k] || ''}`).join('\n');
-}
+const { lerObservacoes, montarObservacoes } = require('./observacoes-demanda');
 
 // DATE/DATETIME do MySQL chegam como Date; devolve "AAAA-MM-DD"
 function paraISO(valor) {
@@ -79,6 +51,7 @@ function formatarDemanda(d) {
     status: d.status === 'Em produção' && d.status_pedido === 'Aguardando envio'
       ? 'Aguardando envio' : d.status || '',
     conclusao: d.conclusao ?? null,
+    envio: d.envio ?? null,
     pedidoId: d.pedido_id ?? null,
     aceitoPor: d.aceito_por ?? null,
     // O nome da coluna de data de cadastro varia entre as versões do banco
@@ -97,7 +70,7 @@ async function buscarDemanda(id, conexao = pool) {
     `SELECT d.*, p.nome AS protese_nome, p.codigo AS protese_codigo,
             p.tipo AS protese_tipo, p.regiao_corpo AS protese_regiao,
             pp.id_pedido AS pedido_id, u.nome AS aceito_por, pp.status AS status_pedido,
-            ${camposConclusao}
+            ${camposConclusao}, ${camposEnvio}
        FROM demanda d
        LEFT JOIN protese p ON p.id_protese = d.id_protese
        LEFT JOIN pedido_producao pp ON pp.id_pedido = (
@@ -140,7 +113,7 @@ router.get('/:id/pedidos', ...somenteFuncionario, async (req, res) => {
     const [pedidos] = await pool.execute(
       `SELECT pp.id_pedido AS id,
               pp.doacao_material AS doacaoMaterial,
-              u.nome AS nomeVoluntario, pp.status, ${camposConclusao}
+              u.nome AS nomeVoluntario, pp.status, ${camposConclusao}, ${camposEnvio}
          FROM pedido_producao pp
          LEFT JOIN voluntario v ON v.id_voluntario = pp.id_voluntario
          LEFT JOIN usuario u ON u.id_usuario = v.id_usuario
