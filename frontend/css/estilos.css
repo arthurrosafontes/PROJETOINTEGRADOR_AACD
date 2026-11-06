@@ -1275,3 +1275,167 @@ h1, h2, h3, h4, h5, h6 { font-weight: 700; }
   .cartao-form__acoes { gap: 12px; }
   .cartao-item__extra dl { grid-template-columns: minmax(0, auto) minmax(0, 1fr); }
 }
+
+/* =========================================================
+   CONFIGURAÇÕES — tela (#tela-configuracoes) e preferências globais
+   As preferências são atributos no <html>, postos por js/preferencias.js:
+     data-contraste="alto"  data-movimento="reduzido"
+     --escala-fonte (tamanho da fonte)
+   O alto contraste vale só nas áreas logadas, para não
+   alterar a identidade visual das telas públicas (início, login, cadastro).
+   ========================================================= */
+
+:root { --teal-hover: #0f6b69; }
+
+/* Botões do Bootstrap e do projeto usam as variáveis de cor (o alto contraste as escurece) */
+.btn-primary, .btn-outline-primary {
+  --bs-btn-bg: var(--teal-escuro);
+  --bs-btn-border-color: var(--teal-escuro);
+  --bs-btn-hover-bg: var(--teal-hover);
+  --bs-btn-hover-border-color: var(--teal-hover);
+  --bs-btn-active-bg: var(--teal-hover);
+  --bs-btn-active-border-color: var(--teal-hover);
+  --bs-btn-disabled-bg: var(--teal-escuro);
+  --bs-btn-disabled-border-color: var(--teal-escuro);
+}
+.btn-outline-primary { --bs-btn-color: var(--teal-escuro); --bs-btn-bg: transparent; }
+.botao--primario:hover:not(:disabled) { background: var(--teal-hover); }
+.submenu.dropdown-menu { --bs-dropdown-link-active-bg: var(--teal-escuro); }
+
+/* ----- Tamanho da fonte (o projeto usa px, então ampliamos a tela inteira) ----- */
+.tela--app, .aacd-dialogo { zoom: var(--escala-fonte, 1); }
+
+/* ----- Reduzir animações ----- */
+html[data-movimento="reduzido"] { scroll-behavior: auto; }
+html[data-movimento="reduzido"] *,
+html[data-movimento="reduzido"] *::before,
+html[data-movimento="reduzido"] *::after {
+  animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important;
+  scroll-behavior: auto !important;
+}
+html[data-movimento="reduzido"] :is(.cartao-item, .atalhos a, .botao-aacd, .perfil a):hover { transform: none; }
+
+/* ----- Alto contraste (áreas logadas) ----- */
+html[data-contraste="alto"] body:is([data-area="voluntario"], [data-area="funcionario"]) {
+  --texto: #000;
+  --texto-suave: #1a1a1a;
+  --borda: #000;
+  --borda-forte: #000;
+  --placeholder: #333;
+  --teal-escuro: color-mix(in srgb, var(--teal) 55%, #000);
+  --teal-hover: color-mix(in srgb, var(--teal) 40%, #000);
+  --teal-titulo: color-mix(in srgb, var(--teal) 45%, #000);
+}
+html[data-contraste="alto"] body:is([data-area="voluntario"], [data-area="funcionario"]) :focus-visible {
+  outline: 4px solid var(--texto);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 8px var(--amarelo);
+}
+html[data-contraste="alto"] body:is([data-area="voluntario"], [data-area="funcionario"]) .tela--app a:not(.btn) { text-decoration: underline; }
+html[data-contraste="alto"] body:is([data-area="voluntario"], [data-area="funcionario"]) :is(.cartao-item, .atalhos a, .cfg-secao, .aba) { border-width: 2px; }
+
+/* ----- Tela de Configurações (uma coluna, blocos curtos) ----- */
+.cfg-form { display: flex; flex-direction: column; gap: 20px; }
+
+.cfg-secao {
+  padding: 20px 22px 8px;
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  background: var(--bs-body-bg, #fff);
+}
+/* Títulos bem marcados: leitura em "camadas" (layer-cake) */
+.cfg-secao h2 {
+  margin-bottom: 4px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--teal-claro);
+  font-size: 19px;
+  color: var(--teal-titulo);
+}
+
+/* Linha: texto à esquerda, controle à direita; a linha inteira é clicável (Fitts) */
+.cfg-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  width: 100%; min-height: 56px; padding: 12px 0;
+  border-top: 1px solid var(--borda);
+  text-align: left;
+  cursor: pointer;
+}
+.cfg-secao h2 + .cfg-item { border-top: none; }
+div.cfg-item { cursor: default; }
+.cfg-item__texto { display: flex; flex-direction: column; gap: 2px; }
+.cfg-item__texto strong { font-size: 16px; }
+.cfg-item__texto span { color: var(--texto-suave); font-size: 14px; }
+
+.cfg-item--link { margin-inline: -10px; padding-inline: 10px; width: calc(100% + 20px); border-radius: 8px; }
+.cfg-item--link:hover { background: var(--teal-claro); }
+.cfg-seta { font-size: 24px; color: var(--texto-suave); }
+
+/* Interruptor (toggle) — checkbox com role="switch" */
+.cfg-toggle {
+  appearance: none; -webkit-appearance: none;
+  position: relative; flex-shrink: 0;
+  width: 52px; height: 30px; margin: 0;
+  border: 2px solid var(--borda-forte); border-radius: 30px;
+  background: var(--borda-forte);
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+}
+.cfg-toggle::before {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+  transition: transform .2s;
+}
+.cfg-toggle:checked { background: var(--teal-escuro); border-color: var(--teal-escuro); }
+.cfg-toggle:checked::before { transform: translateX(22px); }
+/* Marca "I" quando ligado: o estado não depende só da cor */
+.cfg-toggle:checked::after { content: ""; position: absolute; top: 8px; left: 11px; width: 2px; height: 10px; border-radius: 1px; background: #fff; }
+.cfg-toggle:focus-visible { outline: 3px solid var(--amarelo); outline-offset: 2px; }
+
+
+/* Escolhas de tema e tamanho do texto: botões segmentados */
+.cfg-escolha { padding: 12px 0; border-top: 1px solid var(--borda); }
+.cfg-secao h2 + .cfg-escolha { border-top: none; }
+.cfg-escolha legend { margin-bottom: 10px; font-size: 16px; font-weight: 700; }
+.cfg-segmentos { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px; border-radius: 12px; background: var(--teal-claro); width: fit-content; max-width: 100%; }
+.cfg-segmentos label { position: relative; cursor: pointer; }
+.cfg-segmentos input { position: absolute; opacity: 0; pointer-events: none; }
+.cfg-segmentos span {
+  display: grid; place-items: center;
+  min-width: 96px; min-height: 44px; padding: 0 14px;
+  border-radius: 9px;
+  font-weight: 700; color: var(--teal-escuro);
+  transition: background .2s, color .2s;
+}
+.cfg-segmentos label:hover span { background: color-mix(in srgb, var(--teal) 18%, transparent); }
+.cfg-segmentos input:checked + span { background: var(--teal-escuro); color: #fff; }
+.cfg-segmentos input:checked + span::before { content: "✓ "; white-space: pre; } /* não depende só da cor */
+.cfg-segmentos input:focus-visible + span { outline: 3px solid var(--amarelo); outline-offset: 2px; }
+
+
+/* Conta: ações destrutivas no fim, em vermelho */
+.cfg-secao--perigo { border-color: color-mix(in srgb, var(--perigo) 45%, transparent); }
+.cfg-secao--perigo h2 { color: var(--perigo); border-bottom-color: var(--perigo-claro); }
+.cfg-acoes-conta { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 0 14px; }
+.cfg-acoes-conta .btn { min-height: 44px; min-width: 150px; font-weight: 700; }
+
+/* Diálogos de ajuda */
+.cfg-faq { display: flex; flex-direction: column; gap: 8px; }
+.cfg-faq details { border: 1px solid var(--borda); border-radius: 10px; padding: 0 14px; }
+.cfg-faq summary { padding: 12px 0; font-weight: 700; cursor: pointer; }
+.cfg-faq details[open] summary { color: var(--teal-escuro); }
+.cfg-faq details p { padding-bottom: 12px; line-height: 1.5; color: var(--texto-suave); }
+.cfg-texto-legal { max-height: 55vh; overflow-y: auto; margin-top: 12px; padding-right: 6px; line-height: 1.55; }
+.cfg-texto-legal h3 { margin: 14px 0 4px; font-size: 16px; color: var(--teal-titulo); }
+.cfg-texto-legal h3:first-child { margin-top: 0; }
+.cfg-texto-legal p { color: var(--texto-suave); }
+
+@media (max-width: 575.98px) {
+  .cfg-secao { padding: 16px 16px 6px; }
+  .cfg-segmentos { width: 100%; }
+  .cfg-segmentos label { flex: 1; }
+  .cfg-segmentos span { min-width: 0; }
+  .cfg-acoes-conta .btn { flex: 1; }
+}
