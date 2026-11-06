@@ -382,7 +382,9 @@
             const linhas = pedidos.flatMap(pedido => [
               ["Pedido:", "#" + escapar(pedido.id)],
               ["Aceito por:", escapar(pedido.nomeVoluntario || "Nome indisponível")],
-              ["Doação de material:", respostas[pedido.doacaoMaterial] ?? "Não informado"]
+              ["Status do pedido:", escapar(pedido.status)],
+              ["Doação de material:", respostas[pedido.doacaoMaterial] ?? "Não informado"],
+              ...AACD.conclusao.detalhes(pedido.conclusao)
             ]);
             if (!linhas.length) linhas.push(["Pedido:", "Nenhum pedido vinculado"]);
             campo.innerHTML = especificacoes(demanda, linhas);
