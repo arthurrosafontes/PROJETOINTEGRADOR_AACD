@@ -36,11 +36,11 @@
     el.lista.innerHTML = itens.map(i => {
       const id = escapar(i.id);
       return `
-      <li class="cartao-item cartao-item--grande ${String(i.id) === String(idDestaque) ? "atualizado" : ""}" data-id="${id}">
+      <li class="card cartao-item cartao-item--grande ${String(i.id) === String(idDestaque) ? "atualizado" : ""}" data-id="${id}">
         <article aria-labelledby="imp-titulo-${id}">
           <header class="cartao-item__titulo">
             <h2 id="imp-titulo-${id}">${escapar(i.modelo)}</h2>
-            <span class="selo selo--${escapar(i.tecnologia)}">${escapar(i.tecnologia)}</span>
+            <span class="badge rounded-pill selo selo--${escapar(i.tecnologia)}">${escapar(i.tecnologia)}</span>
             <span class="cartao-item__codigo">#${id}</span>
           </header>
           <p class="cartao-item__detalhes">
@@ -51,10 +51,10 @@
           </p>
         </article>
         <div class="cartao-item__acoes">
-          <button type="button" class="botao botao--secundario" data-acao="detalhes"
+          <button type="button" class="btn btn-outline-primary botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="imp-extra-${id}">Detalhes</button>
-          <button type="button" class="botao botao--escuro" data-acao="editar">Editar</button>
-          <button type="button" class="botao botao--perigo" data-acao="remover">Remover</button>
+          <button type="button" class="btn btn-primary botao botao--escuro" data-acao="editar">Editar</button>
+          <button type="button" class="btn btn-outline-danger botao botao--perigo" data-acao="remover">Remover</button>
         </div>
         <div class="cartao-item__extra" id="imp-extra-${id}" hidden>
           ${listaDescricao([

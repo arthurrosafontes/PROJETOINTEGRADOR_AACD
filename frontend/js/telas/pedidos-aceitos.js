@@ -54,7 +54,7 @@ const classeStatus = {
       const id = escapar(p.id);
       // "Aceitar" e "Recusar" só aparecem nos pedidos pendentes
       return `
-      <li class="cartao-item cartao-item--tres cartao-item--grande" data-id="${id}">
+      <li class="card cartao-item cartao-item--tres cartao-item--grande" data-id="${id}">
         <article aria-labelledby="pa-titulo-${id}">
           <h2 class="cartao-item__titulo" id="pa-titulo-${id}">Pedido #${id}</h2>
           <p class="cartao-item__subtitulo">${escapar(p.produto)} · ${escapar(p.categoria)}</p>
@@ -68,17 +68,17 @@ const classeStatus = {
       : formatarData(p.aceito_em)}
   </time>
 </span>
-          <span class="selo selo--${classeStatus[p.status] || ""}">${escapar(p.status)}</span>
+          <span class="badge rounded-pill selo selo--${classeStatus[p.status] || ""}">${escapar(p.status)}</span>
         </p>
         <div class="cartao-item__acoes">
         ${p.status === "Aceito" ? `
   <button type="button"
-          class="botao botao--primario"
+          class="btn btn-primary botao botao--primario"
           data-acao="iniciar-producao">
     Iniciar produção
   </button>
 ` : ""}
-          <button type="button" class="botao botao--secundario" data-acao="detalhes"
+          <button type="button" class="btn btn-outline-primary botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="pa-extra-${id}">Ver detalhes</button>
         </div>
         <div class="cartao-item__extra" id="pa-extra-${id}" hidden>
@@ -107,7 +107,7 @@ const classeStatus = {
 ["Observações:", escapar(p.obs)],
 ["Arquivo 3D:", p.possuiArquivo3d
   ? `<button type="button"
-             class="botao botao--primario"
+             class="btn btn-primary botao botao--primario"
              data-acao="baixar-arquivo"
              data-id="${id}">
        Baixar arquivo 3D

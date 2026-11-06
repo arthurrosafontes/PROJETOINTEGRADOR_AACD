@@ -66,14 +66,11 @@ function formatarDataHora(utc) {
   const digitos = (valor) => String(valor).replace(/\D/g, "");
 
   // ===== Aviso rápido (toast) =====
-  let timerToast = null;
   function mostrarToast(mensagem, erro = false) {
     const toast = $("toast");
     toast.textContent = mensagem;
     toast.classList.toggle("erro", erro);
-    toast.classList.add("visivel");
-    clearTimeout(timerToast);
-    timerToast = setTimeout(() => toast.classList.remove("visivel"), 3000);
+    bootstrap.Toast.getOrCreateInstance(toast, { delay: 3000 }).show();
   }
 
   // ===== Confirmação (substitui o window.confirm) =====

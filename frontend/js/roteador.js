@@ -65,18 +65,14 @@ async function verificarAutenticacao() {
   }
 
   // ===== Barra de navegação =====
-  function fecharSubmenus(exceto = null) {
-    barra.querySelectorAll('.menu__botao[aria-expanded="true"]').forEach(botao => {
-      if (botao === exceto) return;
-      botao.setAttribute("aria-expanded", "false");
-      $(botao.getAttribute("aria-controls")).hidden = true;
+  function fecharSubmenus() {
+    barra.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(botao => {
+      bootstrap.Dropdown.getInstance(botao)?.hide();
     });
   }
 
   function fecharMenuCelular() {
-    menu.classList.remove("aberto");
-    botaoMenu.setAttribute("aria-expanded", "false");
-    botaoMenu.querySelector(".visualmente-oculto").textContent = "Abrir menu principal";
+    bootstrap.Collapse.getInstance(menu)?.hide();
   }
 
   function configurarBarra(area, caminho) {
@@ -107,35 +103,13 @@ async function verificarAutenticacao() {
   }
 
   function prepararBarra() {
-    // Abre/fecha submenus (padrão "disclosure": botão + lista)
-    barra.addEventListener("click", (e) => {
-      const botao = e.target.closest(".menu__botao");
-      if (!botao) return;
-      e.stopPropagation();
-      const abrir = botao.getAttribute("aria-expanded") !== "true";
-      fecharSubmenus(botao);
-      botao.setAttribute("aria-expanded", String(abrir));
-      $(botao.getAttribute("aria-controls")).hidden = !abrir;
-    });
-
-    // Clique fora ou tecla Esc fecham os submenus
-    document.addEventListener("click", (e) => {
-      if (!barra.contains(e.target)) { fecharSubmenus(); fecharMenuCelular(); }
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key !== "Escape") return;
-      const aberto = barra.querySelector('.menu__botao[aria-expanded="true"]');
-      if (aberto) { fecharSubmenus(); aberto.focus(); }
-    });
-
-    // Menu do celular
-    botaoMenu.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const abrir = !menu.classList.contains("aberto");
-      menu.classList.toggle("aberto", abrir);
-      botaoMenu.setAttribute("aria-expanded", String(abrir));
-      botaoMenu.querySelector(".visualmente-oculto").textContent = abrir ? "Fechar menu principal" : "Abrir menu principal";
-    });
+    // Bootstrap gerencia foco, Escape, clique fora e o estado expandido.
+    const atualizarRotuloMenu = () => {
+      botaoMenu.querySelector(".visualmente-oculto").textContent = menu.classList.contains("show")
+        ? "Fechar menu principal" : "Abrir menu principal";
+    };
+    menu.addEventListener("shown.bs.collapse", atualizarRotuloMenu);
+    menu.addEventListener("hidden.bs.collapse", atualizarRotuloMenu);
 
     // Sair: encerra a sessão no servidor (se ele estiver no ar) e volta ao início
     $("botao-sair").addEventListener("click", async () => {

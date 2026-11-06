@@ -43,12 +43,12 @@
       const id = escapar(d.id);
       const status = classeStatus(d.status);
       return `
-      <li class="cartao-item cartao-item--faixa cartao-item--demanda-${status}" data-id="${id}">
+      <li class="card cartao-item cartao-item--faixa cartao-item--demanda-${status}" data-id="${id}">
         <article aria-labelledby="sp-titulo-${id}">
           <header class="cartao-item__titulo">
             <h2 id="sp-titulo-${id}">Demanda #${id} — ${escapar(d.protese || d.nome || "-")}</h2>
-            <span class="selo selo--st-${status}">${escapar(d.status) || "-"}</span>
-            ${d.prioridade ? `<span class="selo selo--${escapar(d.prioridade)}">${escapar(d.prioridade)}</span>` : ""}
+            <span class="badge rounded-pill selo selo--st-${status}">${escapar(d.status) || "-"}</span>
+            ${d.prioridade ? `<span class="badge rounded-pill selo selo--${escapar(d.prioridade)}">${escapar(d.prioridade)}</span>` : ""}
           </header>
           ${d.nome && d.protese ? `<p class="cartao-item__subtitulo">${escapar(d.nome)}</p>` : ""}
           <p class="cartao-item__detalhes">
@@ -71,10 +71,10 @@
 
   AACD.telas["tela-status-protese"] = {
     iniciar() {
-      el.busca = $("#sp-busca");
-      el.abas = $("#sp-abas");
-      el.lista = $("#sp-lista");
-      el.vazio = $("#sp-vazio");
+      el.busca = $("sp-busca");
+      el.abas = $("sp-abas");
+      el.lista = $("sp-lista");
+      el.vazio = $("sp-vazio");
 
       el.busca.addEventListener("input", renderizar);
       el.abas.addEventListener("click", (e) => {

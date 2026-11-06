@@ -1,5 +1,5 @@
 /* =========================================================
-   HUB AACD — folha de estilos única da SPA
+   HUB AACD — tema visual sobre Bootstrap 5.3.8
    Organização:
      1. Variáveis e base
      2. Utilitários
@@ -299,19 +299,14 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   font-weight: 700;
 }
 
-.passos {
-  counter-reset: passo;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 22px;
-}
-.passos li {
+.passos { counter-reset: passo; }
+.passos .passo-inicio {
   counter-increment: passo;
   background: #eef3f3;
   border-radius: 18px;
   padding: 26px 24px;
 }
-.passos li::before {
+.passos .passo-inicio::before {
   content: counter(passo);
   display: grid;
   place-items: center;
@@ -326,7 +321,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .passos h3 { font-size: 18px; margin-bottom: 8px; }
 .passos p { color: #555; line-height: 1.55; font-size: 15px; }
 
-.perfis { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+
 .perfil { border-radius: 18px; padding: 28px; color: var(--branco); }
 .perfil--vermelho { background: var(--vermelho); }
 .perfil--teal { background: var(--teal-escuro); }
@@ -514,8 +509,8 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .trilha .concluida button { color: var(--branco); text-decoration: underline; }
 .trilha [aria-current="step"] { background: var(--branco); color: #df2a40; font-weight: 600; }
 
-.tela--cadastro .grade { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 32px; }
-.tela--cadastro .grade--endereco { grid-template-columns: 1fr 2fr 1fr; }
+
+
 .tela--cadastro .campo { display: flex; flex-direction: column; }
 .tela--cadastro .campo--inteiro { grid-column: 1 / -1; }
 .tela--cadastro .campo--duplo { grid-column: span 2; }
@@ -580,7 +575,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .cabecalho-pagina--destaque h1 { text-transform: none; font-size: 30px; font-weight: 700; color: var(--teal-escuro); }
 .cabecalho-pagina--grande h1 { text-transform: none; font-size: 48px; color: #1d2430; }
 
-.atalhos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+
 .atalhos a {
   display: flex;
   flex-direction: column;
@@ -789,9 +784,9 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .passo > legend + *, .passo > h2 + * { clear: both; }
 .legenda { margin: 0 0 14px; font-size: 15px; opacity: .92; }
 
-.cartao-form .grade { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 68px; }
+
 .cartao-form .grade--espaco { margin-top: 20px; }
-.cartao-form .grade--tres { grid-template-columns: repeat(3, 1fr); }
+
 .cartao-form .campo { display: flex; flex-direction: column; }
 .cartao-form .campo--inteiro { grid-column: 1 / -1; }
 .campo-par { display: grid; grid-template-columns: 1fr 90px; gap: 12px; }
@@ -907,7 +902,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 /* Variante grande (Nova demanda) */
 .cartao-form--grande { padding: 44px 46px 46px; border-radius: 28px; background: #167f7e; }
 .cartao-form--grande .passo > legend { font-size: 34px; margin-bottom: 34px; }
-.cartao-form--grande .grade { gap: 26px 70px; }
+
 .cartao-form--grande .campo > label,
 .cartao-form--grande .campo > legend { margin-bottom: 8px; padding-left: 6px; font-size: 15px; font-weight: 700; }
 .cartao-form--grande input:not([type="checkbox"]),
@@ -958,7 +953,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .duplo > span { font-size: 16px; font-weight: 700; }
 
 /* ===== 9. MODAIS, AVISO E TELAS DE AVISO ===== */
-.modal {
+.aacd-dialogo {
   width: min(560px, calc(100% - 32px));
   max-height: calc(100vh - 32px);
   margin: auto;
@@ -969,9 +964,9 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   font-family: var(--fonte-app);
   box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
 }
-/* O Bootstrap também tem uma classe .modal (display: none, tela cheia).
+/* O Bootstrap também tem uma classe .aacd-dialogo (display: none, tela cheia).
    Aqui ela é um <dialog> nativo, então desfazemos o que o Bootstrap aplica. */
-.modal {
+.aacd-dialogo {
   position: fixed;
   inset: 0;
   display: none;
@@ -980,21 +975,21 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   overflow: auto;
   background: var(--branco);
 }
-.modal[open] { display: block; }
-.modal::backdrop { background: rgba(0, 0, 0, .45); }
-.modal[open] { animation: aparecer .2s ease; }
+.aacd-dialogo[open] { display: block; }
+.aacd-dialogo::backdrop { background: rgba(0, 0, 0, .45); }
+.aacd-dialogo[open] { animation: aparecer .2s ease; }
 .modal--confirmacao { width: min(420px, calc(100% - 32px)); }
 .modal__form { padding: 22px 24px 20px; }
 .modal__cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.modal h2 { font-size: 21px; }
+.aacd-dialogo h2 { font-size: 21px; }
 .modal--confirmacao p { margin: 12px 0 4px; line-height: 1.5; white-space: pre-line; }
 .modal__fechar { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--texto-suave); font-size: 18px; }
 .modal__fechar:hover { background: var(--teal-claro); color: var(--teal-escuro); }
 .modal__sub { margin: 2px 0 18px; font-size: 14px; color: var(--texto-suave); }
-.modal__campos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.modal .campo { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 700; }
-.modal .campo--inteiro { grid-column: 1 / -1; }
-.modal input, .modal select, .modal textarea {
+
+.aacd-dialogo .campo { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 700; }
+.aacd-dialogo .campo--inteiro { grid-column: 1 / -1; }
+.aacd-dialogo input, .aacd-dialogo select, .aacd-dialogo textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--borda-forte);
@@ -1003,35 +998,28 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   font-size: 15px;
   font-weight: 400;
 }
-.modal textarea { resize: vertical; }
-.modal input:focus, .modal select:focus, .modal textarea:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-claro); }
-.modal input:disabled { background: #f3f5f5; color: #999; }
-.modal [aria-invalid="true"] { border-color: var(--perigo); box-shadow: 0 0 0 3px var(--perigo-claro); }
-.modal abbr { text-decoration: none; color: var(--perigo); }
+.aacd-dialogo textarea { resize: vertical; }
+.aacd-dialogo input:focus, .aacd-dialogo select:focus, .aacd-dialogo textarea:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-claro); }
+.aacd-dialogo input:disabled { background: #f3f5f5; color: #999; }
+.aacd-dialogo [aria-invalid="true"] { border-color: var(--perigo); box-shadow: 0 0 0 3px var(--perigo-claro); }
+.aacd-dialogo abbr { text-decoration: none; color: var(--perigo); }
 .modal__erro { margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: var(--perigo-claro); color: var(--perigo); font-size: 14px; }
 .modal__acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
 .toast {
   position: fixed;
-  left: 50%;
-  bottom: 24px;
-  z-index: 100;
+  left: 50%; bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 1090;
   width: max-content;
   max-width: calc(100% - 32px);
   padding: 12px 22px;
-  text-align: center;
-  border-radius: 8px;
-  background: var(--teal-escuro);
-  color: var(--branco);
+  border: 0; border-radius: 8px;
+  background: var(--teal-escuro); color: var(--branco);
   font-family: var(--fonte-app);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, .2);
-  visibility: hidden;
-  transform: translate(-50%, calc(100% + 40px));
-  transition: transform .3s, visibility 0s .3s;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,.2);
 }
-/* O Bootstrap esconde .toast sem a classe .show; aqui o controle é feito por .visivel */
-.toast, .toast:not(.show) { display: block; border: none; font-size: 1rem; pointer-events: auto; }
-.toast.visivel { visibility: visible; transform: translate(-50%, 0); transition: transform .3s; }
 .toast.erro { background: var(--perigo); }
 
 .tela--aviso { max-width: 640px; margin: 0 auto; padding: 120px 24px; text-align: center; }
@@ -1050,10 +1038,10 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 
 /* ===== 10. RESPONSIVO ===== */
 @media (max-width: 1000px) {
-  .passos { grid-template-columns: 1fr 1fr; }
+  
 }
 
-@media (max-width: 900px) {
+@media (max-width: 991.98px) {
   .barra { flex-wrap: wrap; gap: 12px; padding: 0 16px; }
   .barra__logo { margin-right: 0; }
   .barra__alternar-menu { display: block; order: 2; margin-left: auto; }
@@ -1068,7 +1056,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
     background: var(--teal);
     box-shadow: 0 10px 20px rgba(0, 0, 0, .12);
   }
-  .barra__menu:not(.aberto) { display: none; }
+  .barra__menu.collapse:not(.show) { display: none; }
   .menu { flex-direction: column; align-items: stretch; gap: 0; }
   .menu .submenu { position: static; box-shadow: none; animation: none; margin-bottom: 6px; }
   .tela--app { padding-top: 48px; }
@@ -1078,12 +1066,11 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 
 @media (max-width: 800px) {
   .cartao-cadastro { padding: 28px 20px; }
-  .tela--cadastro .grade,
-  .tela--cadastro .grade--endereco { grid-template-columns: 1fr; gap: 14px; }
+  
   .tela--cadastro .campo--duplo { grid-column: auto; }
   .tela--cadastro input, .tela--cadastro select, .botao-claro { height: 54px; font-size: 17px; }
   .marca-texto { display: none; }
-  .cartao-form .grade, .cartao-form .grade--tres, .revisao { grid-template-columns: 1fr; }
+  .revisao { grid-template-columns: 1fr; }
   .cartao-form--grande { padding: 28px 20px; }
   .cartao-form--grande .passo > legend { font-size: 26px; margin-bottom: 22px; }
   .cabecalho-pagina--grande h1 { font-size: 34px; }
@@ -1099,7 +1086,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   .inicio-hero__logo img { height: 44px; }
   .inicio-hero h1 { font-size: 30px; }
   .inicio-conteudo { padding: 48px 16px 24px; }
-  .passos, .perfis, .comparacao { grid-template-columns: 1fr; }
+  .comparacao { grid-template-columns: 1fr; }
   .comparacao__seta { justify-self: center; transform: rotate(90deg); }
   .inicio-rodape { padding: 22px 16px 28px; }
 }
@@ -1122,7 +1109,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   .cartao-form__acoes { flex-wrap: wrap; }
   .cartao-form__acoes-direita, .cartao-form__acoes-direita .botao-form { width: 100%; }
   .cartao-form--grande .botao-form { min-width: 0; height: 56px; font-size: 17px; }
-  .modal__campos { grid-template-columns: 1fr 1fr; }
+  
 }
 
 /* ==========================================
@@ -1219,3 +1206,71 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 #tela-meu-perfil dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; max-width: 420px; margin: 0 auto; }
 #tela-meu-perfil dt { color: var(--texto-suave); }
 #tela-meu-perfil dd { font-weight: 700; word-break: break-word; }
+
+/* Bootstrap fornece grade, controles, botões e plugins; este tema preserva a AACD. */
+:root {
+  --bs-primary: #138482;
+  --bs-primary-rgb: 19, 132, 130;
+  --bs-body-font-family: var(--fonte-app);
+  --bs-body-color: var(--texto);
+  --bs-border-color: var(--borda);
+  --bs-link-color: var(--teal-escuro);
+}
+.btn-primary, .btn-outline-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: #138482;
+  --bs-btn-border-color: #138482;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #0f6b69;
+  --bs-btn-hover-border-color: #0f6b69;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #0f6b69;
+  --bs-btn-active-border-color: #0f6b69;
+  --bs-btn-disabled-bg: #138482;
+  --bs-btn-disabled-border-color: #138482;
+  --bs-btn-focus-shadow-rgb: 19, 132, 130;
+}
+.btn-outline-primary { --bs-btn-color: #138482; --bs-btn-bg: transparent; }
+.btn { font-family: inherit; }
+h1, h2, h3, h4, h5, h6 { font-weight: 700; }
+.perfil.card > a { align-self: flex-start; }
+.card { --bs-card-border-width: 0; --bs-card-color: inherit; }
+.grade.row, .modal__campos.row { --bs-gutter-x: 1.75rem; --bs-gutter-y: 1rem; }
+.cartao-form .grade.row { --bs-gutter-x: 3rem; }
+.cartao-cadastro .grade.row { --bs-gutter-x: 2rem; --bs-gutter-y: 1.75rem; }
+.grade.row > *, .modal__campos.row > * { min-width: 0; }
+.campo--inteiro { width: 100%; }
+.perfis.row, .passos.row, .atalhos.row { padding-left: 0; }
+.passo-inicio { height: 100%; }
+.form-select { padding-right: 2.5rem !important; }
+.form-check-input:checked { background-color: var(--teal-escuro); border-color: var(--teal-escuro); }
+.form-check-input:focus { border-color: var(--teal); box-shadow: 0 0 0 .25rem rgba(28,176,176,.2); }
+.form-label { font-weight: inherit; }
+.barra.navbar { --bs-navbar-brand-padding-y: 0; --bs-navbar-padding-y: 0; }
+.barra__logo.navbar-brand { margin-bottom: 0; }
+.barra__menu.navbar-collapse { flex-grow: 1; }
+.menu.navbar-nav { margin-bottom: 0; padding-left: 0; }
+.dropdown-toggle::after { border: 0; margin-left: 0; vertical-align: baseline; }
+.submenu.dropdown-menu { --bs-dropdown-border-width: 0; --bs-dropdown-link-active-bg: var(--teal-escuro); }
+.submenu .dropdown-item { white-space: normal; }
+.usuario .dropdown-menu { max-width: calc(100vw - 32px); }
+.navbar-toggler:focus { box-shadow: 0 0 0 3px var(--amarelo); }
+.aacd-dialogo { overflow-y: auto; }
+.aacd-dialogo:not([open]) { display: none; }
+.aacd-dialogo .row { margin-bottom: 0; }
+.cartao-item.card { display: grid; }
+.perfil.card { color: var(--branco); }
+@media (min-width: 992px) {
+  .barra__menu.navbar-collapse { flex-basis: auto; }
+  .barra__alternar-menu { display: none; }
+}
+@media (max-width: 991.98px) {
+  .barra__menu.navbar-collapse { flex-basis: 100%; z-index: 30; }
+  .menu.navbar-nav { align-items: stretch; }
+  .barra .usuario { flex-shrink: 0; }
+}
+@media (max-width: 767.98px) {
+  .grade.row, .cartao-form .grade.row, .cartao-cadastro .grade.row { --bs-gutter-x: 1.25rem; --bs-gutter-y: 1rem; }
+  .cartao-form__acoes { gap: 12px; }
+  .cartao-item__extra dl { grid-template-columns: minmax(0, auto) minmax(0, 1fr); }
+}

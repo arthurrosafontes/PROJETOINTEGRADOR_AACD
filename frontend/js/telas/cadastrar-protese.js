@@ -92,7 +92,7 @@
       <section class="revisao__bloco" aria-label="${titulo}">
         <header>
           <h3>${titulo}</h3>
-          <button type="button" data-ir="${etapa}">Editar<span class="visualmente-oculto"> ${titulo.toLowerCase()}</span></button>
+          <button type="button" data-ir="${etapa}">Editar<span class="visually-hidden visualmente-oculto"> ${titulo.toLowerCase()}</span></button>
         </header>
         <dl>${pares.map(([r, v]) => `<dt>${r}</dt><dd>${v ? escapar(v) : "—"}</dd>`).join("")}</dl>
       </section>`;
