@@ -712,6 +712,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .selo--Normal { background: var(--teal-escuro); color: var(--branco); }
 .selo--Urgente { background: #8e1020; color: var(--branco); }
 .selo--st-rascunho, .selo--st-cancelada { background: #eceff0; color: #4f5757; }
+.selo--st-aceita { background: #fff3cd; color: #664d03; }
 .selo--st-aberta { background: var(--teal-claro); color: var(--teal-escuro); }
 .selo--st-em-producao { background: var(--producao-fundo); color: var(--producao-texto); }
 .selo--st-aguardando-validacao { background: var(--pendente-fundo); color: var(--pendente-texto); }

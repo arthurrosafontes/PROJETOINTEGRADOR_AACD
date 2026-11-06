@@ -11,10 +11,13 @@
   // Mesmas regras do backend (backend/routes/demandas.js)
   // Só "Aberta" edita; nos outros status o botão é "Adicionar observação"
   const STATUS_EDITAVEIS = ["Aberta"];
-  const STATUS_CANCELAVEIS = ["Rascunho", "Aberta", "Em produção"];
+  const STATUS_CANCELAVEIS = ["Rascunho", "Aberta", "Aceita", "Em produção"];
   const PESO_PRIORIDADE = { Urgente: 4, Alta: 3, Normal: 2, Baixa: 1 };
 
   let demandas = [];
+  let ciclo = 0;
+  let intervalo;
+  let consultaEmCurso;
   let idEmEdicao = null;
   let idObservacao = null;
   const el = {};
@@ -50,6 +53,19 @@
     return resultado;
   }
 
+  function especificacoes(d, dadosDosPedidos = []) {
+    return listaDescricao([
+      ["Quantidade:", escapar(unidades(d.quantidade))],
+      ["Material:", escapar(d.material)],
+      ...dadosDosPedidos,
+      ["Bico:", escapar(medida(d.bico, "mm"))],
+      ["Dimensões:", [d.largura, d.profundidade, d.altura].every(v => v !== null && v !== undefined)
+        ? escapar(`${d.largura} × ${d.profundidade} × ${d.altura} mm`) : ""],
+      ["Tempo estimado:", escapar(medida(d.tempoHoras, "h"))],
+      ["Observações:", escapar(d.observacoes)]
+    ]);
+  }
+
   function renderizar(destacarId = null) {
     const itens = filtrar();
     el.lista.innerHTML = itens.map(d => {
@@ -67,6 +83,9 @@
           </header>
           <p class="cartao-item__subtitulo">${escapar(d.nome)}</p>
           <p class="cartao-item__detalhes">
+            ${d.pedidoId != null ? `<span>Pedido: <strong>#${escapar(d.pedidoId)}</strong></span>
+            <span>Aceito por: <strong>${escapar(d.aceitoPor || "Nome indisponível")}</strong></span>`
+              : d.status === "Aberta" ? "<span>Aguardando aceite</span>" : ""}
             <span>Prótese: <strong>${escapar(d.protese) || "-"}</strong></span>
             <span>Quantidade: <strong>${escapar(unidades(d.quantidade))}</strong></span>
             <span>Material: <strong>${escapar(d.material) || "-"}</strong></span>
@@ -96,15 +115,7 @@
           </section>
           <section aria-label="Especificações">
             <h3>Especificações</h3>
-            ${listaDescricao([
-              ["Quantidade:", escapar(unidades(d.quantidade))],
-              ["Material:", escapar(d.material)],
-              ["Bico:", escapar(medida(d.bico, "mm"))],
-              ["Dimensões:", [d.largura, d.profundidade, d.altura].every(v => v !== null && v !== undefined)
-                ? escapar(`${d.largura} × ${d.profundidade} × ${d.altura} mm`) : ""],
-              ["Tempo estimado:", escapar(medida(d.tempoHoras, "h"))],
-              ["Observações:", escapar(d.observacoes)]
-            ])}
+            <div data-especificacoes aria-live="polite">${especificacoes(d)}</div>
           </section>
           <section aria-label="Entrega">
             <h3>Entrega</h3>
@@ -284,6 +295,39 @@
     }
   }
 
+  async function atualizarLista(inicial = false) {
+    const versao = ciclo;
+    if (consultaEmCurso === versao) return;
+    consultaEmCurso = versao;
+    try {
+      const novas = await AACD.api.listarDemandas();
+      if (versao !== ciclo) return;
+      if (!inicial && JSON.stringify(novas) === JSON.stringify(demandas)) return;
+      const abertos = Array.from(el.lista.querySelectorAll('[data-acao="detalhes"][aria-expanded="true"]'),
+        botao => botao.closest(".cartao-item").dataset.id);
+      demandas = novas;
+      renderizar();
+      for (const botao of el.lista.querySelectorAll('[data-acao="detalhes"]')) {
+        if (abertos.includes(botao.closest(".cartao-item").dataset.id)) botao.click();
+      }
+    } catch {
+      if (inicial && versao === ciclo) {
+        demandas = [];
+        el.lista.replaceChildren();
+        el.contador.textContent = "";
+        el.vazio.textContent = "Erro ao carregar as demandas. Verifique se o backend está rodando.";
+        el.vazio.classList.add("vazio--erro");
+        el.vazio.hidden = false;
+      }
+    } finally {
+      if (consultaEmCurso === versao) consultaEmCurso = undefined;
+    }
+  }
+
+  function atualizarSeVisivel() {
+    if (!document.hidden) atualizarLista();
+  }
+
   AACD.telas["tela-lista-demandas"] = {
     iniciar() {
       el.lista = $("ldem-lista");
@@ -317,14 +361,38 @@
       el.obsModal.addEventListener("click", e => { if (e.target === el.obsModal) el.obsModal.close(); });
       el.obsModal.addEventListener("close", () => { idObservacao = null; });
 
-      el.lista.addEventListener("click", e => {
+      el.lista.addEventListener("click", async (e) => {
         const botao = e.target.closest("button[data-acao]");
         if (!botao) return;
         const item = botao.closest(".cartao-item");
         const demanda = demandas.find(d => String(d.id) === item.dataset.id);
         if (!demanda) return;
 
-        if (botao.dataset.acao === "detalhes") alternarDetalhes(botao, "Detalhes");
+        if (botao.dataset.acao === "detalhes") {
+          alternarDetalhes(botao, "Detalhes");
+          if (botao.getAttribute("aria-expanded") === "false") return;
+
+          const campo = item.querySelector("[data-especificacoes]");
+          if (campo.getAttribute("aria-busy") === "true") return;
+          campo.setAttribute("aria-busy", "true");
+          campo.innerHTML = especificacoes(demanda, [["Pedido:", "Consultando…"]]);
+          try {
+            const pedidos = await AACD.api.listarPedidosDaDemanda(demanda.id);
+            const respostas = { 1: "Sim", 0: "Não" };
+            const linhas = pedidos.flatMap(pedido => [
+              ["Pedido:", "#" + escapar(pedido.id)],
+              ["Aceito por:", escapar(pedido.nomeVoluntario || "Nome indisponível")],
+              ["Doação de material:", respostas[pedido.doacaoMaterial] ?? "Não informado"]
+            ]);
+            if (!linhas.length) linhas.push(["Pedido:", "Nenhum pedido vinculado"]);
+            campo.innerHTML = especificacoes(demanda, linhas);
+          } catch (erro) {
+            campo.innerHTML = especificacoes(demanda, [["Pedido:", escapar(erro.message)]]);
+          } finally {
+            campo.removeAttribute("aria-busy");
+          }
+          return;
+        }
         if (botao.dataset.acao === "editar") abrirModal(demanda);
         if (botao.dataset.acao === "observacao") abrirObservacao(demanda);
         if (botao.dataset.acao === "cancelar") cancelar(botao, item, demanda);
@@ -332,22 +400,21 @@
     },
 
     async aoEntrar() {
+      ciclo++;
+      clearInterval(intervalo);
       el.contador.textContent = "Carregando demandas...";
-      try {
-        demandas = await AACD.api.listarDemandas();
-        renderizar();
-      } catch {
-        demandas = [];
-        el.lista.innerHTML = "";
-        el.contador.textContent = "";
-        el.vazio.textContent = "Erro ao carregar as demandas. Verifique se o backend está rodando.";
-        el.vazio.classList.add("vazio--erro");
-        el.vazio.hidden = false;
-      }
+      intervalo = setInterval(atualizarSeVisivel, 10000);
+      document.addEventListener("visibilitychange", atualizarSeVisivel);
+      window.addEventListener("focus", atualizarSeVisivel);
+      await atualizarLista(true);
     },
 
     // Ao sair da tela, o modal não pode ficar aberto
     aoSair() {
+      ciclo++;
+      clearInterval(intervalo);
+      document.removeEventListener("visibilitychange", atualizarSeVisivel);
+      window.removeEventListener("focus", atualizarSeVisivel);
       if (el.modal && el.modal.open) fecharModal();
       if (el.obsModal && el.obsModal.open) el.obsModal.close();
     }

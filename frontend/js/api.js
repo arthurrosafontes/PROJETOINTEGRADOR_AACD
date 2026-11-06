@@ -202,10 +202,17 @@ aceitarDisponivel: (id, idImpressora, doacaoMaterial) =>
       comCookie: true,
       erroPadrao: "Não foi possível carregar as demandas."
     }),
+    listarPedidosDaDemanda: (idDemanda) =>
+      requisitar(`/funcionario/demandas/${encodeURIComponent(idDemanda)}/pedidos`, {
+        comCookie: true,
+        erroPadrao: "Não foi possível consultar a doação de material."
+      }),
+
     atualizarDemanda: (id, campos) => requisitar(`/funcionario/demandas/${encodeURIComponent(id)}`, {
       metodo: "PUT", corpo: campos, comCookie: true,
       erroPadrao: "Não foi possível salvar as alterações da demanda."
     }),
+    
     adicionarObservacaoDemanda: (id, texto) => requisitar(`/funcionario/demandas/${encodeURIComponent(id)}/observacoes`, {
       metodo: "POST", corpo: { texto }, comCookie: true,
       erroPadrao: "Não foi possível adicionar a observação."
