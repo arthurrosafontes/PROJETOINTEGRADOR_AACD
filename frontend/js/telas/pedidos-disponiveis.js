@@ -148,7 +148,7 @@ function obterDialogo() {
     dialogo.querySelector("#pd-form-impressora").reset();
     const seletor = dialogo.querySelector("#pd-dialogo-select");
     const resumo = dialogo.querySelector("#pd-dialogo-resumo");
-    resumo.textContent = `Pedido #${pedido.id} — ${pedido.peca} (${pedido.material}; ${pedido.quantidade} unidade(s))`;
+    resumo.textContent = `Demanda #${pedido.id} — ${pedido.peca} (${pedido.material}; ${pedido.quantidade} unidade(s))`;
     seletor.replaceChildren(new Option("Selecione uma impressora", ""));
 
     impressoras.forEach(i => {
@@ -217,7 +217,7 @@ const escolha = await escolherImpressora(pedido);
 if (!escolha) return;
         botao.textContent = "Aceitando...";
         // Passo seguinte: implementar essa rota no backend com transação MySQL.
-        await AACD.api.aceitarDisponivel(
+        const aceite = await AACD.api.aceitarDisponivel(
   id,
   escolha.idImpressora,
   escolha.doacaoMaterial
@@ -226,7 +226,7 @@ if (!escolha) return;
         setTimeout(() => {
           pedidos = pedidos.filter(p => String(p.id) !== id);
           renderizar();
-          mostrarToast(`Pedido #${id} aceito! Veja em "Pedidos aceitos".`);
+          mostrarToast(`Demanda #${aceite.id_demanda} aceita. Pedido #${aceite.id_pedido} criado.`);
         }, 300);
       } catch (erro) {
         mostrarToast(erro.message, true);

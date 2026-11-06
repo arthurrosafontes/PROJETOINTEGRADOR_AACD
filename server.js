@@ -13,6 +13,7 @@ const voluntariosRoutes = require('./backend/routes/voluntarios');
 const authRoutes = require('./backend/routes/auth');
 const { exigirAutenticacao, exigirPerfil } = require('./backend/middleware/autenticacao');
 const pool = require('./backend/config/mysql');
+const conclusao = require('./backend/routes/conclusao');
 
 const app = express();
 app.use(express.json());
@@ -25,6 +26,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(cookieParser());
+app.use('/api/pedidos', conclusao.router);
 
 conectarBanco();
 app.use('/api/voluntarios', voluntariosRoutes);
@@ -397,6 +399,10 @@ app.post(
   async (req, res) => {
     const d = req.body || {};
 
+    const chavePublicacao = d.chavePublicacao ?? null;
+    if (chavePublicacao !== null && !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(chavePublicacao)) {
+      return res.status(400).json({ erro: 'Identificador de publicação inválido.' });
+    }
     const idProtese = Number(d.proteseId);
     const quantidade = Number(d.quantidade);
     const impressao = d.impressao || {};
@@ -548,8 +554,9 @@ app.post(
           prioridade,
           status,
           local_entrega,
-          observacoes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          observacoes,
+          chave_publicacao
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           idFuncionario,
           idProtese,
@@ -564,7 +571,8 @@ app.post(
           d.prioridade,
           'Aberta',
           localEntrega || null,
-          observacoes
+          observacoes,
+          chavePublicacao
         ]
       );
 
@@ -587,6 +595,13 @@ app.post(
     } catch (erro) {
       if (conexao) await conexao.rollback();
 
+      if (erro.code === 'ER_DUP_ENTRY' && chavePublicacao) {
+        const [anteriores] = await conexao.execute(
+          'SELECT id_demanda FROM demanda WHERE id_funcionario = ? AND chave_publicacao = ?',
+          [req.usuario.id_funcionario, chavePublicacao]
+        );
+        if (anteriores.length) return res.status(200).json({ id_demanda: anteriores[0].id_demanda });
+      }
       console.error('Erro ao publicar demanda:', erro);
 
       return res.status(500).json({
@@ -774,7 +789,7 @@ if (typeof doacaoMaterial !== 'boolean') {
     // Atualizar status da demanda
     await conexao.execute(
       `UPDATE demanda
-       SET status = 'Em produção'
+       SET status = 'Aceita'
        WHERE id_demanda = ?`,
       [idDemanda]
     );
@@ -831,7 +846,8 @@ const [linhas] = await pool.execute(
     pp.id_demanda AS demandaId,
     pp.id_impressora_mongo AS impressoraId,
     pp.quantidade_atribuida AS quantidade,
-    pp.status,
+    pp.doacao_material AS doacaoMaterial, 
+    pp.status, ${conclusao.camposConclusao},
     DATE_FORMAT(pp.data_aceite, '%Y-%m-%d') AS aceito_em,
     DATE_FORMAT(pp.data_aceite, '%Y-%m-%dT%H:%i:%sZ') AS dataAceiteUTC,
     DATE_FORMAT(pp.data_inicio, '%Y-%m-%dT%H:%i:%sZ') AS dataInicioUTC,
@@ -900,10 +916,12 @@ const pedidos = linhas.map(p => ({
   categoria: p.categoria,
   material: p.material,
   quantidade: p.quantidade,
+  doacaoMaterial: p.doacaoMaterial,
   status: p.status,
   aceito_em: p.aceito_em,
   dataAceiteUTC: p.dataAceiteUTC,
   dataInicioUTC: p.dataInicioUTC,
+  conclusao: p.conclusao,
   prazo: p.prazo,
   obs: p.obs || '',
 
@@ -1017,12 +1035,11 @@ app.patch('/api/pedidos/:id/iniciar', ...somenteVoluntario, async (req, res) => 
 
   try {
     const [resultado] = await pool.execute(
-      `UPDATE pedido_producao
-       SET status = 'Em produção',
-           data_inicio = NOW()
-       WHERE id_pedido = ?
-         AND id_voluntario = ?
-         AND status = 'Aceito'`,
+      `UPDATE pedido_producao pp
+       INNER JOIN demanda d ON d.id_demanda = pp.id_demanda
+       SET pp.status = 'Em produção', pp.data_inicio = NOW(), d.status = 'Em produção'
+       WHERE pp.id_pedido = ? AND pp.id_voluntario = ?
+         AND pp.status = 'Aceito' AND d.status = 'Aceita'`,
       [idPedido, idVoluntario]
     );
 

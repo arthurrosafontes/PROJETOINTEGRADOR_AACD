@@ -9,11 +9,14 @@
 (() => {
   const { $, escapar, formatarData, mostrarToast } = AACD.util;
 
-  const STATUS = ["Em produção", "Aguardando validação", "Concluída"];
+  const STATUS = ["Em produção", "Aguardando envio", "Aguardando validação", "Concluída"];
 
   let demandas = [];
   let statusSelecionado = "todos";
   const el = {};
+  let intervalo;
+  let visita = 0;
+  let carregando;
 
   // "Aguardando validação" -> "aguardando-validacao" (para usar como classe CSS)
   const classeStatus = (status) => String(status || "").normalize("NFD")
@@ -39,6 +42,7 @@
 
   function renderizar() {
     const itens = filtrar();
+    const abertos = new Set(Array.from(el.lista.querySelectorAll("details[open]"), d => d.closest("li").dataset.id));
     el.lista.innerHTML = itens.map(d => {
       const id = escapar(d.id);
       const status = classeStatus(d.status);
@@ -58,6 +62,14 @@
             <span>Prazo: <strong>${d.prazo ? `<time datetime="${escapar(d.prazo)}">${formatarData(d.prazo)}</time>` : "-"}</strong></span>
           </p>
         </article>
+        ${d.conclusao ? `<details class="cartao-item__extra" ${abertos.has(id) ? "open" : ""}>
+          <summary>Ver conclusão da impressão</summary>
+          ${AACD.util.listaDescricao([
+            ["Pedido:", "#" + escapar(d.pedidoId)],
+            ["Voluntário:", escapar(d.aceitoPor)],
+            ...AACD.conclusao.detalhes(d.conclusao)
+          ])}
+        </details>` : ""}
       </li>`;
     }).join("");
     el.vazio.hidden = itens.length > 0;
@@ -67,6 +79,31 @@
     statusSelecionado = botao.dataset.status;
     el.abas.querySelectorAll(".aba").forEach(b => b.setAttribute("aria-pressed", String(b === botao)));
     renderizar();
+  }
+
+  async function atualizar(inicial = false) {
+    const atual = visita;
+    if (carregando === atual) return;
+    carregando = atual;
+    try {
+      const todas = await AACD.api.listarDemandas();
+      if (atual !== visita) return;
+      const novas = todas.filter(d => STATUS.includes(d.status));
+      if (!inicial && JSON.stringify(novas) === JSON.stringify(demandas)) return;
+      demandas = novas;
+      atualizarContadores();
+      renderizar();
+    } catch (erro) {
+      if (inicial && atual === visita) {
+        demandas = [];
+        atualizarContadores();
+        renderizar();
+        mostrarToast(erro.message, true);
+      }
+    } finally { if (carregando === atual) carregando = undefined; }
+  }
+  function atualizarSeVisivel() {
+    if (!document.hidden) atualizar();
   }
 
   AACD.telas["tela-status-protese"] = {
@@ -84,15 +121,16 @@
     },
 
     async aoEntrar() {
-      try {
-        const todas = await AACD.api.listarDemandas();
-        demandas = todas.filter(d => STATUS.includes(d.status));
-      } catch (erro) {
-        demandas = [];
-        mostrarToast(erro.message, true);
-      }
-      atualizarContadores();
-      renderizar();
+      visita++;
+      clearInterval(intervalo);
+      intervalo = setInterval(atualizarSeVisivel, 10000);
+      document.addEventListener("visibilitychange", atualizarSeVisivel);
+      await atualizar(true);
+    },
+    aoSair() {
+      visita++;
+      clearInterval(intervalo);
+      document.removeEventListener("visibilitychange", atualizarSeVisivel);
     }
   };
 })();
