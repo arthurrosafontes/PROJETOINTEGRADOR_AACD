@@ -20,6 +20,9 @@
 
   <script defer src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
+  <!-- Sem defer: aplica tema, fonte e contraste antes de a página aparecer -->
+  <script src="js/preferencias.js"></script>
+
   <script src="js/utilitarios.js" defer></script>
   <script src="js/api.js" defer></script>
   <script src="js/telas/acesso.js" defer></script>
@@ -37,6 +40,7 @@
   <script src="js/telas/cadastrar-protese.js" defer></script>
   <script src="js/telas/meu-perfil.js" defer></script>
   <script src="js/telas/status-protese.js" defer></script>
+  <script src="js/telas/configuracoes.js" defer></script>
   <script src="js/roteador.js" defer></script>
   
 </head>
@@ -131,7 +135,7 @@
       </button>
       <ul aria-labelledby="menu-bootstrap-6" class="submenu submenu--direita dropdown-menu dropdown-menu-end" id="sub-usuario">
         <li><a class="dropdown-item" href="#/voluntario/meu-perfil" data-link-area="meu-perfil">Meu perfil</a></li>
-        <li><a class="dropdown-item" href="#/voluntario/em-construcao" data-link-area="em-construcao">Configurações</a></li>
+        <li><a class="dropdown-item" href="#/voluntario/configuracoes" data-link-area="configuracoes">Configurações</a></li>
         <li><button class="dropdown-item" type="button" id="botao-sair">Sair</button></li>
       </ul>
     </div>
@@ -1396,6 +1400,101 @@
 
 
   <!-- =====================================================
+       TELA: CONFIGURAÇÕES (voluntário e funcionário)
+       Comportamento em js/telas/configuracoes.js;
+       as preferências são aplicadas por js/preferencias.js.
+       Princípios das aulas aplicados:
+         - Hick/Miller: poucas opções, agrupadas em 4 blocos curtos
+         - Layer-cake: títulos claros guiam a leitura de cima para baixo
+         - Tesler/Doherty: salva sozinho na hora e mostra "Salvo ✓"
+         - Fitts/WCAG 2.5.8: a linha inteira é clicável (alvos grandes)
+         - Ética: sair e excluir são tão fáceis quanto entrar, com confirmação
+       ===================================================== -->
+  <main aria-labelledby="titulo-tela-configuracoes" class="tela tela--app tela--estreita container-fluid" id="tela-configuracoes" data-rota="/voluntario/configuracoes /funcionario/configuracoes" data-area="auto" data-titulo="Configurações" hidden>
+    <header class="cabecalho-pagina cabecalho-pagina--normal">
+      <h1 id="titulo-tela-configuracoes" tabindex="-1">Configurações</h1>
+      <p>As mudanças são salvas automaticamente neste navegador.</p>
+    </header>
+
+    <form id="cfg-form" class="cfg-form" novalidate>
+
+      <!-- ===== NOTIFICAÇÕES ===== -->
+      <section class="cfg-secao" aria-labelledby="cfg-notificacoes-titulo">
+        <h2 id="cfg-notificacoes-titulo">Notificações</h2>
+
+        <label class="cfg-item">
+          <span class="cfg-item__texto"><strong>Pedidos e produção</strong><span>Mudanças de status nos seus pedidos.</span></span>
+          <input class="cfg-toggle" type="checkbox" role="switch" name="notifAtualizacoes">
+        </label>
+        <label class="cfg-item">
+          <span class="cfg-item__texto"><strong>Receber também por e-mail</strong><span>Além dos avisos dentro do Hub.</span></span>
+          <input class="cfg-toggle" type="checkbox" role="switch" name="canalEmail">
+        </label>
+      </section>
+
+      <!-- ===== APARÊNCIA ===== -->
+      <section class="cfg-secao" aria-labelledby="cfg-aparencia-titulo">
+        <h2 id="cfg-aparencia-titulo">Aparência</h2>
+
+        <fieldset class="cfg-escolha">
+          <legend>Tamanho do texto</legend>
+          <div class="cfg-segmentos">
+            <label><input type="radio" name="fonte" value="100"><span>Padrão</span></label>
+            <label><input type="radio" name="fonte" value="115"><span>Grande</span></label>
+            <label><input type="radio" name="fonte" value="130"><span>Muito grande</span></label>
+          </div>
+        </fieldset>
+      </section>
+
+      <!-- ===== ACESSIBILIDADE ===== -->
+      <section class="cfg-secao" aria-labelledby="cfg-acessibilidade-titulo">
+        <h2 id="cfg-acessibilidade-titulo">Acessibilidade</h2>
+
+        <label class="cfg-item">
+          <span class="cfg-item__texto"><strong>Alto contraste</strong><span>Textos e bordas mais fortes.</span></span>
+          <input class="cfg-toggle" type="checkbox" role="switch" name="altoContraste">
+        </label>
+        <label class="cfg-item">
+          <span class="cfg-item__texto"><strong>Reduzir animações</strong><span>Remove transições e movimentos.</span></span>
+          <input class="cfg-toggle" type="checkbox" role="switch" name="reduzirAnimacoes">
+        </label>
+      </section>
+
+      <!-- ===== AJUDA E SOBRE ===== -->
+      <section class="cfg-secao" aria-labelledby="cfg-ajuda-titulo">
+        <h2 id="cfg-ajuda-titulo">Ajuda e sobre</h2>
+
+        <button type="button" class="cfg-item cfg-item--link" data-abrir="dialogo-cfg-faq">
+          <span class="cfg-item__texto"><strong>Central de ajuda</strong><span>Perguntas frequentes.</span></span>
+          <span class="cfg-seta" aria-hidden="true">›</span>
+        </button>
+        <button type="button" class="cfg-item cfg-item--link" data-abrir="dialogo-cfg-problema">
+          <span class="cfg-item__texto"><strong>Reportar um problema</strong><span>Algo não funcionou? Conte para a equipe.</span></span>
+          <span class="cfg-seta" aria-hidden="true">›</span>
+        </button>
+        <button type="button" class="cfg-item cfg-item--link" data-abrir="dialogo-cfg-termos">
+          <span class="cfg-item__texto"><strong>Termos de uso</strong></span>
+          <span class="cfg-seta" aria-hidden="true">›</span>
+        </button>
+        <button type="button" class="cfg-item cfg-item--link" data-abrir="dialogo-cfg-privacidade">
+          <span class="cfg-item__texto"><strong>Política de privacidade</strong></span>
+          <span class="cfg-seta" aria-hidden="true">›</span>
+        </button>
+      </section>
+
+      <!-- ===== CONTA (ações destrutivas, sempre no fim e em vermelho) ===== -->
+      <section class="cfg-secao cfg-secao--perigo" aria-labelledby="cfg-conta-titulo">
+        <h2 id="cfg-conta-titulo">Conta</h2>
+        <div class="cfg-acoes-conta">
+          <button type="button" class="btn btn-outline-danger" id="cfg-sair">Sair da conta</button>
+          <button type="button" class="btn btn-danger" id="cfg-excluir">Excluir conta</button>
+        </div>
+      </section>
+    </form>
+  </main>
+
+
+  <!-- =====================================================
        TELA: EM CONSTRUÇÃO (itens de menu ainda sem tela)
        ===================================================== -->
   <main aria-labelledby="titulo-tela-em-construcao" class="tela tela--app tela--aviso container-fluid" id="tela-em-construcao" data-rota="/voluntario/em-construcao /funcionario/em-construcao" data-area="auto" data-titulo="Em construção" hidden>
@@ -1648,6 +1747,118 @@
         <button type="submit" class="botao botao--perigo-cheio btn btn-danger" value="sim" id="dialogo-confirmar-ok">Confirmar</button>
       </div>
     </form>
+  </dialog>
+
+  <!-- ===== Diálogos da tela de Configurações ===== -->
+  <dialog class="aacd-dialogo cfg-dialogo" id="dialogo-cfg-faq" aria-labelledby="dialogo-cfg-faq-titulo">
+    <div class="modal__form">
+      <div class="modal__cabecalho">
+        <h2 id="dialogo-cfg-faq-titulo">Central de ajuda</h2>
+        <button type="button" class="modal__fechar" data-fechar="" title="Fechar"><span aria-hidden="true">✕</span></button>
+      </div>
+      <p class="modal__sub">Perguntas frequentes</p>
+      <div class="cfg-faq">
+        <details>
+          <summary>Como aceito um pedido de impressão?</summary>
+          <p>Na área do voluntário, abra <strong>Pedidos › Pedidos disponíveis</strong>, veja os detalhes da peça e clique em <strong>Aceitar</strong>. O pedido passa para <strong>Meus pedidos</strong>.</p>
+        </details>
+        <details>
+          <summary>Preciso cadastrar minha impressora antes?</summary>
+          <p>Sim. Em <strong>Impressora › Cadastrar impressora</strong> informe modelo, tecnologia e materiais. Assim a AACD sabe quais peças você consegue produzir.</p>
+        </details>
+        <details>
+          <summary>Como acompanho a produção de uma prótese?</summary>
+          <p>Voluntários usam <strong>Produção › Status da produção</strong>. Funcionários usam <strong>Próteses › Status da produção</strong>, com filtros por etapa.</p>
+        </details>
+        <details>
+          <summary>Por que meu cadastro de voluntário está pendente?</summary>
+          <p>Todo voluntário passa por uma homologação da equipe AACD. Você pode ver a situação em <strong>Meu perfil</strong>.</p>
+        </details>
+        <details>
+          <summary>As configurações valem em outros aparelhos?</summary>
+          <p>Não. Tamanho do texto, notificações e acessibilidade ficam salvos neste navegador, para que cada aparelho fique do jeito que você precisa.</p>
+        </details>
+      </div>
+      <div class="modal__acoes">
+        <button type="button" class="botao botao--secundario btn btn-outline-primary" data-abrir="dialogo-cfg-problema">Não achei minha resposta</button>
+        <button type="button" class="botao botao--escuro btn btn-primary" data-fechar="">Fechar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="aacd-dialogo cfg-dialogo" id="dialogo-cfg-problema" aria-labelledby="dialogo-cfg-problema-titulo">
+    <form class="modal__form" id="form-cfg-problema" novalidate>
+      <div class="modal__cabecalho">
+        <h2 id="dialogo-cfg-problema-titulo">Reportar um problema</h2>
+        <button type="button" class="modal__fechar" data-fechar="" title="Fechar"><span aria-hidden="true">✕</span></button>
+      </div>
+      <p class="modal__sub">Seu relato será aberto no seu e-mail, já com as informações técnicas preenchidas.</p>
+      <div class="modal__campos row">
+        <p class="campo col-12">
+          <label class="form-label" for="cfg-problema-tipo">Tipo de problema</label>
+          <select class="form-select" id="cfg-problema-tipo" name="tipo">
+            <option>Algo não funciona</option>
+            <option>Informação errada</option>
+            <option>Dificuldade de acessibilidade</option>
+            <option>Sugestão de melhoria</option>
+            <option>Outro</option>
+          </select>
+        </p>
+        <p class="campo col-12">
+          <label class="form-label" for="cfg-problema-texto">O que aconteceu? <abbr title="obrigatório">*</abbr></label>
+          <textarea class="form-control" id="cfg-problema-texto" name="texto" rows="4" maxlength="1000" required placeholder="Descreva o que você estava fazendo e o que deu errado."></textarea>
+        </p>
+      </div>
+      <p class="modal__erro" id="cfg-problema-erro" role="alert" hidden></p>
+      <div class="modal__acoes">
+        <button type="button" class="botao botao--secundario btn btn-outline-primary" data-fechar="">Cancelar</button>
+        <button type="submit" class="botao botao--escuro btn btn-primary">Enviar relato</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="aacd-dialogo cfg-dialogo" id="dialogo-cfg-termos" aria-labelledby="dialogo-cfg-termos-titulo">
+    <div class="modal__form">
+      <div class="modal__cabecalho">
+        <h2 id="dialogo-cfg-termos-titulo">Termos de uso</h2>
+        <button type="button" class="modal__fechar" data-fechar="" title="Fechar"><span aria-hidden="true">✕</span></button>
+      </div>
+      <div class="cfg-texto-legal">
+        <h3>1. Finalidade</h3>
+        <p>O Hub conecta a equipe da AACD a voluntários com impressoras 3D para produzir peças e próteses destinadas a pacientes.</p>
+        <h3>2. Responsabilidades do voluntário</h3>
+        <p>Produzir apenas os pedidos aceitos, seguir as especificações técnicas informadas e manter seus dados de contato atualizados.</p>
+        <h3>3. Uso dos arquivos</h3>
+        <p>Os modelos 3D são fornecidos exclusivamente para a produção solicitada e não podem ser compartilhados nem comercializados.</p>
+        <h3>4. Conta</h3>
+        <p>O acesso é pessoal. A AACD pode suspender contas que descumprirem estes termos.</p>
+      </div>
+      <div class="modal__acoes">
+        <button type="button" class="botao botao--escuro btn btn-primary" data-fechar="">Entendi</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="aacd-dialogo cfg-dialogo" id="dialogo-cfg-privacidade" aria-labelledby="dialogo-cfg-privacidade-titulo">
+    <div class="modal__form">
+      <div class="modal__cabecalho">
+        <h2 id="dialogo-cfg-privacidade-titulo">Política de privacidade</h2>
+        <button type="button" class="modal__fechar" data-fechar="" title="Fechar"><span aria-hidden="true">✕</span></button>
+      </div>
+      <div class="cfg-texto-legal">
+        <h3>Dados coletados</h3>
+        <p>Nome, e-mail, telefone, documento (CPF/CNPJ), endereço e dados das impressoras cadastradas.</p>
+        <h3>Para que usamos</h3>
+        <p>Para homologar voluntários, distribuir pedidos de produção e entrar em contato sobre as entregas.</p>
+        <h3>Seus direitos (LGPD)</h3>
+        <p>Você pode consultar, corrigir ou pedir a exclusão dos seus dados a qualquer momento — inclusive pela opção <strong>Excluir conta</strong> nas Configurações.</p>
+        <h3>Preferências</h3>
+        <p>As configurações desta tela ficam apenas no seu navegador e não são enviadas ao servidor.</p>
+      </div>
+      <div class="modal__acoes">
+        <button type="button" class="botao botao--escuro btn btn-primary" data-fechar="">Entendi</button>
+      </div>
+    </div>
   </dialog>
 
   <p data-bs-delay="3000" class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></p>
