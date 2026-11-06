@@ -30,6 +30,7 @@
   <script src="js/telas/cadastro-voluntario.js" defer></script>
   <script src="js/telas/pedidos-disponiveis.js" defer></script>
   <script src="js/telas/conclusao.js" defer></script>
+  <script src="js/telas/envio.js" defer></script>
   <script src="js/telas/pedidos-aceitos.js" defer></script>
   <script src="js/telas/producao.js" defer></script>
   <script src="js/telas/cadastrar-impressora.js" defer></script>
@@ -1743,6 +1744,33 @@
     </form>
   </dialog>
 
+  <dialog class="aacd-dialogo" id="envio-dialogo" aria-labelledby="envio-titulo">
+    <form class="modal__form" id="envio-form">
+      <h2 id="envio-titulo">Registrar envio</h2>
+      <p id="envio-resumo"></p>
+      <fieldset class="border-0 p-0">
+        <div class="row g-3">
+          <label class="col-sm-6"><span id="envio-data-label">Data</span>
+            <input class="form-control" name="data" type="date" required>
+          </label>
+          <label class="col-sm-6" id="envio-correios">Código de rastreio
+            <input class="form-control" name="rastreio" maxlength="80">
+          </label>
+          <label class="col-sm-6" id="envio-presencial">Nome do funcionário que recebeu a peça
+            <input class="form-control" name="recebedor" maxlength="150">
+          </label>
+          <label class="col-12">Observações (opcional)
+            <textarea class="form-control" name="observacoes" rows="2" maxlength="1000"></textarea>
+          </label>
+        </div>
+      </fieldset>
+      <p id="envio-erro" role="alert" class="text-danger"></p>
+      <div class="modal__acoes">
+        <button type="button" id="envio-cancelar" class="btn btn-outline-primary botao botao--secundario">Cancelar</button>
+        <button type="submit" class="btn btn-primary botao">Confirmar envio</button>
+      </div>
+    </form>
+  </dialog>
   <dialog class="aacd-dialogo" id="conclusao-dialogo" aria-labelledby="conclusao-titulo">
     <form class="modal__form" id="conclusao-form">
       <h2 id="conclusao-titulo">Finalizar impressão</h2>

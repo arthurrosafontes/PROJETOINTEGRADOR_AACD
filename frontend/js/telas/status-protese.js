@@ -62,12 +62,13 @@
             <span>Prazo: <strong>${d.prazo ? `<time datetime="${escapar(d.prazo)}">${formatarData(d.prazo)}</time>` : "-"}</strong></span>
           </p>
         </article>
-        ${d.conclusao ? `<details class="cartao-item__extra" ${abertos.has(id) ? "open" : ""}>
-          <summary>Ver conclusão da impressão</summary>
+        ${d.conclusao || d.envio ? `<details class="cartao-item__extra" ${abertos.has(id) ? "open" : ""}>
+          <summary>${d.envio ? "Ver conclusão e envio" : "Ver conclusão da impressão"}</summary>
           ${AACD.util.listaDescricao([
             ["Pedido:", "#" + escapar(d.pedidoId)],
             ["Voluntário:", escapar(d.aceitoPor)],
-            ...AACD.conclusao.detalhes(d.conclusao)
+            ...AACD.conclusao.detalhes(d.conclusao),
+            ...AACD.envio.detalhes(d.envio)
           ])}
         </details>` : ""}
       </li>`;

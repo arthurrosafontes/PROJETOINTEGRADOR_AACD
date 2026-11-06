@@ -711,20 +711,25 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 /* Lista de demandas: prioridade, status e faixa lateral do cartão */
 .selo--Normal { background: var(--teal-escuro); color: var(--branco); }
 .selo--Urgente { background: #8e1020; color: var(--branco); }
-.selo--st-rascunho, .selo--st-cancelada { background: #eceff0; color: #4f5757; }
-.selo--st-aceita { background: #fff3cd; color: #664d03; }
-.selo--st-aberta { background: var(--teal-claro); color: var(--teal-escuro); }
-.selo--st-em-producao { background: var(--producao-fundo); color: var(--producao-texto); }
-.selo--st-aguardando-validacao { background: var(--pendente-fundo); color: var(--pendente-texto); }
-.selo--st-concluida { background: var(--concluido-fundo); color: var(--concluido-texto); }
-.cartao-item--demanda-em-producao { border-left-color: var(--producao-texto); }
-.cartao-item--demanda-aguardando-validacao { border-left-color: var(--pendente); }
-.cartao-item--demanda-concluida { border-left-color: var(--ativo); }
-.cartao-item--demanda-rascunho,
-.cartao-item--demanda-cancelada { border-left-color: var(--inativo); }
+.cartao-item--demanda-rascunho, .selo--st-rascunho,
+.cartao-item--demanda-cancelada, .selo--st-cancelada { --etapa-cor: #4f5757; --etapa-fundo: #eceff0; }
+.cartao-item--demanda-aberta, .selo--st-aberta { --etapa-cor: var(--teal-escuro); --etapa-fundo: var(--teal-claro); }
+.cartao-item--demanda-aceita, .selo--st-aceita { --etapa-cor: #806000; --etapa-fundo: #fff3cd; }
+.cartao-item--demanda-em-producao, .selo--st-em-producao { --etapa-cor: var(--producao-texto); --etapa-fundo: var(--producao-fundo); }
+.cartao-item--demanda-aguardando-envio, .selo--st-aguardando-envio { --etapa-cor: #5b21b6; --etapa-fundo: #ede9fe; }
+.cartao-item--demanda-aguardando-validacao, .selo--st-aguardando-validacao { --etapa-cor: #aa3c0a; --etapa-fundo: #ffe0d6; }
+.cartao-item--demanda-concluida, .selo--st-concluida { --etapa-cor: var(--concluido-texto); --etapa-fundo: var(--concluido-fundo); }
+.cartao-item--faixa[class*="cartao-item--demanda-"] { border-left-color: color-mix(in srgb, var(--etapa-fundo, var(--teal-claro)) 70%, var(--etapa-cor, var(--teal))); }
+.selo[class*="selo--st-"] { background: var(--etapa-fundo, #eceff0); color: var(--etapa-texto, var(--etapa-cor, #4f5757)); }
 .cartao-item--demanda-cancelada article { opacity: .65; }
 .cartao-item__extra--colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: start; }
 .cartao-item__extra--colunas dd { white-space: pre-line; } /* uma observação por linha */
+.etapas-voluntario { grid-column: 1 / -1; min-width: 0; }
+.etapas-pedido { border-top: 1px solid var(--borda); padding-top: 1rem; margin-top: .75rem; }
+.etapas-pedido .tabela-etapa { margin-bottom: 0; font-size: .95rem; }
+.tabela-etapa caption { color: var(--teal-titulo); font-weight: 700; }
+.tabela-etapa th { font-weight: 500; }
+.tabela-etapa td { font-weight: 700; overflow-wrap: anywhere; white-space: pre-line; }
 .cartao-item__extra--colunas h3 { margin-bottom: 8px; font-size: 14px; color: var(--teal-titulo); }
 
 /* Botões das telas internas */

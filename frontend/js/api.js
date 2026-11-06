@@ -118,6 +118,9 @@ aceitarDisponivel: (id, idImpressora, doacaoMaterial) =>
     comCookie: true,
     erroPadrao: "Não foi possível carregar os pedidos."
     }),
+    registrarEnvio: (id, corpo) => requisitar(`/pedidos/${encodeURIComponent(id)}/envio`, {
+      metodo: "PATCH", comCookie: true, corpo
+    }),
     finalizarImpressao: (id, corpo) => requisitar(`/pedidos/${encodeURIComponent(id)}/finalizar`, {
       metodo: "PATCH", comCookie: true, corpo
     }),
