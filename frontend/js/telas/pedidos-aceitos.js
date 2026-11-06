@@ -56,7 +56,7 @@ const classeStatus = {
       return `
       <li class="card cartao-item cartao-item--tres cartao-item--grande" data-id="${id}">
         <article aria-labelledby="pa-titulo-${id}">
-          <h2 class="cartao-item__titulo" id="pa-titulo-${id}">Pedido #${id}</h2>
+          <h2 class="cartao-item__titulo" id="pa-titulo-${id}">Pedido #${id} · Demanda #${escapar(p.demandaId)}</h2>
           <p class="cartao-item__subtitulo">${escapar(p.produto)} · ${escapar(p.categoria)}</p>
         </article>
         <p class="cartao-item__lateral">
@@ -71,6 +71,7 @@ const classeStatus = {
           <span class="badge rounded-pill selo selo--${classeStatus[p.status] || ""}">${escapar(p.status)}</span>
         </p>
         <div class="cartao-item__acoes">
+          ${p.status === "Em produção" ? '<button type="button" class="btn btn-primary botao" data-acao="finalizar">Finalizar impressão</button>' : ""}
         ${p.status === "Aceito" ? `
   <button type="button"
           class="btn btn-primary botao botao--primario"
@@ -86,7 +87,9 @@ const classeStatus = {
             ["Produto:", escapar(p.produto)],
             ["Categoria:", escapar(p.categoria)],
             ["Material:", escapar(p.material)],
+            ["Doação de material:", ({ 1: "Sim", 0: "Não" })[p.doacaoMaterial] ?? "Não informado"],
             ["Quantidade:", escapar(p.quantidade)],
+            ...AACD.conclusao.detalhes(p.conclusao),
             ["Impressora:", escapar(p.impressora)],
             ["Início da produção:",
   p.dataInicioUTC
@@ -147,6 +150,18 @@ const classeStatus = {
 el.lista.addEventListener("click", async e => {
   const botao = e.target.closest("button[data-acao]");
   if (!botao) return;
+
+  if (botao.dataset.acao === "finalizar") {
+    const pedido = pedidos.find(p => String(p.id) === botao.closest(".cartao-item").dataset.id);
+    if (pedido && await AACD.conclusao.abrir(pedido)) {
+      pedido.status = "Aguardando envio";
+      selecionarStatus("Aguardando envio");
+      mostrarToast("Impressão finalizada. O pedido está aguardando envio.");
+      try { pedidos = await AACD.api.listarPedidos(); renderizar(); }
+      catch { mostrarToast("Conclusão salva. Reabra a lista para atualizar os detalhes.", true); }
+    }
+    return;
+  }
 
   if (botao.dataset.acao === "detalhes") {
     alternarDetalhes(botao, "Ver detalhes");
