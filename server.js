@@ -13,6 +13,7 @@ const voluntariosRoutes = require('./backend/routes/voluntarios');
 const authRoutes = require('./backend/routes/auth');
 const { exigirAutenticacao, exigirPerfil } = require('./backend/middleware/autenticacao');
 const pool = require('./backend/config/mysql');
+const conclusao = require('./backend/routes/conclusao');
 
 const app = express();
 app.use(express.json());
@@ -25,6 +26,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(cookieParser());
+app.use('/api/pedidos', conclusao.router);
 
 conectarBanco();
 app.use('/api/voluntarios', voluntariosRoutes);
@@ -845,7 +847,7 @@ const [linhas] = await pool.execute(
     pp.id_impressora_mongo AS impressoraId,
     pp.quantidade_atribuida AS quantidade,
     pp.doacao_material AS doacaoMaterial, 
-    pp.status,
+    pp.status, ${conclusao.camposConclusao},
     DATE_FORMAT(pp.data_aceite, '%Y-%m-%d') AS aceito_em,
     DATE_FORMAT(pp.data_aceite, '%Y-%m-%dT%H:%i:%sZ') AS dataAceiteUTC,
     DATE_FORMAT(pp.data_inicio, '%Y-%m-%dT%H:%i:%sZ') AS dataInicioUTC,
@@ -919,6 +921,7 @@ const pedidos = linhas.map(p => ({
   aceito_em: p.aceito_em,
   dataAceiteUTC: p.dataAceiteUTC,
   dataInicioUTC: p.dataInicioUTC,
+  conclusao: p.conclusao,
   prazo: p.prazo,
   obs: p.obs || '',
 

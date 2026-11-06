@@ -1,5 +1,6 @@
 const express = require('express');
 const pool = require('../config/mysql');
+const { camposConclusao } = require('./conclusao');
 const { exigirAutenticacao, exigirPerfil } = require('../middleware/autenticacao');
 
 const router = express.Router();
@@ -74,7 +75,10 @@ function formatarDemanda(d) {
     tempoHoras: numeroOuNulo(d.tempo_estimado_horas),
     prioridade: d.prioridade || '',
     prazo: paraISO(d.prazo),
-    status: d.status || '',
+    // A conclusão é registrada no pedido. As duas telas do funcionário exibem essa etapa.
+    status: d.status === 'Em produção' && d.status_pedido === 'Aguardando envio'
+      ? 'Aguardando envio' : d.status || '',
+    conclusao: d.conclusao ?? null,
     pedidoId: d.pedido_id ?? null,
     aceitoPor: d.aceito_por ?? null,
     // O nome da coluna de data de cadastro varia entre as versões do banco
@@ -92,7 +96,8 @@ async function buscarDemanda(id, conexao = pool) {
   const [linhas] = await conexao.query(
     `SELECT d.*, p.nome AS protese_nome, p.codigo AS protese_codigo,
             p.tipo AS protese_tipo, p.regiao_corpo AS protese_regiao,
-            pp.id_pedido AS pedido_id, u.nome AS aceito_por
+            pp.id_pedido AS pedido_id, u.nome AS aceito_por, pp.status AS status_pedido,
+            ${camposConclusao}
        FROM demanda d
        LEFT JOIN protese p ON p.id_protese = d.id_protese
        LEFT JOIN pedido_producao pp ON pp.id_pedido = (
@@ -135,7 +140,7 @@ router.get('/:id/pedidos', ...somenteFuncionario, async (req, res) => {
     const [pedidos] = await pool.execute(
       `SELECT pp.id_pedido AS id,
               pp.doacao_material AS doacaoMaterial,
-              u.nome AS nomeVoluntario
+              u.nome AS nomeVoluntario, pp.status, ${camposConclusao}
          FROM pedido_producao pp
          LEFT JOIN voluntario v ON v.id_voluntario = pp.id_voluntario
          LEFT JOIN usuario u ON u.id_usuario = v.id_usuario
