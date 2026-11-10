@@ -289,6 +289,11 @@
     },
 
     async aoEntrar() {
+      try {
+        const unidades = await AACD.api.listarUnidadesAACD();
+        $('unidades-aacd').replaceChildren(...unidades.map(u => new Option(u.endereco, u.nome)));
+      } catch { mostrarToast('Não foi possível carregar as unidades. Informe o nome da unidade AACD.', true); }
+
       campo("prazo").min = hojeISO(); // não deixa escolher prazo no passado
       try {
         const bruto = await AACD.api.listarProteses();

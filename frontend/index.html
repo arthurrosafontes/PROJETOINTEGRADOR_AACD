@@ -31,6 +31,8 @@
   <script src="js/telas/pedidos-disponiveis.js" defer></script>
   <script src="js/telas/conclusao.js" defer></script>
   <script src="js/telas/envio.js" defer></script>
+  <script src="js/telas/recebimento.js" defer></script>
+  <script src="js/telas/matchmaking.js" defer></script>
   <script src="js/telas/pedidos-aceitos.js" defer></script>
   <script src="js/telas/producao.js" defer></script>
   <script src="js/telas/cadastrar-impressora.js" defer></script>
@@ -1021,7 +1023,8 @@
           </div>
           <div class="campo col-12 col-md-6">
             <label class="form-label" for="cd-unidade">Local de entrega</label>
-            <input class="form-control" type="text" id="cd-unidade" name="unidade" placeholder="Ex: AACD Ibirapuera" aria-describedby="cd-unidade-erro" required>
+            <input class="form-control" list="unidades-aacd" type="text" id="cd-unidade" name="unidade" placeholder="Ex: AACD Ibirapuera" aria-describedby="cd-unidade-erro" required>
+            <datalist id="unidades-aacd"></datalist>
             <small class="erro" id="cd-unidade-erro">Informe o local de entrega.</small>
           </div>
           <div class="campo col-12 col-md-6">
@@ -1743,6 +1746,33 @@
     </form>
   </dialog>
 
+  <dialog class="aacd-dialogo" id="recebimento-dialogo" aria-labelledby="recebimento-titulo">
+    <form class="modal__form" id="recebimento-form">
+      <h2 id="recebimento-titulo">Receber e aprovar peça</h2>
+      <p id="recebimento-resumo"></p>
+      <p>Confirme após receber e conferir a peça. Esta ação aprova a peça e conclui o pedido.</p>
+      <fieldset class="border-0 p-0">
+        <div class="row g-3">
+          <label class="col-12">Foto da peça recebida
+            <input class="form-control" type="file" name="foto" accept="image/jpeg,image/png" required aria-describedby="recebimento-limite">
+            <small id="recebimento-limite">Obrigatória. Uma foto JPEG ou PNG de até 5 MB.</small>
+          </label>
+          <div class="col-12" id="recebimento-previa" hidden>
+            <img id="recebimento-imagem" class="img-fluid rounded" style="max-height: 180px" alt="Prévia da foto da peça recebida">
+            <button type="button" id="recebimento-remover" class="btn btn-sm btn-outline-danger">Remover foto</button>
+          </div>
+          <label class="col-12">Observações (opcional)
+            <textarea class="form-control" name="observacoes" rows="3" maxlength="2000" placeholder="Registre informações sobre a peça recebida."></textarea>
+          </label>
+        </div>
+      </fieldset>
+      <p id="recebimento-erro" role="alert" class="text-danger"></p>
+      <div class="modal__acoes">
+        <button type="button" id="recebimento-cancelar" class="btn btn-outline-primary botao botao--secundario">Cancelar</button>
+        <button type="submit" class="btn btn-primary botao">Confirmar recebimento e aprovação</button>
+      </div>
+    </form>
+  </dialog>
   <dialog class="aacd-dialogo" id="envio-dialogo" aria-labelledby="envio-titulo">
     <form class="modal__form" id="envio-form">
       <h2 id="envio-titulo">Registrar envio</h2>

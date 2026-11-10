@@ -102,4 +102,4 @@ router.get('/fotos/:id', exigirAutenticacao, async (req, res) => {
     res.sendFile(path.join(pasta, nome), { dotfiles: 'allow' }, erro => { if (erro && !res.headersSent) res.sendStatus(404); });
   } catch { res.sendStatus(500); }
 });
-module.exports = { router, camposConclusao };
+module.exports = { router, camposConclusao, extensaoFoto };

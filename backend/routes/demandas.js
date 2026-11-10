@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../config/mysql');
 const { camposConclusao } = require('./conclusao');
 const { camposEnvio } = require('./envio');
+const { camposRecebimento } = require('./recebimento');
 const { exigirAutenticacao, exigirPerfil } = require('../middleware/autenticacao');
 
 const router = express.Router();
@@ -52,6 +53,7 @@ function formatarDemanda(d) {
       ? 'Aguardando envio' : d.status || '',
     conclusao: d.conclusao ?? null,
     envio: d.envio ?? null,
+    recebimento: d.recebimento ?? null,
     pedidoId: d.pedido_id ?? null,
     aceitoPor: d.aceito_por ?? null,
     // O nome da coluna de data de cadastro varia entre as versões do banco
@@ -70,12 +72,12 @@ async function buscarDemanda(id, conexao = pool) {
     `SELECT d.*, p.nome AS protese_nome, p.codigo AS protese_codigo,
             p.tipo AS protese_tipo, p.regiao_corpo AS protese_regiao,
             pp.id_pedido AS pedido_id, u.nome AS aceito_por, pp.status AS status_pedido,
-            ${camposConclusao}, ${camposEnvio}
+            ${camposConclusao}, ${camposEnvio}, ${camposRecebimento}
        FROM demanda d
        LEFT JOIN protese p ON p.id_protese = d.id_protese
        LEFT JOIN pedido_producao pp ON pp.id_pedido = (
          SELECT MAX(pv.id_pedido) FROM pedido_producao pv
-          WHERE pv.id_demanda = d.id_demanda AND pv.status <> 'Cancelado'
+          WHERE pv.id_demanda = d.id_demanda AND (pv.status <> 'Cancelado' OR d.status = 'Cancelada')
        )
        LEFT JOIN voluntario v ON v.id_voluntario = pp.id_voluntario
        LEFT JOIN usuario u ON u.id_usuario = v.id_usuario
@@ -113,7 +115,7 @@ router.get('/:id/pedidos', ...somenteFuncionario, async (req, res) => {
     const [pedidos] = await pool.execute(
       `SELECT pp.id_pedido AS id,
               pp.doacao_material AS doacaoMaterial,
-              u.nome AS nomeVoluntario, pp.status, ${camposConclusao}, ${camposEnvio}
+              u.nome AS nomeVoluntario, pp.status, ${camposConclusao}, ${camposEnvio}, ${camposRecebimento}
          FROM pedido_producao pp
          LEFT JOIN voluntario v ON v.id_voluntario = pp.id_voluntario
          LEFT JOIN usuario u ON u.id_usuario = v.id_usuario
@@ -243,26 +245,45 @@ router.post('/:id/observacoes', ...somenteFuncionario, async (req, res) => {
   }
 });
 
-// Cancelar não apaga o registro: só muda o status para "Cancelada"
+// Cancelar preserva os registros e sincroniza demanda, pedidos e histórico.
 router.patch('/:id/cancelar', ...somenteFuncionario, async (req, res) => {
   const id = lerId(req, res);
   if (id === null) return;
+  let conexao;
   try {
-    const [resultado] = await pool.execute(
-      `UPDATE demanda SET status = 'Cancelada'
-        WHERE id_demanda = ? AND status IN (${STATUS_CANCELAVEIS.map(() => '?').join(', ')})`,
-      [id, ...STATUS_CANCELAVEIS]
-    );
-    if (resultado.affectedRows === 0) {
-      const [linhas] = await pool.query('SELECT status FROM demanda WHERE id_demanda = ?', [id]);
-      if (linhas.length === 0) return res.status(404).json({ erro: 'Demanda não encontrada.' });
-      return res.status(409).json({ erro: `Demandas com status "${linhas[0].status}" não podem ser canceladas.` });
+    conexao = await pool.getConnection();
+    await conexao.beginTransaction();
+    const [[demanda]] = await conexao.execute(
+      'SELECT status FROM demanda WHERE id_demanda = ? FOR UPDATE', [id]);
+    if (!demanda) {
+      await conexao.rollback();
+      return res.status(404).json({ erro: 'Demanda não encontrada.' });
     }
-    return res.json({ mensagem: 'Demanda cancelada.', id, status: 'Cancelada' });
+    if (!STATUS_CANCELAVEIS.includes(demanda.status)) {
+      await conexao.rollback();
+      return res.status(409).json({ erro: 'Esta demanda não pode ser cancelada nesta etapa.' });
+    }
+    const [pedidos] = await conexao.execute(
+      'SELECT id_pedido, status FROM pedido_producao WHERE id_demanda = ? FOR UPDATE', [id]);
+    // Aguardando envio é apresentado pela consulta, embora a demanda ainda esteja Em produção.
+    if (pedidos.some(p => !['Aceito', 'Em produção', 'Cancelado'].includes(p.status))) {
+      await conexao.rollback();
+      return res.status(409).json({ erro: 'Não é possível cancelar após a conclusão da impressão.' });
+    }
+    await conexao.execute("UPDATE demanda SET status = 'Cancelada' WHERE id_demanda = ?", [id]);
+    for (const pedido of pedidos.filter(p => p.status !== 'Cancelado')) {
+      await conexao.execute("UPDATE pedido_producao SET status = 'Cancelado' WHERE id_pedido = ?", [pedido.id_pedido]);
+      await conexao.execute(
+        "INSERT INTO historico_producao (id_pedido, id_demanda, id_usuario, status, descricao) VALUES (?, ?, ?, 'Cancelado', 'Pedido cancelado pela AACD junto com a demanda')",
+        [pedido.id_pedido, id, req.usuario.id_usuario]);
+    }
+    await conexao.commit();
+    return res.json({ mensagem: 'Demanda e pedidos vinculados cancelados.', id, status: 'Cancelada' });
   } catch (erro) {
+    if (conexao) await conexao.rollback().catch(() => {});
     console.error('Erro ao cancelar demanda:', erro);
-    return res.status(500).json({ erro: 'Não foi possível cancelar a demanda.' });
-  }
+    return res.status(500).json({ erro: 'Não foi possível confirmar o cancelamento. Atualize a lista antes de tentar novamente.' });
+  } finally { conexao?.release(); }
 });
 
 module.exports = router;
