@@ -36,6 +36,8 @@ AACD.api = (() => {
   }
 
   return {
+    listarUnidadesAACD: () => requisitar('/matchmaking/unidades', { comCookie: true, erroPadrao: 'Não foi possível carregar as unidades.' }),
+    consultarMatchmaking: id => requisitar('/matchmaking/demandas/'+encodeURIComponent(id), { comCookie: true, erroPadrao: 'Não foi possível consultar a compatibilidade.' }),
     // ----- Autenticação -----
     login: (email, senha, perfil) =>
       requisitar("/auth/login", { metodo: "POST", corpo: { email, senha, perfil }, comCookie: true, erroPadrao: "Não foi possível fazer login." }),
@@ -118,6 +120,10 @@ aceitarDisponivel: (id, idImpressora, doacaoMaterial) =>
     comCookie: true,
     erroPadrao: "Não foi possível carregar os pedidos."
     }),
+    receberPedido: (id, corpo) => requisitar(`/pedidos/${encodeURIComponent(id)}/receber`, {
+      metodo: "PATCH", comCookie: true, corpo
+    }),
+    urlFotoRecebimento: id => `${API_URL}/pedidos/${encodeURIComponent(id)}/recebimento/foto`,
     registrarEnvio: (id, corpo) => requisitar(`/pedidos/${encodeURIComponent(id)}/envio`, {
       metodo: "PATCH", comCookie: true, corpo
     }),

@@ -15,6 +15,8 @@ const { exigirAutenticacao, exigirPerfil } = require('./backend/middleware/auten
 const pool = require('./backend/config/mysql');
 const conclusao = require('./backend/routes/conclusao');
 const envio = require('./backend/routes/envio');
+const recebimento = require('./backend/routes/recebimento');
+const { avaliar: avaliarCompatibilidade } = require('./backend/services/compatibilidade');
 const { lerObservacoes } = require('./backend/routes/observacoes-demanda');
 
 const app = express();
@@ -30,6 +32,8 @@ app.use(cors({
 app.use(cookieParser());
 app.use('/api/pedidos', conclusao.router);
 app.use('/api/pedidos', envio.router);
+app.use('/api/pedidos', recebimento.router);
+app.use('/api/matchmaking', require('./backend/routes/matchmaking').criarRouter());
 
 conectarBanco();
 app.use('/api/voluntarios', voluntariosRoutes);
@@ -623,7 +627,7 @@ app.get('/api/disponiveis', ...somenteVoluntario, async (req, res) => {
   try {
     const [linhas] = await pool.execute(`
       SELECT
-        d.id_demanda AS id,
+        d.*, d.id_demanda AS id,
         p.nome AS peca,
         d.tipo_filamento AS material,
         d.quantidade,
@@ -639,7 +643,8 @@ app.get('/api/disponiveis', ...somenteVoluntario, async (req, res) => {
       ORDER BY d.data_cadastro DESC
     `);
 
-    const pedidos = linhas.map(p => ({
+    const equipamentos = await FichaImpressora.find({id_voluntario:req.usuario.id_voluntario}).lean();
+    const pedidos = linhas.filter(d => equipamentos.some(i => avaliarCompatibilidade(d,i).compativel)).map(p => ({
       id: p.id,
       peca: p.peca,
       material: p.material,
@@ -723,7 +728,7 @@ if (typeof doacaoMaterial !== 'boolean') {
 
     // Bloquear a demanda para evitar aceites simultâneos
     const [demandas] = await conexao.execute(
-      `SELECT id_demanda, id_protese, quantidade, status
+      `SELECT *
        FROM demanda
        WHERE id_demanda = ?
        FOR UPDATE`,
@@ -749,6 +754,16 @@ if (typeof doacaoMaterial !== 'boolean') {
       return res.status(409).json({
         erro: 'Este pedido não está mais disponível.'
       });
+    }
+
+    // Revalidar no servidor; não confiar no ranking anterior nem no navegador.
+    const equipamentoAtual = await FichaImpressora.findOne({ _id: idImpressora, id_voluntario: idVoluntario }).lean();
+    const compatibilidade = equipamentoAtual && avaliarCompatibilidade(demanda, equipamentoAtual);
+    if (!compatibilidade?.compativel) {
+      await conexao.rollback(); transacaoIniciada = false;
+      return res.status(409).json({ erro: equipamentoAtual
+        ? 'Impressora incompatível: ' + compatibilidade.motivos.join(' ')
+        : 'A impressora não está mais disponível para este voluntário.' });
     }
 
     // Verificar se já existe um pedido ativo para essa demanda
@@ -849,8 +864,10 @@ const [linhas] = await pool.execute(
     pp.id_demanda AS demandaId,
     pp.id_impressora_mongo AS impressoraId,
     pp.quantidade_atribuida AS quantidade,
+    p.codigo AS proteseCodigo, p.regiao_corpo AS regiao,
+    d.local_entrega AS localEntrega, DATE_FORMAT(d.data_cadastro, '%Y-%m-%d') AS cadastroDemanda,
     pp.doacao_material AS doacaoMaterial, 
-    pp.status, ${conclusao.camposConclusao}, ${envio.camposEnvio},
+    pp.status, ${conclusao.camposConclusao}, ${envio.camposEnvio}, ${recebimento.camposRecebimento},
     DATE_FORMAT(pp.data_aceite, '%Y-%m-%d') AS aceito_em,
     DATE_FORMAT(pp.data_aceite, '%Y-%m-%dT%H:%i:%sZ') AS dataAceiteUTC,
     DATE_FORMAT(pp.data_inicio, '%Y-%m-%dT%H:%i:%sZ') AS dataInicioUTC,
@@ -926,6 +943,9 @@ const pedidos = linhas.map(p => ({
   dataInicioUTC: p.dataInicioUTC,
   conclusao: p.conclusao,
   envio: p.envio,
+  recebimento: p.recebimento,
+  demanda: { ...lerObservacoes(p.obs), codigo: p.proteseCodigo, regiao: p.regiao,
+    localEntrega: p.localEntrega, cadastro: p.cadastroDemanda },
   formaEntrega: lerObservacoes(p.obs).formaEntrega || '',
   prazo: p.prazo,
   obs: p.obs || '',

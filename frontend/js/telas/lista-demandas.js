@@ -14,6 +14,8 @@
   const STATUS_CANCELAVEIS = ["Rascunho", "Aberta", "Aceita", "Em produção"];
   const PESO_PRIORIDADE = { Urgente: 4, Alta: 3, Normal: 2, Baixa: 1 };
 
+  const ORDEM_STATUS = { Aberta: 0, Aceita: 1, "Em produção": 2, "Aguardando envio": 3, "Aguardando validação": 4, Concluída: 5, Rascunho: 6, Cancelada: 8 };
+
   let demandas = [];
   let ciclo = 0;
   let intervalo;
@@ -50,6 +52,8 @@
     if (el.ordenar.value === "prioridade") {
       resultado.sort((a, b) => (PESO_PRIORIDADE[b.prioridade] || 0) - (PESO_PRIORIDADE[a.prioridade] || 0) || porPrazo(a, b));
     }
+    // A ordenação escolhida desempata demandas da mesma etapa.
+    resultado.sort((a, b) => (ORDEM_STATUS[a.status] ?? 7) - (ORDEM_STATUS[b.status] ?? 7));
     return resultado;
   }
 
@@ -87,6 +91,7 @@
         ${tabelaEtapa("Aceito", aceite)}
         ${tabelaEtapa("Impressão", AACD.conclusao.detalhes(pedido.conclusao), "Sem registro de conclusão.")}
         ${tabelaEtapa("Envio da peça", AACD.envio.detalhes(pedido.envio), "Sem registro de envio.")}
+        ${pedido.recebimento ? tabelaEtapa("Recebimento e aprovação", AACD.recebimento.detalhes(pedido.recebimento)) : ""}
       </div>
     </section>`;
   }
@@ -119,6 +124,8 @@
           </p>
         </article>
         <div class="cartao-item__acoes">
+          ${d.status === "Aberta" ? '<button type="button" class="btn btn-outline-primary botao" data-acao="matchmaking">Ver compatibilidade</button>' : ""}
+          ${d.status === "Aguardando validação" && d.pedidoId ? '<button type="button" class="btn btn-primary botao" data-acao="receber">Receber e aprovar</button>' : ""}
           <button type="button" class="btn btn-outline-primary botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="ldem-extra-${id}">Detalhes</button>
           ${editavel
@@ -302,7 +309,7 @@
       ? "\nA peça já está em produção: avise o voluntário responsável."
       : "";
     const ok = await confirmar(
-      `Cancelar a demanda #${demanda.id} "${demanda.nome}"?\nO registro continua no sistema com o status "Cancelada".${aviso}`,
+      `Cancelar a demanda #${demanda.id} "${demanda.nome}"?\nA demanda ficará "Cancelada" e os pedidos vinculados ficarão "Cancelado". Os registros serão preservados.${aviso}`,
       "Cancelar demanda"
     );
     if (!ok) return;
@@ -393,6 +400,20 @@
         const item = botao.closest(".cartao-item");
         const demanda = demandas.find(d => String(d.id) === item.dataset.id);
         if (!demanda) return;
+
+        if (botao.dataset.acao === "matchmaking") {
+          await AACD.matchmaking.abrir(demanda.id);
+          return;
+        }
+        if (botao.dataset.acao === "receber") {
+          if (await AACD.recebimento.abrir(demanda)) {
+            demanda.status = "Concluída";
+            renderizar(demanda.id);
+            mostrarToast("Peça recebida e aprovada. Pedido concluído.");
+            await atualizarLista();
+          }
+          return;
+        }
 
         if (botao.dataset.acao === "detalhes") {
           alternarDetalhes(botao, "Detalhes");

@@ -61,7 +61,7 @@
       </li>`).join("");
 
     el.contador.textContent = `${itens.length} pedido(s) disponível(is)`;
-    el.vazio.textContent = "Nenhum pedido encontrado.";
+    el.vazio.textContent = "Nenhuma demanda aberta é compatível com suas impressoras. Confira material, volume, bico e disponibilidade.";
     el.vazio.classList.remove("vazio--erro");
     el.vazio.hidden = itens.length > 0;
   }
@@ -137,9 +137,10 @@ function obterDialogo() {
 }
 
   async function escolherImpressora(pedido) {
-    const impressoras = await AACD.api.listarMinhasImpressoras();
+    const resultado = await AACD.api.consultarMatchmaking(pedido.id);
+    const impressoras = resultado.candidatos.filter(i => i.compativel);
     if (!Array.isArray(impressoras) || impressoras.length === 0) {
-      mostrarToast("Você precisa cadastrar uma impressora antes de aceitar um pedido.", true);
+      mostrarToast("Nenhuma impressora sua atende aos requisitos desta demanda. Confira material, dimensões, bico e disponibilidade.", true);
       return null;
     }
 
@@ -152,10 +153,16 @@ function obterDialogo() {
     seletor.replaceChildren(new Option("Selecione uma impressora", ""));
 
     impressoras.forEach(i => {
-      const nome = i.nome_da_impressora || i.modelo_da_impressora || "Impressora";
-      const modelo = i.modelo_da_impressora ? ` — ${i.modelo_da_impressora}` : "";
-      seletor.add(new Option(`${nome}${modelo}`, String(i._id)));
+      const distancia = i.distanciaKm == null ? i.situacaoDistancia : i.distanciaKm.toLocaleString('pt-BR', {maximumFractionDigits:1}) + ' km por trajeto';
+      seletor.add(new Option(i.nome + ' — ' + i.pontos + ' pontos — ' + distancia, i.id));
     });
+    let informacao = dialogo.querySelector('[data-matchmaking-info]');
+    if (!informacao) { informacao = document.createElement('p'); informacao.dataset.matchmakingInfo = ''; seletor.after(informacao); }
+    informacao.className = 'small mt-2';
+    informacao.textContent = (resultado.unidade ? 'Destino: ' + resultado.unidade.nome + '. ' : '') +
+      (resultado.aviso || 'Impressoras ordenadas pela pontuação; em empate, pelo menor trajeto.') +
+      ' Material, tamanho e bico são obrigatórios. Distância vale até 5 pontos. © openrouteservice.org · OpenStreetMap contributors.';
+
 
     return new Promise(resolve => {
       const formulario = dialogo.querySelector("#pd-form-impressora");

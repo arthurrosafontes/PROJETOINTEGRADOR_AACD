@@ -30,7 +30,7 @@
       const pesquisa = [d.id, d.protese, d.nome, d.paciente].map(v => String(v ?? "").toLowerCase()).join(" ");
       const bateStatus = statusSelecionado === "todos" || d.status === statusSelecionado;
       return bateStatus && pesquisa.includes(termo);
-    });
+    }).sort((a, b) => STATUS.indexOf(a.status) - STATUS.indexOf(b.status) || Number(b.id) - Number(a.id));
   }
 
   function atualizarContadores() {
@@ -62,13 +62,15 @@
             <span>Prazo: <strong>${d.prazo ? `<time datetime="${escapar(d.prazo)}">${formatarData(d.prazo)}</time>` : "-"}</strong></span>
           </p>
         </article>
+        ${d.status === "Aguardando validação" && d.pedidoId ? '<div class="cartao-item__acoes"><button type="button" class="btn btn-primary botao" data-acao="receber">Receber e aprovar</button></div>' : ""}
         ${d.conclusao || d.envio ? `<details class="cartao-item__extra" ${abertos.has(id) ? "open" : ""}>
-          <summary>${d.envio ? "Ver conclusão e envio" : "Ver conclusão da impressão"}</summary>
+          <summary>${d.recebimento ? "Ver produção e aprovação" : d.envio ? "Ver conclusão e envio" : "Ver conclusão da impressão"}</summary>
           ${AACD.util.listaDescricao([
             ["Pedido:", "#" + escapar(d.pedidoId)],
             ["Voluntário:", escapar(d.aceitoPor)],
             ...AACD.conclusao.detalhes(d.conclusao),
-            ...AACD.envio.detalhes(d.envio)
+            ...AACD.envio.detalhes(d.envio),
+            ...AACD.recebimento.detalhes(d.recebimento)
           ])}
         </details>` : ""}
       </li>`;
@@ -113,6 +115,19 @@
       el.abas = $("sp-abas");
       el.lista = $("sp-lista");
       el.vazio = $("sp-vazio");
+
+      el.lista.addEventListener("click", async e => {
+        const botao = e.target.closest('[data-acao="receber"]');
+        if (!botao) return;
+        const demanda = demandas.find(d => String(d.id) === botao.closest(".cartao-item").dataset.id);
+        if (demanda && await AACD.recebimento.abrir(demanda)) {
+          demanda.status = "Concluída";
+          atualizarContadores();
+          renderizar();
+          mostrarToast("Peça recebida e aprovada. Pedido concluído.");
+          await atualizar();
+        }
+      });
 
       el.busca.addEventListener("input", renderizar);
       el.abas.addEventListener("click", (e) => {

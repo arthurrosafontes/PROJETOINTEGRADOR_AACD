@@ -48,6 +48,40 @@ const classeStatus = {
     });
   }
 
+
+  function tabelaEtapa(titulo, linhas, vazio) {
+    const corpo = linhas.map(([rotulo, valor]) =>
+      `<tr><th scope="row">${rotulo}</th><td>${valor || "—"}</td></tr>`).join("");
+    return `<div class="col-12 col-xl-4"><table class="table table-sm tabela-etapa">
+      <caption class="caption-top">${titulo}</caption>
+      <tbody>${corpo || `<tr><td colspan="2">${vazio}</td></tr>`}</tbody>
+    </table></div>`;
+  }
+
+  function etapasPedido(p) {
+    const aceite = [
+      ["Pedido:", `#${escapar(p.id)}`],
+      ["Demanda:", `#${escapar(p.demandaId)}`],
+      ["Aceito em:", escapar(p.dataAceiteUTC ? formatarDataHora(p.dataAceiteUTC) : formatarData(p.aceito_em))],
+      ["Status atual:", escapar(p.status)],
+      ["Impressora:", escapar(p.impressora)],
+      ["Doação de material:", ({ 1: "Sim", 0: "Não" })[p.doacaoMaterial] ?? "Não informado"]
+    ];
+    const impressao = [
+      ["Início da produção:", p.dataInicioUTC ? escapar(formatarDataHora(p.dataInicioUTC)) : "Produção ainda não iniciada"],
+      ...AACD.conclusao.detalhes(p.conclusao)
+    ];
+    if (!p.conclusao) impressao.push(["Conclusão:", "Sem registro de conclusão."]);
+    return `<section class="etapas-pedido">
+      <h3>Etapas do pedido</h3><div class="row g-3">
+        ${tabelaEtapa("Aceito", aceite)}
+        ${tabelaEtapa("Impressão", impressao)}
+        ${tabelaEtapa("Envio da peça", AACD.envio.detalhes(p.envio), "Sem registro de envio.")}
+        ${tabelaEtapa("Recebimento e aprovação", AACD.recebimento.detalhes(p.recebimento), "Sem registro de recebimento e aprovação.")}
+      </div>
+    </section>`;
+  }
+
   function renderizar() {
     const itens = filtrar();
     el.lista.innerHTML = itens.map(p => {
@@ -83,43 +117,48 @@ const classeStatus = {
           <button type="button" class="btn btn-outline-primary botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="pa-extra-${id}">Ver detalhes</button>
         </div>
-        <div class="cartao-item__extra" id="pa-extra-${id}" hidden>
-          ${listaDescricao([
-            ["Produto:", escapar(p.produto)],
-            ["Categoria:", escapar(p.categoria)],
-            ["Material:", escapar(p.material)],
-            ["Doação de material:", ({ 1: "Sim", 0: "Não" })[p.doacaoMaterial] ?? "Não informado"],
-            ["Quantidade:", escapar(p.quantidade)],
-            ...AACD.conclusao.detalhes(p.conclusao),
-            ...AACD.envio.detalhes(p.envio),
-            ["Impressora:", escapar(p.impressora)],
-            ["Início da produção:",
-  p.dataInicioUTC
-    ? formatarDataHora(p.dataInicioUTC)
-    : "Produção ainda não iniciada"
-],
-["Prazo:", `<time datetime="${escapar(p.prazo)}">${formatarData(p.prazo)}</time>`],
-["Descrição:", escapar(p.descricao || "Não informada")],
-["Largura:", `${escapar(p.largura ?? "Não informada")} mm`],
-["Profundidade:", `${escapar(p.profundidade ?? "Não informada")} mm`],
-["Altura:", `${escapar(p.altura ?? "Não informada")} mm`],
-["Diâmetro do bico:", `${escapar(p.diametroBico ?? "Não informado")} mm`],
-["Tempo estimado:", `${escapar(p.tempoHoras ?? "Não informado")} horas`],
-["Altura da camada:", `${escapar(p.alturaCamada ?? "Não informada")} mm`],
-["Preenchimento:", `${escapar(p.infill ?? "Não informado")}%`],
-["Necessita suporte:", p.necessitaSuporte ? "Sim" : "Não"],
-["Orientações de impressão:", escapar(p.orientacoes || "Não informadas")],
-["Observações:", escapar(p.obs)],
-["Arquivo 3D:", p.possuiArquivo3d
-  ? `<button type="button"
-             class="btn btn-primary botao botao--primario"
-             data-acao="baixar-arquivo"
-             data-id="${id}">
-       Baixar arquivo 3D
-     </button>`
-  : "Arquivo ainda não disponibilizado pela AACD."
-]
-          ])}
+        <div class="cartao-item__extra flex-column align-items-stretch" id="pa-extra-${id}" hidden>
+          <div class="row g-3">
+            <section class="col-12 col-xl-4" aria-label="Identificação">
+              <h3 class="h6 text-primary">Identificação</h3>
+              ${listaDescricao([
+                ["Nome:", escapar(p.demanda?.nome || p.produto)],
+                ["Prótese:", escapar([p.demanda?.codigo, p.produto].filter(Boolean).join(" — "))],
+                ["Tipo:", escapar(p.categoria)],
+                ["Região:", escapar(p.demanda?.regiao)],
+                ["Paciente:", escapar(p.demanda?.paciente)],
+                ["Cadastro:", p.demanda?.cadastro ? formatarData(p.demanda.cadastro) : "—"],
+                ["Descrição:", escapar(p.descricao || "Não informada")]
+              ])}
+            </section>
+            <section class="col-12 col-xl-4" aria-label="Especificações">
+              <h3 class="h6 text-primary">Especificações</h3>
+              ${listaDescricao([
+                ["Quantidade:", escapar(p.quantidade)],
+                ["Material:", escapar(p.material)],
+                ["Bico:", p.diametroBico == null ? "—" : escapar(p.diametroBico) + " mm"],
+                ["Dimensões:", [p.largura, p.profundidade, p.altura].every(v => v != null) ? escapar(p.largura + " × " + p.profundidade + " × " + p.altura) + " mm" : "Não informadas"],
+                ["Tempo estimado:", p.tempoHoras == null ? "—" : escapar(p.tempoHoras) + " horas"],
+                ["Altura da camada:", p.alturaCamada == null ? "—" : escapar(p.alturaCamada) + " mm"],
+                ["Preenchimento:", p.infill == null ? "—" : escapar(p.infill) + "%"],
+                ["Necessita suporte:", p.necessitaSuporte ? "Sim" : "Não"],
+                ["Orientações de impressão:", escapar(p.orientacoes || "Não informadas")],
+                ["Observações:", escapar(p.demanda?.observacoes ?? p.obs)],
+                ["Arquivo 3D:", p.possuiArquivo3d ? `<button type="button" class="btn btn-primary botao" data-acao="baixar-arquivo" data-id="${id}">Baixar arquivo 3D</button>` : "Arquivo ainda não disponibilizado pela AACD."]
+              ])}
+            </section>
+            <section class="col-12 col-xl-4" aria-label="Entrega prevista">
+              <h3 class="h6 text-primary">Entrega prevista</h3>
+              ${listaDescricao([
+                ["Prazo:", formatarData(p.prazo)],
+                ["Forma:", escapar(p.demanda?.formaEntrega || p.formaEntrega)],
+                ["Local:", escapar(p.demanda?.localEntrega)],
+                ["Responsável:", escapar(p.demanda?.responsavel)],
+                ["Instruções:", escapar(p.demanda?.instrucoes)]
+              ])}
+            </section>
+          </div>
+          ${etapasPedido(p)}
         </div>
       </li>`;
     }).join("");
