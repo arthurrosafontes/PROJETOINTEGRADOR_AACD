@@ -28,6 +28,7 @@
   <script src="js/telas/acesso.js" defer></script>
   <script src="js/telas/hub-funcionario.js" defer></script>
   <script src="js/telas/cadastro-voluntario.js" defer></script>
+  <script src="js/telas/material-aacd.js" defer></script>
   <script src="js/telas/pedidos-disponiveis.js" defer></script>
   <script src="js/telas/conclusao.js" defer></script>
   <script src="js/telas/envio.js" defer></script>
@@ -613,28 +614,25 @@
   <!-- =====================================================
        TELA: PRODUÇÃO (voluntário)
        ===================================================== -->
-  <main aria-labelledby="pr-titulo" class="tela tela--app tela--estreita container-fluid" id="tela-producao" data-rota="/voluntario/producao" data-subrotas="" data-area="voluntario" data-titulo="Produção" hidden>
-    <header class="cabecalho-pagina cabecalho-pagina--destaque">
-      <h1 id="pr-titulo" tabindex="-1">Em produção</h1>
-      <p id="pr-subtitulo">Peças que você está imprimindo agora.</p>
+  <main aria-labelledby="pr-titulo" class="tela tela--app container-fluid" id="tela-producao" data-rota="/voluntario/producao" data-subrotas="" data-area="voluntario" data-titulo="Status da produção" hidden>
+    <header class="cabecalho-pagina">
+      <h1 id="pr-titulo" tabindex="-1">Status da produção</h1>
+      <p id="pr-subtitulo">Acompanhe seus pedidos em produção, o envio e a avaliação da AACD.</p>
     </header>
-
-    <search class="filtros">
-      <p class="filtros__busca">
-        <label class="visualmente-oculto visually-hidden form-label" for="pr-busca">Buscar pelo nome do paciente</label>
-        <input class="form-control" type="search" id="pr-busca" placeholder="Buscar pelo nome do paciente...">
-      </p>
-    </search>
-
+    <search class="filtros"><p class="filtros__busca">
+      <label class="visualmente-oculto visually-hidden form-label" for="pr-busca">Buscar pedido, demanda, prótese, paciente ou impressora</label>
+      <input class="form-control" type="search" id="pr-busca" placeholder="Buscar pedido, demanda, prótese ou impressora...">
+    </p></search>
     <nav class="abas-status" aria-label="Filtrar por status" id="pr-abas">
       <a class="aba btn btn-outline-primary" href="#/voluntario/producao/todos" data-status="todos">Todos <span class="aba__numero" data-contador="todos">0</span></a>
-      <a class="aba btn btn-outline-primary" href="#/voluntario/producao" data-status="Em produção">Em produção <span class="aba__numero" data-contador="Em produção">0</span></a>
+      <a class="aba btn btn-outline-primary" href="#/voluntario/producao/em-producao" data-status="Em produção">Em produção <span class="aba__numero" data-contador="Em produção">0</span></a>
+      <a class="aba btn btn-outline-primary" href="#/voluntario/producao/aguardando-envio" data-status="Aguardando envio">Aguardando envio <span class="aba__numero" data-contador="Aguardando envio">0</span></a>
       <a class="aba btn btn-outline-primary" href="#/voluntario/producao/aguardando-validacao" data-status="Aguardando validação">Aguardando validação <span class="aba__numero" data-contador="Aguardando validação">0</span></a>
-      <a class="aba btn btn-outline-primary" href="#/voluntario/producao/concluidas" data-status="Concluída">Concluídas <span class="aba__numero" data-contador="Concluída">0</span></a>
+      <a class="aba btn btn-outline-primary" href="#/voluntario/producao/concluidas" data-status="Concluído">Concluídos <span class="aba__numero" data-contador="Concluído">0</span></a>
+      <a class="aba btn btn-outline-primary" href="#/voluntario/producao/reprovadas" data-status="Reprovado">Reprovados <span class="aba__numero" data-contador="Reprovado">0</span></a>
     </nav>
-
     <ul class="lista-cartoes" id="pr-lista" aria-labelledby="pr-titulo"></ul>
-    <p class="vazio" id="pr-vazio" role="status" hidden>Nenhuma peça encontrada.</p>
+    <p class="vazio" id="pr-vazio" role="status" hidden>Nenhum pedido nesta etapa da produção.</p>
   </main>
 
 
@@ -1115,6 +1113,7 @@
           <option value="Aguardando envio">Aguardando envio</option>
           <option value="Aguardando validação">Aguardando validação</option>
           <option value="Concluída">Concluída</option>
+          <option value="Reprovada">Reprovada</option>
           <option value="Cancelada">Cancelada</option>
         </select>
       </p>
@@ -1400,6 +1399,7 @@
       <button type="button" class="aba btn btn-outline-primary" data-status="Concluída" aria-pressed="false">
         Concluídas <span class="aba__numero" data-contador="Concluída">0</span>
       </button>
+      <button type="button" class="aba btn btn-outline-primary" data-status="Reprovada" aria-pressed="false">Reprovadas <span class="aba__numero" data-contador="Reprovada">0</span></button>
     </div>
 
     <ul class="lista-cartoes" id="sp-lista" aria-labelledby="titulo-tela-status-protese"></ul>
@@ -1748,28 +1748,43 @@
 
   <dialog class="aacd-dialogo" id="recebimento-dialogo" aria-labelledby="recebimento-titulo">
     <form class="modal__form" id="recebimento-form">
-      <h2 id="recebimento-titulo">Receber e aprovar peça</h2>
-      <p id="recebimento-resumo"></p>
-      <p>Confirme após receber e conferir a peça. Esta ação aprova a peça e conclui o pedido.</p>
+      <header class="rc-cabecalho">
+        <h2 id="recebimento-titulo">Receber peça</h2>
+        <p id="recebimento-resumo"></p>
+      </header>
       <fieldset class="border-0 p-0">
-        <div class="row g-3">
-          <label class="col-12">Foto da peça recebida
-            <input class="form-control" type="file" name="foto" accept="image/jpeg,image/png" required aria-describedby="recebimento-limite">
-            <small id="recebimento-limite">Obrigatória. Uma foto JPEG ou PNG de até 5 MB.</small>
-          </label>
-          <div class="col-12" id="recebimento-previa" hidden>
-            <img id="recebimento-imagem" class="img-fluid rounded" style="max-height: 180px" alt="Prévia da foto da peça recebida">
-            <button type="button" id="recebimento-remover" class="btn btn-sm btn-outline-danger">Remover foto</button>
+        <fieldset class="rc-escolha border-0 p-0">
+          <legend>1. Como está a peça?</legend>
+          <div class="rc-opcoes">
+            <label class="rc-opcao"><input type="radio" name="resultado" value="Aprovada" required>
+              <span><strong>Aprovar</strong><small>A peça está adequada</small></span>
+            </label>
+            <label class="rc-opcao"><input type="radio" name="resultado" value="Reprovada" required>
+              <span><strong>Reprovar</strong><small>A peça apresenta um problema</small></span>
+            </label>
           </div>
-          <label class="col-12">Observações (opcional)
-            <textarea class="form-control" name="observacoes" rows="3" maxlength="2000" placeholder="Registre informações sobre a peça recebida."></textarea>
-          </label>
-        </div>
+        </fieldset>
+        <fieldset class="rc-dados border-0 p-0" id="recebimento-dados" hidden disabled>
+          <div class="rc-campo">
+            <label for="recebimento-foto"><strong id="recebimento-foto-label">2. Foto da peça</strong><span class="rc-obrigatorio">Obrigatória</span></label>
+            <input class="form-control" id="recebimento-foto" type="file" name="foto" accept="image/jpeg,image/png" required aria-describedby="recebimento-limite">
+            <small id="recebimento-limite">JPEG ou PNG · até 5 MB</small>
+            <div id="recebimento-previa" hidden>
+              <img id="recebimento-imagem" alt="Prévia da foto da peça recebida">
+              <button type="button" id="recebimento-remover" class="btn btn-sm btn-outline-secondary">Remover foto</button>
+            </div>
+          </div>
+          <div class="rc-campo">
+            <label for="recebimento-observacoes" id="recebimento-observacoes-label">3. Observações (opcional)</label>
+            <textarea class="form-control" id="recebimento-observacoes" name="observacoes" rows="3" maxlength="2000" placeholder="Algo a acrescentar sobre a peça?"></textarea>
+          </div>
+          <p id="recebimento-orientacao" class="rc-orientacao"></p>
+        </fieldset>
       </fieldset>
       <p id="recebimento-erro" role="alert" class="text-danger"></p>
-      <div class="modal__acoes">
-        <button type="button" id="recebimento-cancelar" class="btn btn-outline-primary botao botao--secundario">Cancelar</button>
-        <button type="submit" class="btn btn-primary botao">Confirmar recebimento e aprovação</button>
+      <div class="modal__acoes rc-acoes">
+        <button type="button" id="recebimento-cancelar" class="btn btn-outline-primary">Cancelar</button>
+        <button type="submit" class="btn btn-primary" disabled>Confirmar recebimento</button>
       </div>
     </form>
   </dialog>

@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../config/mysql');
 const { camposConclusao } = require('./conclusao');
 const { camposEnvio } = require('./envio');
+const { camposMaterial } = require('./material-aacd');
 const { camposRecebimento } = require('./recebimento');
 const { exigirAutenticacao, exigirPerfil } = require('../middleware/autenticacao');
 
@@ -54,6 +55,7 @@ function formatarDemanda(d) {
     conclusao: d.conclusao ?? null,
     envio: d.envio ?? null,
     recebimento: d.recebimento ?? null,
+    materialAacd: d.materialAacd ?? null,
     pedidoId: d.pedido_id ?? null,
     aceitoPor: d.aceito_por ?? null,
     // O nome da coluna de data de cadastro varia entre as versões do banco
@@ -72,7 +74,7 @@ async function buscarDemanda(id, conexao = pool) {
     `SELECT d.*, p.nome AS protese_nome, p.codigo AS protese_codigo,
             p.tipo AS protese_tipo, p.regiao_corpo AS protese_regiao,
             pp.id_pedido AS pedido_id, u.nome AS aceito_por, pp.status AS status_pedido,
-            ${camposConclusao}, ${camposEnvio}, ${camposRecebimento}
+            ${camposConclusao}, ${camposEnvio}, ${camposRecebimento}, ${camposMaterial}
        FROM demanda d
        LEFT JOIN protese p ON p.id_protese = d.id_protese
        LEFT JOIN pedido_producao pp ON pp.id_pedido = (
@@ -115,7 +117,7 @@ router.get('/:id/pedidos', ...somenteFuncionario, async (req, res) => {
     const [pedidos] = await pool.execute(
       `SELECT pp.id_pedido AS id,
               pp.doacao_material AS doacaoMaterial,
-              u.nome AS nomeVoluntario, pp.status, ${camposConclusao}, ${camposEnvio}, ${camposRecebimento}
+              u.nome AS nomeVoluntario, pp.status, ${camposConclusao}, ${camposEnvio}, ${camposRecebimento}, ${camposMaterial}
          FROM pedido_producao pp
          LEFT JOIN voluntario v ON v.id_voluntario = pp.id_voluntario
          LEFT JOIN usuario u ON u.id_usuario = v.id_usuario

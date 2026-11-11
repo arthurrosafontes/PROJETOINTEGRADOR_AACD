@@ -10,9 +10,24 @@ AACD.envio = (() => {
     "Retirada pela equipe": "Data da retirada"
   };
   let pedido, resolver, salvando = false;
+  const diaSaoPaulo = data => new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Sao_Paulo' }).format(data);
+  function validarData() {
+    // Não alterar min/max durante a digitação: isso reinicializa segmentos do input date.
+    const data = campos.data.value;
+    campos.data.setCustomValidity(data && data < campos.data.min
+      ? 'A data de postagem, entrega ou retirada não pode ser anterior à conclusão da impressão.'
+      : data && data > campos.data.max ? 'A data de postagem, entrega ou retirada não pode ser futura.' : '');
+  }
+  campos.data.addEventListener('input', validarData);
+  campos.data.addEventListener('change', validarData);
   function abrir(atual) {
     if (!Object.hasOwn(rotulosData, atual.formaEntrega)) {
       mostrarToast("Consulte a AACD para definir a forma de entrega deste pedido.", true);
+      return false;
+    }
+    const conclusao = atual.conclusao?.data ? new Date(atual.conclusao.data) : null;
+    if (!conclusao || !Number.isFinite(conclusao.getTime())) {
+      mostrarToast('A data de conclusão da impressão não está registrada. Consulte a AACD antes de registrar o envio.', true);
       return false;
     }
     pedido = atual;
@@ -20,7 +35,16 @@ AACD.envio = (() => {
     const correios = pedido.formaEntrega === "Envio pelos Correios";
     $("envio-resumo").textContent = `Pedido #${pedido.id} · ${pedido.formaEntrega}`;
     $("envio-data-label").textContent = rotulosData[pedido.formaEntrega];
-    campos.data.max = new Intl.DateTimeFormat("sv-SE", {timeZone:"America/Sao_Paulo"}).format(new Date());
+    campos.data.min = diaSaoPaulo(conclusao);
+    campos.data.max = diaSaoPaulo(new Date());
+    campos.data.setCustomValidity('');
+    validarData();
+    let ajuda = document.getElementById('envio-data-ajuda');
+    if (!ajuda) {
+      ajuda = document.createElement('small'); ajuda.id = 'envio-data-ajuda'; ajuda.className = 'text-muted d-block mt-1';
+      campos.data.after(ajuda); campos.data.setAttribute('aria-describedby', ajuda.id);
+    }
+    ajuda.textContent = 'Informe uma data entre ' + formatarData(campos.data.min) + ' e hoje.';
     $("envio-correios").hidden = campos.rastreio.disabled = !correios;
     $("envio-presencial").hidden = campos.recebedor.disabled = correios;
     campos.rastreio.required = correios;
@@ -36,6 +60,8 @@ AACD.envio = (() => {
   form.addEventListener("submit", async e => {
     e.preventDefault();
     if (salvando) return;
+    validarData();
+    if (!form.reportValidity()) return;
     const dados = Object.fromEntries(new FormData(form));
     const comprovacao = campos.rastreio.disabled ? campos.recebedor : campos.rastreio;
     if (!comprovacao.value.trim()) {
