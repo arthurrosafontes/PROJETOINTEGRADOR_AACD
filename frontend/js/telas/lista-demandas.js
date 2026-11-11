@@ -14,7 +14,7 @@
   const STATUS_CANCELAVEIS = ["Rascunho", "Aberta", "Aceita", "Em produção"];
   const PESO_PRIORIDADE = { Urgente: 4, Alta: 3, Normal: 2, Baixa: 1 };
 
-  const ORDEM_STATUS = { Aberta: 0, Aceita: 1, "Em produção": 2, "Aguardando envio": 3, "Aguardando validação": 4, Concluída: 5, Rascunho: 6, Cancelada: 8 };
+  const ORDEM_STATUS = { Aberta: 0, Aceita: 1, "Em produção": 2, "Aguardando envio": 3, "Aguardando validação": 4, Concluída: 5, Reprovada: 6, Rascunho: 7, Cancelada: 9 };
 
   let demandas = [];
   let ciclo = 0;
@@ -91,7 +91,7 @@
         ${tabelaEtapa("Aceito", aceite)}
         ${tabelaEtapa("Impressão", AACD.conclusao.detalhes(pedido.conclusao), "Sem registro de conclusão.")}
         ${tabelaEtapa("Envio da peça", AACD.envio.detalhes(pedido.envio), "Sem registro de envio.")}
-        ${pedido.recebimento ? tabelaEtapa("Recebimento e aprovação", AACD.recebimento.detalhes(pedido.recebimento)) : ""}
+        ${pedido.recebimento ? tabelaEtapa("Recebimento e avaliação", AACD.recebimento.detalhes(pedido.recebimento)) : ""}
       </div>
     </section>`;
   }
@@ -125,7 +125,7 @@
         </article>
         <div class="cartao-item__acoes">
           ${d.status === "Aberta" ? '<button type="button" class="btn btn-outline-primary botao" data-acao="matchmaking">Ver compatibilidade</button>' : ""}
-          ${d.status === "Aguardando validação" && d.pedidoId ? '<button type="button" class="btn btn-primary botao" data-acao="receber">Receber e aprovar</button>' : ""}
+          ${d.status === "Aguardando validação" && d.pedidoId ? '<button type="button" class="btn btn-primary botao" data-acao="receber">Receber</button>' : ""}
           <button type="button" class="btn btn-outline-primary botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="ldem-extra-${id}">Detalhes</button>
           ${editavel
@@ -133,6 +133,7 @@
             : `<button type="button" class="btn btn-primary botao botao--escuro" data-acao="observacao">Adicionar observação</button>`}
           ${cancelavel ? `<button type="button" class="btn btn-outline-danger botao botao--perigo" data-acao="cancelar">Cancelar</button>` : ""}
         </div>
+        ${AACD.material.cartao({id:d.pedidoId, materialAacd:d.materialAacd, status:d.status}, "funcionario")}
         <div class="cartao-item__extra cartao-item__extra--colunas" id="ldem-extra-${id}" hidden>
           <section aria-label="Identificação">
             <h3>Identificação</h3>
@@ -369,6 +370,7 @@
       el.prioridade = $("ldem-prioridade");
       el.ordenar = $("ldem-ordenar");
       el.contador = $("ldem-contador");
+      document.addEventListener("material-atualizado", () => { if (!$("tela-lista-demandas").hidden) atualizarLista(); });
       el.vazio = $("ldem-vazio");
       el.modal = $("modal-demanda");
       el.form = $("form-editar-demanda");
@@ -406,10 +408,11 @@
           return;
         }
         if (botao.dataset.acao === "receber") {
-          if (await AACD.recebimento.abrir(demanda)) {
-            demanda.status = "Concluída";
+          const avaliacao = await AACD.recebimento.abrir(demanda);
+          if (avaliacao) {
+            demanda.status = avaliacao.demandaStatus;
             renderizar(demanda.id);
-            mostrarToast("Peça recebida e aprovada. Pedido concluído.");
+            mostrarToast(avaliacao.resultado === "Reprovada" ? "Peça recebida e reprovada. Motivo registrado." : "Peça recebida e aprovada. Pedido concluído.");
             await atualizarLista();
           }
           return;

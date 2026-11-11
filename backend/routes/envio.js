@@ -26,12 +26,23 @@ router.patch('/:id/envio', exigirAutenticacao, exigirPerfil('voluntario'), async
   try {
     c = await pool.getConnection();
     await c.beginTransaction();
-    const [[pedido]] = await c.execute(`SELECT pp.id_demanda, pp.status, d.status AS demandaStatus, d.observacoes
+    const [[pedido]] = await c.execute(`SELECT pp.id_demanda, pp.status, d.status AS demandaStatus, d.observacoes,
+      DATE_FORMAT(pp.data_conclusao, '%Y-%m-%dT%H:%i:%sZ') AS conclusaoUTC
       FROM pedido_producao pp JOIN demanda d ON d.id_demanda = pp.id_demanda
       WHERE pp.id_pedido = ? AND pp.id_voluntario = ? FOR UPDATE`, [id, req.usuario.id_voluntario]);
     if (!pedido || pedido.status !== 'Aguardando envio' || !['Em produção', 'Aguardando envio'].includes(pedido.demandaStatus)) {
       await c.rollback();
       return res.status(pedido ? 409 : 404).json({ erro: pedido ? 'Este pedido não está disponível para registrar envio.' : 'Pedido não encontrado.' });
+    }
+    const conclusao = pedido.conclusaoUTC ? new Date(pedido.conclusaoUTC) : null;
+    if (!conclusao || !Number.isFinite(conclusao.getTime())) {
+      await c.rollback();
+      return res.status(409).json({ erro: 'A data de conclusão da impressão não está registrada. Consulte a AACD antes de registrar o envio.' });
+    }
+    const diaConclusao = new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Sao_Paulo' }).format(conclusao);
+    if (data < diaConclusao) {
+      await c.rollback();
+      return res.status(400).json({ erro: 'A data de postagem, entrega ou retirada não pode ser anterior à conclusão da impressão.' });
     }
     const modalidade = lerObservacoes(pedido.observacoes).formaEntrega;
     if (!modalidades.includes(modalidade)) {

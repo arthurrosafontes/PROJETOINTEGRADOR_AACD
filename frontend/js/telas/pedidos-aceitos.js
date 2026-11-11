@@ -77,7 +77,7 @@ const classeStatus = {
         ${tabelaEtapa("Aceito", aceite)}
         ${tabelaEtapa("Impressão", impressao)}
         ${tabelaEtapa("Envio da peça", AACD.envio.detalhes(p.envio), "Sem registro de envio.")}
-        ${tabelaEtapa("Recebimento e aprovação", AACD.recebimento.detalhes(p.recebimento), "Sem registro de recebimento e aprovação.")}
+        ${tabelaEtapa("Recebimento e avaliação", AACD.recebimento.detalhes(p.recebimento), "Sem registro de recebimento e avaliação.")}
       </div>
     </section>`;
   }
@@ -107,7 +107,7 @@ const classeStatus = {
         <div class="cartao-item__acoes">
           ${p.status === "Aguardando envio" ? '<button type="button" class="btn btn-primary botao" data-acao="envio">Registrar envio</button>' : ""}
           ${p.status === "Em produção" ? '<button type="button" class="btn btn-primary botao" data-acao="finalizar">Finalizar impressão</button>' : ""}
-        ${p.status === "Aceito" ? `
+        ${p.status === "Aceito" && !AACD.material.bloqueado(p) ? `
   <button type="button"
           class="btn btn-primary botao botao--primario"
           data-acao="iniciar-producao">
@@ -117,6 +117,7 @@ const classeStatus = {
           <button type="button" class="btn btn-outline-primary botao botao--secundario" data-acao="detalhes"
                   aria-expanded="false" aria-controls="pa-extra-${id}">Ver detalhes</button>
         </div>
+        ${AACD.material.cartao(p, "voluntario")}
         <div class="cartao-item__extra flex-column align-items-stretch" id="pa-extra-${id}" hidden>
           <div class="row g-3">
             <section class="col-12 col-xl-4" aria-label="Identificação">
@@ -178,6 +179,10 @@ const classeStatus = {
   AACD.telas["tela-pedidos-aceitos"] = {
     iniciar() {
       el.lista = $("pa-lista");
+      document.addEventListener("material-atualizado", async () => {
+        if ($("tela-pedidos-aceitos").hidden) return;
+        try { pedidos = await AACD.api.listarPedidos(); renderizar(); } catch (e) { mostrarToast(e.message, true); }
+      });
       el.busca = $("pa-busca");
       el.abas = $("pa-abas");
       el.vazio = $("pa-vazio");

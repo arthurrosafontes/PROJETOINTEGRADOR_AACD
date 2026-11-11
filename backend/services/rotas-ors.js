@@ -49,6 +49,14 @@ function criarCliente({ chave = process.env.ORS_API_KEY, fetchImpl = global.fetc
       return origens.map((_,i)=>{const n=r.distances?.[i]?.[0];return typeof n==='number' && Number.isFinite(n) && n>=0 ? n : null;});
     });
   }
-  return { configurado, coordenadas, matriz };
+  async function matrizDestinos(origem, destinos) {
+    return memo('destinos:'+JSON.stringify([origem,destinos]),async()=>{
+      const r=await consultar('/openrouteservice/v2/matrix/driving-car',{
+        locations:[origem,...destinos],sources:['0'],destinations:destinos.map((_,i)=>String(i+1)),metrics:['distance'],units:'km'
+      });
+      return destinos.map((_,i)=>{const n=r.distances?.[0]?.[i];return typeof n==='number' && Number.isFinite(n) && n>=0 ? n : null;});
+    });
+  }
+  return { configurado, coordenadas, matriz, matrizDestinos };
 }
 module.exports={criarCliente};

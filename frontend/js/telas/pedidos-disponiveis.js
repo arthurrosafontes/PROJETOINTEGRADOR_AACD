@@ -129,6 +129,7 @@ function obterDialogo() {
       </form>`;
 
     document.body.appendChild(dialogo);
+    AACD.material.montarEscolha(dialogo.querySelector("form"));
 
     dialogo.querySelector("#pd-dialogo-cancelar")
       .addEventListener("click", () => dialogo.close());
@@ -147,6 +148,7 @@ function obterDialogo() {
     const dialogo = obterDialogo();
     // Limpa a resposta anterior sempre que o formulário abrir
     dialogo.querySelector("#pd-form-impressora").reset();
+    AACD.material.limparEscolha(dialogo.querySelector("form"));
     const seletor = dialogo.querySelector("#pd-dialogo-select");
     const resumo = dialogo.querySelector("#pd-dialogo-resumo");
     resumo.textContent = `Demanda #${pedido.id} — ${pedido.peca} (${pedido.material}; ${pedido.quantidade} unidade(s))`;
@@ -184,11 +186,13 @@ if (!resposta) {
   return;
 }
 
+if (!formulario.reportValidity()) return;
+const materialAacd = resposta.value === "nao" ? AACD.material.lerEscolha(formulario) : undefined;
 dialogo.close();
 
 resolve({
   idImpressora: seletor.value,
-  doacaoMaterial: resposta.value === "sim"
+  doacaoMaterial: resposta.value === "sim", materialAacd
 });
       };
       const aoFechar = () => {
@@ -227,7 +231,8 @@ if (!escolha) return;
         const aceite = await AACD.api.aceitarDisponivel(
   id,
   escolha.idImpressora,
-  escolha.doacaoMaterial
+  escolha.doacaoMaterial,
+  escolha.materialAacd
 );
         item.classList.add("saindo");
         setTimeout(() => {

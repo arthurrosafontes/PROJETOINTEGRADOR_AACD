@@ -9,7 +9,7 @@
 (() => {
   const { $, escapar, formatarData, mostrarToast } = AACD.util;
 
-  const STATUS = ["Em produção", "Aguardando envio", "Aguardando validação", "Concluída"];
+  const STATUS = ["Em produção", "Aguardando envio", "Aguardando validação", "Concluída", "Reprovada"];
 
   let demandas = [];
   let statusSelecionado = "todos";
@@ -40,6 +40,15 @@
     });
   }
 
+  function tabelaEtapa(titulo, linhas, vazio = "Sem registro.") {
+    return `<div class="col-12 col-xl-4"><table class="table table-sm tabela-etapa">
+      <caption class="caption-top">${titulo}</caption>
+      <tbody>${linhas.length ? linhas.map(([rotulo, valor]) =>
+        `<tr><th scope="row">${rotulo}</th><td>${valor || "—"}</td></tr>`).join("")
+        : `<tr><td colspan="2">${vazio}</td></tr>`}</tbody>
+    </table></div>`;
+  }
+
   function renderizar() {
     const itens = filtrar();
     const abertos = new Set(Array.from(el.lista.querySelectorAll("details[open]"), d => d.closest("li").dataset.id));
@@ -62,16 +71,22 @@
             <span>Prazo: <strong>${d.prazo ? `<time datetime="${escapar(d.prazo)}">${formatarData(d.prazo)}</time>` : "-"}</strong></span>
           </p>
         </article>
-        ${d.status === "Aguardando validação" && d.pedidoId ? '<div class="cartao-item__acoes"><button type="button" class="btn btn-primary botao" data-acao="receber">Receber e aprovar</button></div>' : ""}
-        ${d.conclusao || d.envio ? `<details class="cartao-item__extra" ${abertos.has(id) ? "open" : ""}>
-          <summary>${d.recebimento ? "Ver produção e aprovação" : d.envio ? "Ver conclusão e envio" : "Ver conclusão da impressão"}</summary>
-          ${AACD.util.listaDescricao([
-            ["Pedido:", "#" + escapar(d.pedidoId)],
-            ["Voluntário:", escapar(d.aceitoPor)],
-            ...AACD.conclusao.detalhes(d.conclusao),
-            ...AACD.envio.detalhes(d.envio),
-            ...AACD.recebimento.detalhes(d.recebimento)
-          ])}
+        ${d.status === "Aguardando validação" && d.pedidoId ? '<div class="cartao-item__acoes"><button type="button" class="btn btn-primary botao" data-acao="receber">Receber</button></div>' : ""}
+        ${AACD.material.cartao({id:d.pedidoId,materialAacd:d.materialAacd,status:d.status}, "funcionario")}
+        ${d.pedidoId ? `<details class="cartao-item__extra d-block" ${abertos.has(id) ? "open" : ""}>
+          <summary>Ver produção e avaliação</summary>
+          <section class="etapas-pedido" aria-label="Etapas do pedido #${escapar(d.pedidoId)}">
+            <div class="row g-3">
+              ${tabelaEtapa("Aceito", [
+                ["Pedido:", "#" + escapar(d.pedidoId)],
+                ["Aceito por:", escapar(d.aceitoPor || "Nome indisponível")],
+                ["Status atual:", escapar(d.status)]
+              ])}
+              ${tabelaEtapa("Impressão", AACD.conclusao.detalhes(d.conclusao), "Impressão ainda não finalizada.")}
+              ${tabelaEtapa("Envio da peça", AACD.envio.detalhes(d.envio), "Envio ainda não registrado.")}
+              ${d.recebimento ? tabelaEtapa("Recebimento e avaliação", AACD.recebimento.detalhes(d.recebimento)) : ""}
+            </div>
+          </section>
         </details>` : ""}
       </li>`;
     }).join("");
@@ -120,11 +135,12 @@
         const botao = e.target.closest('[data-acao="receber"]');
         if (!botao) return;
         const demanda = demandas.find(d => String(d.id) === botao.closest(".cartao-item").dataset.id);
-        if (demanda && await AACD.recebimento.abrir(demanda)) {
-          demanda.status = "Concluída";
+        const avaliacao = demanda && await AACD.recebimento.abrir(demanda);
+        if (avaliacao) {
+          demanda.status = avaliacao.demandaStatus;
           atualizarContadores();
           renderizar();
-          mostrarToast("Peça recebida e aprovada. Pedido concluído.");
+          mostrarToast(avaliacao.resultado === "Reprovada" ? "Peça recebida e reprovada. Motivo registrado." : "Peça recebida e aprovada. Pedido concluído.");
           await atualizar();
         }
       });

@@ -103,12 +103,12 @@ AACD.api = (() => {
       erroPadrao: "Não foi possível carregar suas impressoras."
     }),
     // O backend ainda precisa implementar PATCH /api/disponiveis/:id/aceitar.
-aceitarDisponivel: (id, idImpressora, doacaoMaterial) =>
+aceitarDisponivel: (id, idImpressora, doacaoMaterial, materialAacd) =>
   requisitar(`/disponiveis/${encodeURIComponent(id)}/aceitar`, {
     metodo: "PATCH",
     corpo: {
       id_impressora_mongo: idImpressora,
-      doacao_material: doacaoMaterial
+      doacao_material: doacaoMaterial, materialAacd
     },
     comCookie: true,
     erroPadrao: "Não foi possível aceitar o pedido."
@@ -116,6 +116,10 @@ aceitarDisponivel: (id, idImpressora, doacaoMaterial) =>
 
     // ----- Voluntário: pedidos aceitos e recusados -----
     // Formato: { id, produto, categoria, status, aceito_em, material, prazo, obs }
+    unidadesMaterial: id => requisitar('/pedidos/material/unidades/' + encodeURIComponent(id), { comCookie: true, erroPadrao: 'Não foi possível calcular as unidades.' }),
+    unidadesRetirada: () => requisitar('/matchmaking/unidades', { comCookie: true }),
+    prepararMaterial: (id, corpo) => requisitar('/pedidos/' + encodeURIComponent(id) + '/material/preparar', { metodo: 'PATCH', comCookie: true, corpo, erroPadrao: 'Não foi possível preparar o material.' }),
+    receberMaterial: id => requisitar('/pedidos/' + encodeURIComponent(id) + '/material/receber', { metodo: 'PATCH', comCookie: true, corpo: {}, erroPadrao: 'Não foi possível confirmar o recebimento.' }),
     listarPedidos: () => requisitar("/pedidos", {
     comCookie: true,
     erroPadrao: "Não foi possível carregar os pedidos."

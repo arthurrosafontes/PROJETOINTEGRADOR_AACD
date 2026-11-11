@@ -11,12 +11,12 @@ const router = express.Router();
 const pasta = path.resolve(process.env.AACD_RECEBIMENTOS_DIR || path.join(os.homedir(), '.aacd', 'fotos-recebimento'));
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { files: 1, fileSize: 5 * 1024 * 1024, fields: 1, fieldSize: 8192, parts: 3 }
+  limits: { files: 1, fileSize: 5 * 1024 * 1024, fields: 2, fieldSize: 8192, parts: 4 }
 }).single('foto');
 
 const camposRecebimento = `(SELECT JSON_OBJECT('funcionario', r.nome_funcionario,
   'data', DATE_FORMAT(r.data_recebimento, '%Y-%m-%dT%H:%i:%sZ'),
-  'observacoes', r.observacoes, 'pedidoId', r.id_pedido)
+  'resultado', r.resultado, 'observacoes', r.observacoes, 'pedidoId', r.id_pedido)
   FROM recebimento_pedido r WHERE r.id_pedido = pp.id_pedido) AS recebimento`;
 
 router.patch('/:id/receber', exigirAutenticacao, exigirPerfil('funcionario'), (req, res, next) => {
@@ -26,6 +26,16 @@ router.patch('/:id/receber', exigirAutenticacao, exigirPerfil('funcionario'), (r
 }, async (req, res) => {
   const id = Number(req.params.id);
   const observacoes = req.body?.observacoes ?? '';
+  const resultado = req.body?.resultado;
+  if (!['Aprovada', 'Reprovada'].includes(resultado)) {
+    return res.status(400).json({ erro: 'Selecione aprovar ou reprovar a peça.' });
+  }
+  if (resultado === 'Reprovada' && (typeof observacoes !== 'string' || !observacoes.trim())) {
+    return res.status(400).json({ erro: 'Descreva obrigatoriamente o motivo da reprovação.' });
+  }
+  const reprovada = resultado === 'Reprovada';
+  const statusPedido = reprovada ? 'Reprovado' : 'Concluído';
+  const statusDemanda = reprovada ? 'Reprovada' : 'Concluída';
   const extensao = req.file && extensaoFoto(req.file.buffer);
   if (!Number.isSafeInteger(id) || id <= 0 || !extensao ||
       typeof observacoes !== 'string' || observacoes.length > 2000) {
@@ -42,7 +52,7 @@ router.patch('/:id/receber', exigirAutenticacao, exigirPerfil('funcionario'), (r
     if (!pedido || pedido.status !== 'Aguardando validação' || pedido.demanda_status !== 'Aguardando validação') {
       await c.rollback();
       return res.status(pedido ? 409 : 404).json({ erro: pedido
-        ? 'Somente pedidos aguardando validação podem ser recebidos e aprovados.'
+        ? 'Somente pedidos aguardando validação podem ser recebidos e avaliados.'
         : 'Pedido não encontrado.' });
     }
     const nome = randomUUID() + '.' + extensao;
@@ -50,20 +60,22 @@ router.patch('/:id/receber', exigirAutenticacao, exigirPerfil('funcionario'), (r
     arquivo = path.join(pasta, nome);
     await fs.writeFile(arquivo, req.file.buffer, { flag: 'wx', mode: 0o600 });
     await c.execute(`INSERT INTO recebimento_pedido
-      (id_pedido, id_usuario, nome_funcionario, foto_arquivo, observacoes, data_recebimento)
-      VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
-      [id, req.usuario.id_usuario, req.usuario.nome, nome, observacoes.trim() || null]);
-    await c.execute("UPDATE pedido_producao SET status = 'Concluído' WHERE id_pedido = ?", [id]);
-    await c.execute(`UPDATE demanda SET status = 'Concluída', resultado = 'Aprovada',
-      observacoes_validacao = ?, motivo_reprovacao = NULL, data_validacao = UTC_TIMESTAMP()
-      WHERE id_demanda = ?`, [observacoes.trim() || null, pedido.id_demanda]);
+      (id_pedido, id_usuario, nome_funcionario, foto_arquivo, observacoes, resultado, data_recebimento)
+      VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())`,
+      [id, req.usuario.id_usuario, req.usuario.nome, nome, observacoes.trim() || null, resultado]);
+    await c.execute('UPDATE pedido_producao SET status = ? WHERE id_pedido = ?', [statusPedido, id]);
+    await c.execute(`UPDATE demanda SET status = ?, resultado = ?,
+      observacoes_validacao = ?, motivo_reprovacao = ?, data_validacao = UTC_TIMESTAMP()
+      WHERE id_demanda = ?`, [statusDemanda, resultado, observacoes.trim() || null,
+        reprovada ? observacoes.trim() : null, pedido.id_demanda]);
     await c.execute(`INSERT INTO historico_producao
       (id_pedido, id_demanda, id_usuario, status, descricao, observacoes)
-      VALUES (?, ?, ?, 'Concluído', 'Peça recebida e aprovada pela AACD', ?)`,
-      [id, pedido.id_demanda, req.usuario.id_usuario, observacoes.trim() || null]);
+      VALUES (?, ?, ?, ?, ?, ?)`,
+      [id, pedido.id_demanda, req.usuario.id_usuario, statusPedido,
+        reprovada ? 'Peça recebida e reprovada pela AACD' : 'Peça recebida e aprovada pela AACD', observacoes.trim() || null]);
     confirmando = true;
     await c.commit();
-    res.json({ id, status: 'Concluído', demandaStatus: 'Concluída' });
+    res.json({ id, status: statusPedido, demandaStatus: statusDemanda, resultado });
   } catch (erro) {
     if (c) await c.rollback().catch(() => {});
     // Preserve uma foto possivelmente confirmada se a conexão cair durante COMMIT.

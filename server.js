@@ -16,6 +16,7 @@ const pool = require('./backend/config/mysql');
 const conclusao = require('./backend/routes/conclusao');
 const envio = require('./backend/routes/envio');
 const recebimento = require('./backend/routes/recebimento');
+const materialAacd = require('./backend/routes/material-aacd');
 const { avaliar: avaliarCompatibilidade } = require('./backend/services/compatibilidade');
 const { lerObservacoes } = require('./backend/routes/observacoes-demanda');
 
@@ -33,6 +34,7 @@ app.use(cookieParser());
 app.use('/api/pedidos', conclusao.router);
 app.use('/api/pedidos', envio.router);
 app.use('/api/pedidos', recebimento.router);
+app.use('/api/pedidos', materialAacd.criarRouter());
 app.use('/api/matchmaking', require('./backend/routes/matchmaking').criarRouter());
 
 conectarBanco();
@@ -675,6 +677,11 @@ app.patch('/api/disponiveis/:id/aceitar', ...somenteVoluntario, async (req, res)
   const idDemanda = Number(req.params.id);
   const idImpressora = String(req.body?.id_impressora_mongo || '').trim();
   const doacaoMaterial = req.body?.doacao_material;
+  let solicitacaoMaterial;
+  if (doacaoMaterial === false) {
+    try { solicitacaoMaterial = materialAacd.validarSolicitacao(req.body?.materialAacd); }
+    catch (e) { return res.status(400).json({ erro: e.message }); }
+  }
 
 if (typeof doacaoMaterial !== 'boolean') {
   return res.status(400).json({
@@ -804,6 +811,7 @@ if (typeof doacaoMaterial !== 'boolean') {
     doacaoMaterial ? 1 : 0
   ]
 );
+    if (solicitacaoMaterial) await materialAacd.registrarSolicitacao(conexao, resultado.insertId, demanda.tipo_filamento, solicitacaoMaterial);
     // Atualizar status da demanda
     await conexao.execute(
       `UPDATE demanda
@@ -867,7 +875,7 @@ const [linhas] = await pool.execute(
     p.codigo AS proteseCodigo, p.regiao_corpo AS regiao,
     d.local_entrega AS localEntrega, DATE_FORMAT(d.data_cadastro, '%Y-%m-%d') AS cadastroDemanda,
     pp.doacao_material AS doacaoMaterial, 
-    pp.status, ${conclusao.camposConclusao}, ${envio.camposEnvio}, ${recebimento.camposRecebimento},
+    pp.status, ${conclusao.camposConclusao}, ${envio.camposEnvio}, ${recebimento.camposRecebimento}, ${materialAacd.camposMaterial},
     DATE_FORMAT(pp.data_aceite, '%Y-%m-%d') AS aceito_em,
     DATE_FORMAT(pp.data_aceite, '%Y-%m-%dT%H:%i:%sZ') AS dataAceiteUTC,
     DATE_FORMAT(pp.data_inicio, '%Y-%m-%dT%H:%i:%sZ') AS dataInicioUTC,
@@ -944,6 +952,7 @@ const pedidos = linhas.map(p => ({
   conclusao: p.conclusao,
   envio: p.envio,
   recebimento: p.recebimento,
+  materialAacd: p.materialAacd,
   demanda: { ...lerObservacoes(p.obs), codigo: p.proteseCodigo, regiao: p.regiao,
     localEntrega: p.localEntrega, cadastro: p.cadastroDemanda },
   formaEntrega: lerObservacoes(p.obs).formaEntrega || '',
@@ -1064,13 +1073,13 @@ app.patch('/api/pedidos/:id/iniciar', ...somenteVoluntario, async (req, res) => 
        INNER JOIN demanda d ON d.id_demanda = pp.id_demanda
        SET pp.status = 'Em produção', pp.data_inicio = NOW(), d.status = 'Em produção'
        WHERE pp.id_pedido = ? AND pp.id_voluntario = ?
-         AND pp.status = 'Aceito' AND d.status = 'Aceita'`,
+         AND pp.status = 'Aceito' AND d.status = 'Aceita' AND ${materialAacd.condicaoInicio}`,
       [idPedido, idVoluntario]
     );
 
     if (resultado.affectedRows === 0) {
       return res.status(409).json({
-        erro: 'Pedido não encontrado ou não está com status Aceito.'
+        erro: 'O pedido deve estar aceito e, quando solicitado, o recebimento do material da AACD precisa estar confirmado.'
       });
     }
 

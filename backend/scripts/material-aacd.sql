@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS material_pedido (
+ id_pedido INT NOT NULL PRIMARY KEY,
+ modalidade ENUM('Retirada na AACD','Envio pelos Correios') NOT NULL,
+ unidade_id VARCHAR(50) NULL,
+ unidade_nome VARCHAR(150) NULL,
+ endereco TEXT NOT NULL,
+ status ENUM('Aguardando preparação','Disponível para retirada','Material enviado','Material recebido') NOT NULL DEFAULT 'Aguardando preparação',
+ material VARCHAR(50) NOT NULL,
+ quantidade_gramas DECIMAL(10,2) NULL,
+ data_postagem DATE NULL,
+ codigo_rastreio VARCHAR(80) NULL,
+ horario_retirada VARCHAR(200) NULL,
+ responsavel VARCHAR(150) NULL,
+ observacoes VARCHAR(1000) NULL,
+ preparado_por INT NULL,
+ nome_funcionario VARCHAR(150) NULL,
+ data_solicitacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ data_preparacao DATETIME NULL,
+ data_recebimento DATETIME NULL,
+ CONSTRAINT fk_material_pedido FOREIGN KEY (id_pedido) REFERENCES pedido_producao(id_pedido)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

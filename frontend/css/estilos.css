@@ -1444,3 +1444,35 @@ div.cfg-item { cursor: default; }
   .cfg-segmentos span { min-width: 0; }
   .cfg-acoes-conta .btn { flex: 1; }
 }
+
+/* Resultado da avaliação da peça recebida. */
+.cartao-item--demanda-reprovada, .selo--st-reprovada { --etapa-cor: #922d47; --etapa-fundo: #f9dce4; }
+
+/* Recebimento: escolha clara, campos exibidos conforme a avaliação. */
+#recebimento-dialogo { width: min(600px, calc(100vw - 24px)); }
+#recebimento-dialogo .modal__form { padding: 26px; }
+#recebimento-dialogo .rc-cabecalho { margin-bottom: 24px; }
+#recebimento-dialogo h2 { margin: 0 0 6px; font-size: 24px; }
+#recebimento-dialogo #recebimento-resumo { font-size: 13px; color: var(--texto-suave); margin: 0; line-height: 1.5; }
+#recebimento-dialogo legend { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+#recebimento-dialogo .rc-opcoes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#recebimento-dialogo .rc-opcao { display: flex; align-items: center; gap: 10px; border: 1px solid var(--borda-forte); border-radius: 10px; padding: 16px 12px; cursor: pointer; }
+#recebimento-dialogo .rc-opcao input[type=radio] { width: 18px; height: 18px; padding: 0; margin: 0; flex: 0 0 18px; accent-color: var(--teal); }
+#recebimento-dialogo .rc-opcao:has(input:checked) { border-color: var(--teal); background: #edf8f6; }
+#recebimento-dialogo .rc-opcao:has(input[value=Reprovada]:checked) { border-color: #a83f55; background: #fff2f4; }
+#recebimento-dialogo .rc-opcao:has(input:focus-visible) { outline: 2px solid var(--teal); outline-offset: 3px; }
+#recebimento-dialogo .rc-opcao strong, #recebimento-dialogo .rc-opcao small { display: block; }
+#recebimento-dialogo .rc-opcao strong { font-size: 15px; }
+#recebimento-dialogo .rc-opcao small { font-size: 12px; color: var(--texto-suave); margin-top: 3px; line-height: 1.4; }
+#recebimento-dialogo .rc-campo { margin-top: 22px; }
+#recebimento-dialogo .rc-campo label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+#recebimento-dialogo .rc-obrigatorio { font-size: 11px; font-weight: 400; color: var(--texto-suave); }
+#recebimento-dialogo #recebimento-limite { display: block; margin-top: 6px; color: var(--texto-suave); font-size: 12px; }
+#recebimento-dialogo #recebimento-previa { margin-top: 12px; }
+#recebimento-dialogo #recebimento-imagem { display: block; max-width: 100%; max-height: 150px; border-radius: 8px; margin-bottom: 8px; }
+#recebimento-dialogo .rc-orientacao { color: var(--texto-suave); font-size: 12px; margin: 12px 0 0; }
+#recebimento-dialogo .rc-acoes { border-top: 1px solid var(--borda); margin-top: 22px; padding-top: 16px; display: flex; justify-content: flex-end; gap: 10px; }
+#recebimento-dialogo #recebimento-erro:empty { display: none; }
+@media (max-width: 480px) { #recebimento-dialogo .modal__form { padding: 18px; } #recebimento-dialogo .rc-opcoes { grid-template-columns: 1fr; } #recebimento-dialogo .rc-acoes { flex-wrap: wrap; } }
+
+#recebimento-dialogo button[type=submit].btn-danger { background: #a63850; border-color: #a63850; color: #fff; }
