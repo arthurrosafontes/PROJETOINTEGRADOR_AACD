@@ -20,8 +20,6 @@ AACD.preferencias = (() => {
 
   // Padrões protegem o usuário: nada de marketing ligado sem ele pedir
   const PADRAO = Object.freeze({
-    notifAtualizacoes: true,
-    canalEmail: true,
     fonte: "100",            // "100" | "115" | "130" (porcentagem)
     altoContraste: false,
     reduzirAnimacoes: false

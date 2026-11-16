@@ -3,9 +3,10 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/mysql');
+const exclusao = require('../services/exclusao-conta');
 
 // Fotos de perfil: uploads/fotos-perfil/<id_usuario>.jpg ou .png (uma por usuário)
-const PASTA_FOTOS = path.join(__dirname, '..', '..', 'uploads', 'fotos-perfil');
+const PASTA_FOTOS = exclusao.pastaPerfil;
 fs.mkdirSync(PASTA_FOTOS, { recursive: true });
 
 const COOKIE_NAME = 'aacd_sessao';
@@ -125,14 +126,35 @@ async function enviarFoto(req, res) {
   if (!extensao) return res.status(400).json({ erro: 'Envie uma imagem JPG ou PNG.' });
 
   try {
-    const antiga = caminhoFoto(req.usuario.id_usuario);
-    if (antiga) await fs.promises.unlink(antiga);
-    await fs.promises.writeFile(path.join(PASTA_FOTOS, `${Number(req.usuario.id_usuario)}${extensao}`), bytes);
+    await exclusao.comContaAtiva(req.usuario.id_usuario, async () => {
+      const antiga = caminhoFoto(req.usuario.id_usuario);
+      if (antiga) await fs.promises.unlink(antiga);
+      await fs.promises.writeFile(path.join(PASTA_FOTOS, `${Number(req.usuario.id_usuario)}${extensao}`), bytes);
+    });
     return res.json({ mensagem: 'Foto atualizada.' });
   } catch (erro) {
+    if (erro.code === 'CONTA_INATIVA') return res.status(401).json({ erro: 'A conta está inativa.' });
     console.error('Erro ao salvar foto de perfil:', erro);
     return res.status(500).json({ erro: 'Não foi possível salvar a foto.' });
   }
 }
 
-module.exports = { login, sair, perfil, verFoto, enviarFoto };
+async function excluirConta(req, res) {
+  const senha = req.body?.senha;
+  if (!req.is('application/json') || typeof senha !== 'string' || !senha || senha.length > 256) {
+    return res.status(400).json({ erro: 'Informe sua senha atual.' });
+  }
+  try {
+    const pedido = await exclusao.solicitar(req.usuario.id_usuario, senha);
+    if (!pedido) return res.status(403).json({ erro: 'Senha incorreta ou conta indisponível.' });
+    res.set("Cache-Control", "no-store");
+    res.clearCookie(COOKIE_NAME, cookieOptions());
+    const estado = pedido.estado === "limpeza" ? await exclusao.limpar(pedido.protocolo) : pedido.estado;
+    return res.status(estado === "concluida" ? 200 : 202).json({ protocolo: pedido.protocolo, estado });
+  } catch (erro) {
+    console.error('Falha ao registrar exclusão:', erro.code || erro.name);
+    return res.status(500).json({ erro: 'Não foi possível confirmar o pedido de exclusão. Tente novamente.' });
+  }
+}
+
+module.exports = { login, sair, perfil, verFoto, enviarFoto, excluirConta };

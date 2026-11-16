@@ -1,3 +1,4 @@
+const { registrar } = require('../services/notificacoes');
 const express = require('express');
 const { avaliar, pontosDistancia, ordenar, normalizar } = require('../services/compatibilidade');
 const { criarCliente } = require('../services/rotas-ors');
@@ -7,6 +8,38 @@ function criarRouter({ pool = require('../config/mysql'), Impressora = require('
   const router=express.Router();
   router.use(auth.exigirAutenticacao);
   router.get('/unidades', (req,res)=>res.json(unidades.map(({id,nome,endereco})=>({id,nome,endereco}))));
+  router.post('/demandas/:id/convites', auth.exigirPerfil('funcionario'), async (req, res) => {
+    const id = Number(req.params.id), impressoraId = req.body?.impressoraId;
+    if (!Number.isSafeInteger(id) || id <= 0 || typeof impressoraId !== 'string' || !/^[a-f0-9]{24}$/i.test(impressoraId)) {
+      return res.status(400).json({ erro: 'Demanda ou impressora inválida.' });
+    }
+    let conexao;
+    try {
+      const impressora = await Impressora.findOne({ _id: impressoraId }).lean();
+      conexao = await pool.getConnection();
+      await conexao.beginTransaction();
+      const [[demanda]] = await conexao.execute('SELECT * FROM demanda WHERE id_demanda = ? FOR UPDATE', [id]);
+      if (!demanda || demanda.status !== 'Aberta' || !impressora || !avaliar(demanda, impressora).compativel) {
+        await conexao.rollback();
+        return res.status(409).json({ erro: 'A demanda deixou de estar aberta ou a impressora ficou incompatível.' });
+      }
+      const [[voluntario]] = await conexao.execute(`SELECT v.id_usuario FROM voluntario v JOIN usuario u ON u.id_usuario = v.id_usuario
+        WHERE v.id_voluntario = ? AND v.status_homologacao = 'Aprovado' AND u.status = 'Ativo'`, [impressora.id_voluntario]);
+      if (!voluntario) {
+        await conexao.rollback();
+        return res.status(409).json({ erro: 'O voluntário precisa estar ativo e aprovado.' });
+      }
+      const nome = String(impressora.nome_da_impressora || impressora.modelo_da_impressora || 'sua impressora').slice(0, 120);
+      const registrados = await registrar(conexao, voluntario.id_usuario, 'convite:' + id,
+        'A AACD escolheu a impressora ' + nome + ' no matchmaking da demanda #' + id + '. Abra os pedidos disponíveis para avaliar e aceitar o convite.', 'convite');
+      await conexao.commit();
+      res.json({ mensagem: registrados ? 'Convite registrado. O voluntário recebe pelos canais habilitados.' : 'O voluntário não tem um canal de aviso ativo.' });
+    } catch (erro) {
+      if (conexao) await conexao.rollback().catch(() => {});
+      console.error('Falha ao registrar convite AACD:', erro.code || erro.name);
+      res.status(500).json({ erro: 'Não foi possível registrar o convite.' });
+    } finally { conexao?.release(); }
+  });
   router.get('/demandas/:id', async(req,res)=>{
     if(!['funcionario','voluntario'].includes(req.usuario.perfil))return res.sendStatus(403);
     const id=Number(req.params.id);

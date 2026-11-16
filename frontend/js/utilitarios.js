@@ -126,6 +126,17 @@ function formatarDataHora(utc) {
     limpar() { armazenamento.apagar("aacd_usuario", sessionStorage); }
   };
 
+  async function sairDaConta() {
+    if (!(await confirmar("Deseja sair da sua conta neste navegador?", "Sair"))) return;
+    try {
+      await AACD.api.logout();
+      sessao.limpar();
+      location.hash = "#/";
+    } catch (erro) {
+      mostrarToast(erro.message || "Não foi possível sair. Tente novamente.", true);
+    }
+  }
+
   // ===== Máscaras =====
   const mascaras = {
     cep: (v) => digitos(v).slice(0, 8).replace(/^(\d{5})(\d)/, "$1-$2"),
@@ -153,6 +164,6 @@ function formatarDataHora(utc) {
 return {
   $, escapar, formatarData, formatarDataHora, hojeISO, digitos,
   mostrarToast, confirmar, alternarDetalhes, listaDescricao,
-  armazenamento, sessao, mascaras, emailValido
+  armazenamento, sessao, sairDaConta, mascaras, emailValido
 };
 })();

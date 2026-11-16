@@ -1,3 +1,4 @@
+const notificacoes = require('../services/notificacoes');
 const express = require('express');
 const multer = require('multer');
 const fs = require('node:fs/promises');
@@ -77,6 +78,7 @@ router.patch('/:id/finalizar', exigirAutenticacao, exigirPerfil('voluntario'), (
     await conexao.execute(`INSERT INTO historico_producao (id_pedido, id_demanda, id_usuario, status, descricao)
       VALUES (?, ?, ?, 'Aguardando envio', 'Impressão finalizada')`, [id, pedido.id_demanda, req.usuario.id_usuario]);
     confirmando = true;
+    await notificacoes.pedido(conexao, id, 'impressao', 'A impressão foi finalizada. A peça aguarda envio.');
     await conexao.commit();
     res.json({ id, status: 'Aguardando envio' });
   } catch (erro) {

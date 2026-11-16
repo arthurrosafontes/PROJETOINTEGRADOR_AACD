@@ -1,3 +1,4 @@
+const notificacoes = require('../services/notificacoes');
 const express = require('express');
 const pool = require('../config/mysql');
 const { camposConclusao } = require('./conclusao');
@@ -275,6 +276,7 @@ router.patch('/:id/cancelar', ...somenteFuncionario, async (req, res) => {
     await conexao.execute("UPDATE demanda SET status = 'Cancelada' WHERE id_demanda = ?", [id]);
     for (const pedido of pedidos.filter(p => p.status !== 'Cancelado')) {
       await conexao.execute("UPDATE pedido_producao SET status = 'Cancelado' WHERE id_pedido = ?", [pedido.id_pedido]);
+      await notificacoes.pedido(conexao, pedido.id_pedido, 'cancelamento', 'A AACD cancelou o pedido.');
       await conexao.execute(
         "INSERT INTO historico_producao (id_pedido, id_demanda, id_usuario, status, descricao) VALUES (?, ?, ?, 'Cancelado', 'Pedido cancelado pela AACD junto com a demanda')",
         [pedido.id_pedido, id, req.usuario.id_usuario]);

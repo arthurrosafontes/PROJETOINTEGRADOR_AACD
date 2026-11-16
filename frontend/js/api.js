@@ -36,6 +36,13 @@ AACD.api = (() => {
   }
 
   return {
+    preferenciasNotificacoes: () => requisitar('/notificacoes/preferencias', { comCookie: true }),
+    salvarNotificacoes: corpo => requisitar('/notificacoes/preferencias', { metodo: 'PUT', corpo, comCookie: true }),
+    listarNotificacoes: () => requisitar('/notificacoes', { comCookie: true }),
+    confirmarNotificacao: id => requisitar('/notificacoes/' + encodeURIComponent(id) + '/exibida', { metodo: 'PATCH', comCookie: true }),
+    convidarMatchmaking: (id, impressoraId) => requisitar('/matchmaking/demandas/' + encodeURIComponent(id) + '/convites', {
+      metodo: 'POST', corpo: { impressoraId }, comCookie: true
+    }),
     listarUnidadesAACD: () => requisitar('/matchmaking/unidades', { comCookie: true, erroPadrao: 'Não foi possível carregar as unidades.' }),
     consultarMatchmaking: id => requisitar('/matchmaking/demandas/'+encodeURIComponent(id), { comCookie: true, erroPadrao: 'Não foi possível consultar a compatibilidade.' }),
     // ----- Autenticação -----
@@ -48,6 +55,7 @@ AACD.api = (() => {
       requisitar("/auth/logout", { metodo: "POST", comCookie: true }),
 
     // ----- Meu perfil -----
+    excluirConta: senha => requisitar("/auth/conta", { metodo: "DELETE", corpo: { senha }, comCookie: true }),
     meuPerfil: () =>
       requisitar("/auth/perfil", { comCookie: true, erroPadrao: "Não foi possível carregar o perfil." }),
     // O "?t=" muda a cada chamada para o navegador não mostrar a foto antiga guardada
@@ -78,7 +86,10 @@ AACD.api = (() => {
           complemento: dados.complemento,
           bairro: dados.bairro,
           cidade: dados.cidade,
-          estado: dados.uf
+          estado: dados.uf,
+          aceitouTermos: dados.aceitouTermos === "sim",
+          cientePrivacidade: dados.cientePrivacidade === "sim",
+          versaoDocumentos: dados.versaoDocumentos
         }
       }),
 

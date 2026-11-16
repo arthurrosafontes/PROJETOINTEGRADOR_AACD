@@ -46,6 +46,7 @@
   <script src="js/telas/meu-perfil.js" defer></script>
   <script src="js/telas/status-protese.js" defer></script>
   <script src="js/telas/configuracoes.js" defer></script>
+  <script src="js/notificacoes.js" defer></script>
   <script src="js/roteador.js" defer></script>
   
 </head>
@@ -140,6 +141,7 @@
       <ul aria-labelledby="menu-bootstrap-6" class="submenu submenu--direita dropdown-menu dropdown-menu-end" id="sub-usuario">
         <li><a class="dropdown-item" href="#/voluntario/meu-perfil" data-link-area="meu-perfil">Meu perfil</a></li>
         <li><a class="dropdown-item" href="#/voluntario/configuracoes" data-link-area="configuracoes">Configurações</a></li>
+        <li><button class="dropdown-item" type="button" id="usuario-sair">Sair</button></li>
       </ul>
     </div>
   </header>
@@ -379,6 +381,7 @@
       <form id="form-cadastro" novalidate>
         <fieldset class="etapa-form" data-etapa="0">
           <legend class="visualmente-oculto visually-hidden">Dados do voluntário</legend>
+          <p class="small mb-3">Cadastro acadêmico. Consulte o <a class="link-light text-decoration-underline" href="termos-e-privacidade.html#privacidade" target="_blank" rel="noopener">Aviso de Privacidade</a> antes de preencher seus dados.</p>
           <div class="grade grade--dados row">
             <div class="campo campo--inteiro col-12">
               <label class="visualmente-oculto visually-hidden form-label" for="cad-tipo">Tipo de voluntário</label>
@@ -458,18 +461,36 @@
           </div>
         </fieldset>
 
-        <fieldset class="etapa-form" data-etapa="2" hidden>
-          <legend class="visualmente-oculto visually-hidden">Acesso</legend>
-          <div class="grade row">
-            <div class="campo col-12 col-md-6">
-              <label class="visualmente-oculto visually-hidden form-label" for="cad-senha">Senha (mínimo de 8 caracteres)</label>
-              <input class="form-control" id="cad-senha" name="senha" type="password" placeholder="Senha" minlength="8" autocomplete="new-password" aria-describedby="cad-senha-erro" required>
+        <fieldset class="etapa-form cad-acesso" data-etapa="2" hidden>
+          <legend class="cad-acesso__titulo">Crie sua senha</legend>
+          <p class="cad-acesso__ajuda mb-3">Mínimo de 8 caracteres.</p>
+          <div class="row g-3">
+            <div class="campo col-12 col-sm-6">
+              <label class="form-label" for="cad-senha">Senha</label>
+              <input class="form-control" id="cad-senha" name="senha" type="password" minlength="8" maxlength="72" autocomplete="new-password" aria-describedby="cad-senha-erro" required>
               <small class="erro" id="cad-senha-erro"></small>
             </div>
-            <div class="campo col-12 col-md-6">
-              <label class="visualmente-oculto visually-hidden form-label" for="cad-confirmar">Confirmar senha</label>
-              <input class="form-control" id="cad-confirmar" name="confirmarSenha" type="password" placeholder="Confirmar Senha:" autocomplete="new-password" aria-describedby="cad-confirmar-erro" required>
+            <div class="campo col-12 col-sm-6">
+              <label class="form-label" for="cad-confirmar">Confirmar senha</label>
+              <input class="form-control" id="cad-confirmar" name="confirmarSenha" type="password" maxlength="72" autocomplete="new-password" aria-describedby="cad-confirmar-erro" required>
               <small class="erro" id="cad-confirmar-erro"></small>
+            </div>
+          </div>
+          <div class="cad-documentos mt-4">
+            <input type="hidden" name="versaoDocumentos" value="2026-11-16.2">
+            <div class="cad-confirmacao">
+              <label for="cad-aceite-termos">
+                <input class="form-check-input" type="checkbox" id="cad-aceite-termos" name="aceitouTermos" value="sim" required>
+                <span>Li e aceito os Termos de Uso.</span>
+              </label>
+              <a href="termos-e-privacidade.html#termos" target="_blank" rel="noopener" aria-label="Ler os Termos de Uso em nova aba">Ler termos <span aria-hidden="true">↗</span></a>
+            </div>
+            <div class="cad-confirmacao">
+              <label for="cad-ciencia-privacidade">
+                <input class="form-check-input" type="checkbox" id="cad-ciencia-privacidade" name="cientePrivacidade" value="sim" required>
+                <span>Li o Aviso de Privacidade.</span>
+              </label>
+              <a href="termos-e-privacidade.html#privacidade" target="_blank" rel="noopener" aria-label="Ler o Aviso de Privacidade em nova aba">Ler aviso <span aria-hidden="true">↗</span></a>
             </div>
           </div>
         </fieldset>
@@ -1421,7 +1442,7 @@
   <main aria-labelledby="titulo-tela-configuracoes" class="tela tela--app tela--estreita container-fluid" id="tela-configuracoes" data-rota="/voluntario/configuracoes /funcionario/configuracoes" data-area="auto" data-titulo="Configurações" hidden>
     <header class="cabecalho-pagina cabecalho-pagina--normal">
       <h1 id="titulo-tela-configuracoes" tabindex="-1">Configurações</h1>
-      <p>As mudanças são salvas automaticamente neste navegador.</p>
+      <p>As notificações são salvas na sua conta. A aparência é salva neste navegador.</p>
     </header>
 
     <form id="cfg-form" class="cfg-form" novalidate>
@@ -1429,15 +1450,18 @@
       <!-- ===== NOTIFICAÇÕES ===== -->
       <section class="cfg-secao" aria-labelledby="cfg-notificacoes-titulo">
         <h2 id="cfg-notificacoes-titulo">Notificações</h2>
+        <fieldset id="cfg-canais" disabled aria-labelledby="cfg-notificacoes-titulo">
 
         <label class="cfg-item">
-          <span class="cfg-item__texto"><strong>Pedidos e produção</strong><span>Mudanças de status nos seus pedidos.</span></span>
+          <span class="cfg-item__texto"><strong>Avisos no Hub</strong><span>Pop-ups para atualizações de pedidos e convites do matchmaking.</span></span>
           <input class="cfg-toggle" type="checkbox" role="switch" name="notifAtualizacoes">
         </label>
         <label class="cfg-item">
-          <span class="cfg-item__texto"><strong>Receber também por e-mail</strong><span>Além dos avisos dentro do Hub.</span></span>
+          <span class="cfg-item__texto"><strong>Avisos por e-mail</strong><span>Receba as mesmas atualizações no e-mail da sua conta.</span></span>
           <input class="cfg-toggle" type="checkbox" role="switch" name="canalEmail">
         </label>
+        </fieldset>
+        <p id="cfg-status-notificacoes" class="small mt-2 mb-0" role="status"></p>
       </section>
 
       <!-- ===== APARÊNCIA ===== -->
@@ -1480,14 +1504,14 @@
           <span class="cfg-item__texto"><strong>Reportar um problema</strong><span>Algo não funcionou? Conte para a equipe.</span></span>
           <span class="cfg-seta" aria-hidden="true">›</span>
         </button>
-        <button type="button" class="cfg-item cfg-item--link" data-abrir="dialogo-cfg-termos">
+        <a class="cfg-item cfg-item--link text-decoration-none" href="termos-e-privacidade.html#termos" target="_blank" rel="noopener">
           <span class="cfg-item__texto"><strong>Termos de uso</strong></span>
           <span class="cfg-seta" aria-hidden="true">›</span>
-        </button>
-        <button type="button" class="cfg-item cfg-item--link" data-abrir="dialogo-cfg-privacidade">
-          <span class="cfg-item__texto"><strong>Política de privacidade</strong></span>
+        </a>
+        <a class="cfg-item cfg-item--link text-decoration-none" href="termos-e-privacidade.html#privacidade" target="_blank" rel="noopener">
+          <span class="cfg-item__texto"><strong>Aviso de Privacidade</strong></span>
           <span class="cfg-seta" aria-hidden="true">›</span>
-        </button>
+        </a>
       </section>
 
       <!-- ===== CONTA (ações destrutivas, sempre no fim e em vermelho) ===== -->
@@ -1930,50 +1954,33 @@
     </form>
   </dialog>
 
-  <dialog class="aacd-dialogo cfg-dialogo" id="dialogo-cfg-termos" aria-labelledby="dialogo-cfg-termos-titulo">
+  <dialog class="aacd-dialogo" id="dialogo-cfg-excluir" aria-labelledby="cfg-exclusao-titulo">
     <div class="modal__form">
-      <div class="modal__cabecalho">
-        <h2 id="dialogo-cfg-termos-titulo">Termos de uso</h2>
-        <button type="button" class="modal__fechar" data-fechar="" title="Fechar"><span aria-hidden="true">✕</span></button>
-      </div>
-      <div class="cfg-texto-legal">
-        <h3>1. Finalidade</h3>
-        <p>O Hub conecta a equipe da AACD a voluntários com impressoras 3D para produzir peças e próteses destinadas a pacientes.</p>
-        <h3>2. Responsabilidades do voluntário</h3>
-        <p>Produzir apenas os pedidos aceitos, seguir as especificações técnicas informadas e manter seus dados de contato atualizados.</p>
-        <h3>3. Uso dos arquivos</h3>
-        <p>Os modelos 3D são fornecidos exclusivamente para a produção solicitada e não podem ser compartilhados nem comercializados.</p>
-        <h3>4. Conta</h3>
-        <p>O acesso é pessoal. A AACD pode suspender contas que descumprirem estes termos.</p>
-      </div>
-      <div class="modal__acoes">
-        <button type="button" class="botao botao--escuro btn btn-primary" data-fechar="">Entendi</button>
+      <h2 id="cfg-exclusao-titulo">Excluir minha conta</h2>
+      <form id="form-cfg-excluir">
+        <p class="mb-3">Seu acesso será encerrado. A exclusão é definitiva.</p>
+        <p class="mb-3">O Hub apaga seus dados cadastrais, foto de perfil, impressoras, aceites e preferências dos sistemas ativos quando a conta não possui vínculos com pedidos, demandas ou atividades registradas. Se houver vínculos, o pedido fica em revisão.</p>
+        <label class="d-block mb-3" for="cfg-exclusao-senha">
+          Senha atual
+          <input class="form-control mt-1" id="cfg-exclusao-senha" type="password" autocomplete="current-password" maxlength="256" required>
+        </label>
+        <p id="cfg-exclusao-erro" class="text-danger" role="alert"></p>
+        <div class="modal__acoes">
+          <button type="button" class="btn btn-outline-primary botao" id="cfg-exclusao-cancelar">Cancelar</button>
+          <button type="submit" class="btn btn-danger botao">Confirmar exclusão</button>
+        </div>
+      </form>
+      <div id="cfg-exclusao-resposta" hidden>
+        <p id="cfg-exclusao-mensagem" class="mb-3" role="status"></p>
+        <p class="mb-3 text-break">Protocolo <strong id="cfg-exclusao-protocolo"></strong></p>
+        <div class="modal__acoes">
+          <button type="button" class="btn btn-primary botao" id="cfg-exclusao-fechar">Voltar ao início</button>
+        </div>
       </div>
     </div>
   </dialog>
 
-  <dialog class="aacd-dialogo cfg-dialogo" id="dialogo-cfg-privacidade" aria-labelledby="dialogo-cfg-privacidade-titulo">
-    <div class="modal__form">
-      <div class="modal__cabecalho">
-        <h2 id="dialogo-cfg-privacidade-titulo">Política de privacidade</h2>
-        <button type="button" class="modal__fechar" data-fechar="" title="Fechar"><span aria-hidden="true">✕</span></button>
-      </div>
-      <div class="cfg-texto-legal">
-        <h3>Dados coletados</h3>
-        <p>Nome, e-mail, telefone, documento (CPF/CNPJ), endereço e dados das impressoras cadastradas.</p>
-        <h3>Para que usamos</h3>
-        <p>Para homologar voluntários, distribuir pedidos de produção e entrar em contato sobre as entregas.</p>
-        <h3>Seus direitos (LGPD)</h3>
-        <p>Você pode consultar, corrigir ou pedir a exclusão dos seus dados a qualquer momento — inclusive pela opção <strong>Excluir conta</strong> nas Configurações.</p>
-        <h3>Preferências</h3>
-        <p>As configurações desta tela ficam apenas no seu navegador e não são enviadas ao servidor.</p>
-      </div>
-      <div class="modal__acoes">
-        <button type="button" class="botao botao--escuro btn btn-primary" data-fechar="">Entendi</button>
-      </div>
-    </div>
-  </dialog>
-
+  <div id="avisos-hub" class="position-fixed bottom-0 end-0 p-3" style="pointer-events:none;z-index:1090;width:min(100%, 410px)" aria-live="polite" aria-relevant="additions"></div>
   <p data-bs-delay="3000" class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></p>
 
 </body>

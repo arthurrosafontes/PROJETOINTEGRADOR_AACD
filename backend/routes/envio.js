@@ -1,3 +1,4 @@
+const notificacoes = require('../services/notificacoes');
 const express = require('express');
 const pool = require('../config/mysql');
 const { exigirAutenticacao, exigirPerfil } = require('../middleware/autenticacao');
@@ -61,6 +62,7 @@ router.patch('/:id/envio', exigirAutenticacao, exigirPerfil('voluntario'), async
     await c.execute("UPDATE demanda SET status = 'Aguardando validação' WHERE id_demanda = ?", [pedido.id_demanda]);
     await c.execute(`INSERT INTO historico_producao (id_pedido,id_demanda,id_usuario,status,descricao)
       VALUES (?,?,?,'Aguardando validação','Envio registrado')`, [id,pedido.id_demanda,req.usuario.id_usuario]);
+    await notificacoes.pedido(c, id, 'envio', 'O envio da peça foi registrado. A peça aguarda avaliação da AACD.');
     await c.commit();
     res.json({ id, status: 'Aguardando validação' });
   } catch (erro) {

@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const conectarBanco = require('./backend/config/db');
+const exclusaoConta = require('./backend/services/exclusao-conta');
 const FichaImpressora = require('./backend/models/FichaTecnicaImpressora');
 const voluntariosRoutes = require('./backend/routes/voluntarios');
 const authRoutes = require('./backend/routes/auth');
@@ -20,6 +21,7 @@ const materialAacd = require('./backend/routes/material-aacd');
 const { avaliar: avaliarCompatibilidade } = require('./backend/services/compatibilidade');
 const { lerObservacoes } = require('./backend/routes/observacoes-demanda');
 
+const notificacoes = require('./backend/services/notificacoes');
 const app = express();
 app.use(express.json());
 const origensPermitidas = new Set([
@@ -31,13 +33,13 @@ app.use(cors({
   credentials: true
 }));
 app.use(cookieParser());
+app.use('/api/notificacoes', require('./backend/routes/notificacoes'));
 app.use('/api/pedidos', conclusao.router);
 app.use('/api/pedidos', envio.router);
 app.use('/api/pedidos', recebimento.router);
 app.use('/api/pedidos', materialAacd.criarRouter());
 app.use('/api/matchmaking', require('./backend/routes/matchmaking').criarRouter());
 
-conectarBanco();
 app.use('/api/voluntarios', voluntariosRoutes);
 app.use('/api/auth', authRoutes);
 app.get('/', (req, res) => res.send('API do Projeto AACD rodando com sucesso!'));
@@ -70,7 +72,7 @@ app.post('/api/impressoras', ...somenteVoluntario, async (req, res) => {
       ...selecionarCampos(req.body),
       id_voluntario: req.usuario.id_voluntario
     });
-    await novaImpressora.save();
+    await exclusaoConta.comContaAtiva(req.usuario.id_usuario, () => novaImpressora.save());
     res.status(201).json({
       mensagem: 'Impressora cadastrada com sucesso no MongoDB!',
       impressora: novaImpressora
@@ -79,6 +81,7 @@ app.post('/api/impressoras', ...somenteVoluntario, async (req, res) => {
     if (erro.name === 'ValidationError' || erro.name === 'CastError') {
       return res.status(400).json({ erro: 'Dados da impressora inválidos.', detalhes: erro.message });
     }
+    if (erro.code === 'CONTA_INATIVA') return res.status(401).json({ erro: 'A conta está inativa.' });
     console.error('Erro ao cadastrar impressora:', erro);
     res.status(500).json({ erro: 'Não foi possível cadastrar a impressora.' });
   }
@@ -827,6 +830,8 @@ if (typeof doacaoMaterial !== 'boolean') {
       conexao
     );
 
+    await notificacoes.pedido(conexao, resultado.insertId, 'aceite', 'A demanda foi aceita pelo voluntário.');
+
     // Confirmar todas as alterações
     await conexao.commit();
     transacaoIniciada = false;
@@ -1067,8 +1072,11 @@ app.patch('/api/pedidos/:id/iniciar', ...somenteVoluntario, async (req, res) => 
     });
   }
 
+  let conexao;
   try {
-    const [resultado] = await pool.execute(
+    conexao = await pool.getConnection();
+    await conexao.beginTransaction();
+    const [resultado] = await conexao.execute(
       `UPDATE pedido_producao pp
        INNER JOIN demanda d ON d.id_demanda = pp.id_demanda
        SET pp.status = 'Em produção', pp.data_inicio = NOW(), d.status = 'Em produção'
@@ -1078,10 +1086,14 @@ app.patch('/api/pedidos/:id/iniciar', ...somenteVoluntario, async (req, res) => 
     );
 
     if (resultado.affectedRows === 0) {
+      await conexao.rollback();
       return res.status(409).json({
         erro: 'O pedido deve estar aceito e, quando solicitado, o recebimento do material da AACD precisa estar confirmado.'
       });
     }
+
+    await notificacoes.pedido(conexao, idPedido, 'inicio', 'O pedido entrou em produção.');
+    await conexao.commit();
 
     return res.status(200).json({
       mensagem: 'Produção iniciada com sucesso!',
@@ -1090,14 +1102,22 @@ app.patch('/api/pedidos/:id/iniciar', ...somenteVoluntario, async (req, res) => 
     });
 
   } catch (erro) {
+    if (conexao) await conexao.rollback().catch(() => {});
     console.error('Erro ao iniciar produção:', erro);
 
     return res.status(500).json({
       erro: 'Não foi possível iniciar a produção.'
     });
-  }
+  } finally { conexao?.release(); }
 });
 
-app.listen(PORTA, () => {
-  console.log(`Servidor rodando com sucesso na porta ${PORTA}`);
-});
+async function iniciarServidor() {
+  await conectarBanco();
+  app.listen(PORTA, () => {
+    notificacoes.iniciarEnvio(pool);
+    exclusaoConta.iniciarFila();
+    console.log(`Servidor rodando com sucesso na porta ${PORTA}`);
+  });
+}
+
+iniciarServidor();

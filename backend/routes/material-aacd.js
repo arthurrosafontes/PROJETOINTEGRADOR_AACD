@@ -1,3 +1,4 @@
+const notificacoes = require('../services/notificacoes');
 const express = require('express');
 const unidades = require('../config/unidades-aacd');
 const { criarCliente } = require('../services/rotas-ors');
@@ -84,6 +85,7 @@ function criarRouter({pool=require('../config/mysql'),auth=require('../middlewar
       const status=p.modalidade==='Envio pelos Correios'?'Material enviado':'Disponível para retirada';
       await c.execute(`UPDATE material_pedido SET status=?,quantidade_gramas=?,data_postagem=?,codigo_rastreio=?,horario_retirada=?,responsavel=?,observacoes=?,preparado_por=?,nome_funcionario=?,data_preparacao=UTC_TIMESTAMP() WHERE id_pedido=?`,[status,gramas,data,rastreio,horario,responsavel,obs,req.usuario.id_usuario,req.usuario.nome,id]);
       await c.execute(`INSERT INTO historico_producao(id_pedido,id_demanda,id_usuario,status,descricao) VALUES(?,?,?,'Aceito',?)`,[id,p.id_demanda,req.usuario.id_usuario,status+' — material da AACD']);
+      await notificacoes.pedido(c, id, 'material-pronto', status === 'Material enviado' ? 'A AACD postou o material. Consulte o rastreio no Hub.' : 'O material da AACD está disponível para retirada. Consulte as instruções no Hub.');
       await c.commit();res.json({id,status});
     }catch{if(c)await c.rollback().catch(()=>{});res.status(500).json({erro:'Não foi possível registrar o fornecimento do material. Atualize o pedido antes de tentar novamente.'});}finally{c?.release();}
   });
@@ -96,6 +98,7 @@ function criarRouter({pool=require('../config/mysql'),auth=require('../middlewar
       if(!p||p.pedidoStatus!=='Aceito'||p.demandaStatus!=='Aceita'||!['Disponível para retirada','Material enviado'].includes(p.status)){await c.rollback();return res.status(p?409:404).json({erro:'O material ainda não está disponível para confirmar recebimento.'});}
       await c.execute("UPDATE material_pedido SET status='Material recebido',data_recebimento=UTC_TIMESTAMP() WHERE id_pedido=?",[id]);
       await c.execute(`INSERT INTO historico_producao(id_pedido,id_demanda,id_usuario,status,descricao) VALUES(?,?,?,'Aceito','Voluntário confirmou recebimento do material da AACD')`,[id,p.id_demanda,req.usuario.id_usuario]);
+      await notificacoes.pedido(c, id, 'material-recebido', 'O voluntário confirmou o recebimento do material. A produção está liberada.');
       await c.commit();res.json({id,status:'Material recebido'});
     }catch{if(c)await c.rollback().catch(()=>{});res.status(500).json({erro:'Não foi possível confirmar o recebimento do material.'});}finally{c?.release();}
   });

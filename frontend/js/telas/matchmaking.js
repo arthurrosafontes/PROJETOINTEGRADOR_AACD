@@ -69,7 +69,7 @@ AACD.matchmaking = (() => {
       <p class="mm-owner">Voluntário: ${escapar(c.voluntario || 'Não informado')}</p></div>
       <span class="mm-label ${apta ? '' : 'mm-label-neutral'}">${selo}</span></div>
       ${apta ? `<div class="mm-metrics"><span>Trajeto até a unidade<strong>${escapar(distancia)}</strong></span>
-        <span>Pontuação<strong>${escapar(c.pontos)} pontos${completo ? '' : ' · parcial'}</strong></span></div>`
+        <span>Pontuação<strong>${escapar(c.pontos)} pontos${completo ? '' : ' · parcial'}</strong></span></div><button type="button" class="btn btn-outline-primary botao mt-3" data-convidar="${escapar(c.id)}">Convidar voluntário</button>`
         : `<ul class="mm-reasons">${(c.motivos || []).map(m => `<li>${escapar(motivosCurtos[m] || m)}</li>`).join('')}</ul>`}</li>`;
   }
   async function abrir(id) {
@@ -98,6 +98,22 @@ AACD.matchmaking = (() => {
           <p>Distância: até 10 km, 5 pontos; até 25 km, 4; até 50 km, 3; até 100 km, 2; acima de 100 km, 1.</p>
           <p class="mb-0">Sem trajeto calculado, não há pontos de distância e a classificação fica parcial. Nenhum pedido é aceito automaticamente.</p>
         </div></details>`;
+      corpo.querySelectorAll("[data-convidar]").forEach(botao => {
+        botao.addEventListener("click", async () => {
+          botao.disabled = true;
+          const status = document.createElement("p");
+          status.className = "small mt-2 mb-0";
+          status.setAttribute("role", "status");
+          botao.after(status);
+          try {
+            const r = await AACD.api.convidarMatchmaking(id, botao.dataset.convidar);
+            status.textContent = r.mensagem;
+          } catch (erro) {
+            status.textContent = erro.message;
+            botao.disabled = false;
+          }
+        });
+      });
     } catch (e) { if (atual === versao) corpo.textContent = e.message; }
   }
   return { abrir };

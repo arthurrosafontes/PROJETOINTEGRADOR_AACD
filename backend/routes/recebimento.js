@@ -1,3 +1,4 @@
+const notificacoes = require('../services/notificacoes');
 const express = require('express');
 const multer = require('multer');
 const fs = require('node:fs/promises');
@@ -74,6 +75,7 @@ router.patch('/:id/receber', exigirAutenticacao, exigirPerfil('funcionario'), (r
       [id, pedido.id_demanda, req.usuario.id_usuario, statusPedido,
         reprovada ? 'Peça recebida e reprovada pela AACD' : 'Peça recebida e aprovada pela AACD', observacoes.trim() || null]);
     confirmando = true;
+    await notificacoes.pedido(c, id, 'avaliacao', reprovada ? 'A AACD recebeu e reprovou a peça. Consulte a avaliação no Hub.' : 'A AACD recebeu e aprovou a peça. O pedido foi concluído.');
     await c.commit();
     res.json({ id, status: statusPedido, demandaStatus: statusDemanda, resultado });
   } catch (erro) {

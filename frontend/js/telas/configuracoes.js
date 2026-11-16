@@ -14,7 +14,48 @@
   const VERSAO_APP = "1.0.0";                  // mesma do package.json
   const EMAIL_SUPORTE = "suporte@aacd.org.br"; // TODO: confirmar o e-mail oficial da equipe
 
-  let form;
+  let form, notificacoes, preferenciasServidor;
+
+  function mostrarPreferenciasNotificacoes(p) {
+    preferenciasServidor = p;
+    form.elements.notifAtualizacoes.checked = p.hub;
+    form.elements.canalEmail.checked = p.email;
+    const status = $("cfg-status-notificacoes");
+    if (!p.emailDisponivel) status.textContent = "O envio por e-mail depende da configuração do servidor.";
+    else if (p.emailDeTeste) status.textContent = "Envio em modo de teste. Para receber, o e-mail desta conta do Hub deve ser o mesmo da sua conta no Resend.";
+    else status.textContent = "";
+    AACD.notificacoes.preferencia(p.hub);
+  }
+
+  async function carregarNotificacoes() {
+    preferenciasServidor = null;
+    notificacoes.disabled = true;
+    form.elements.notifAtualizacoes.checked = false;
+    form.elements.canalEmail.checked = false;
+    $("cfg-status-notificacoes").textContent = "Carregando preferências…";
+    try {
+      mostrarPreferenciasNotificacoes(await AACD.api.preferenciasNotificacoes());
+      notificacoes.disabled = false;
+    } catch (erro) {
+      $("cfg-status-notificacoes").textContent = erro.message;
+    }
+  }
+
+  async function salvarCanal() {
+    if (!preferenciasServidor) return;
+    const anterior = preferenciasServidor;
+    notificacoes.disabled = true;
+    try {
+      mostrarPreferenciasNotificacoes(await AACD.api.salvarNotificacoes({
+        hub: form.elements.notifAtualizacoes.checked,
+        email: form.elements.canalEmail.checked
+      }));
+      mostrarToast("Preferências de notificação salvas.");
+    } catch (erro) {
+      mostrarPreferenciasNotificacoes(anterior);
+      mostrarToast(erro.message, true);
+    } finally { notificacoes.disabled = false; }
+  }
 
   // ===== Formulário <-> preferências =====
   function preencher(p) {
@@ -90,42 +131,77 @@
   }
 
   // ===== Conta =====
-  async function sairDaConta() {
-    if (await confirmar("Deseja sair da sua conta neste navegador?", "Sair")) {
-      // Encerra a sessão no servidor (se ele estiver no ar) e volta ao início
-      try { await AACD.api.logout(); } catch { /* servidor fora do ar: sai mesmo assim */ }
-      AACD.util.sessao.limpar();
-      location.hash = "#/";
-    }
-  }
-
-  async function excluirConta() {
-    const ok = await confirmar(
-      "Excluir a conta é definitivo: seu cadastro e seu histórico serão removidos.\n\n" +
-      "Vamos abrir um e-mail de solicitação para a equipe AACD concluir a exclusão.",
-      "Excluir conta"
-    );
-    if (!ok) return;
-    const usuario = sessao.obter() || {};
-    abrirEmail("[Hub AACD] Solicitação de exclusão de conta", [
-      `Solicito a exclusão definitiva da minha conta (${usuario.nome || "-"}) e dos meus dados, conforme a LGPD.`,
-      "",
-      ...dadosTecnicos()
-    ]);
+  function prepararExclusao() {
+    const dialogo = $("dialogo-cfg-excluir");
+    const formulario = $("form-cfg-excluir");
+    const resposta = $("cfg-exclusao-resposta");
+    const erro = $("cfg-exclusao-erro");
+    let encerrada = false, enviando = false;
+    $("cfg-excluir").addEventListener("click", () => {
+      formulario.reset();
+      erro.textContent = "";
+      formulario.hidden = false;
+      resposta.hidden = true;
+      dialogo.showModal();
+    });
+    $("cfg-exclusao-cancelar").onclick = () => dialogo.close();
+    $("cfg-exclusao-fechar").onclick = () => dialogo.close();
+    dialogo.addEventListener("cancel", e => { if (enviando) e.preventDefault(); });
+    dialogo.addEventListener("close", () => {
+      formulario.reset();
+      if (encerrada) { encerrada = false; location.hash = "#/"; }
+    });
+    formulario.addEventListener("submit", async e => {
+      e.preventDefault();
+      if (enviando) return;
+      enviando = true;
+      const botoes = [...formulario.querySelectorAll("button")];
+      botoes.forEach(b => { b.disabled = true; });
+      erro.textContent = "";
+      try {
+        const resultado = await AACD.api.excluirConta($("cfg-exclusao-senha").value);
+        encerrada = true;
+        sessao.limpar();
+        AACD.notificacoes.sessao();
+        formulario.reset();
+        formulario.hidden = true;
+        const mensagens = {
+          concluida: "Sua conta, impressoras, foto de perfil e preferências foram excluídas dos sistemas ativos.",
+          limpeza: "Seu acesso foi encerrado. Parte da exclusão ainda está sendo processada. Guarde o protocolo.",
+          revisao: "Seu acesso foi encerrado. Há registros vinculados a pedidos ou atividades do Hub. O responsável precisa revisar esses vínculos antes de concluir a exclusão."
+        };
+        $("cfg-exclusao-mensagem").textContent = mensagens[resultado.estado] || mensagens.limpeza;
+        $("cfg-exclusao-protocolo").textContent = resultado.protocolo;
+        resposta.hidden = false;
+        $("cfg-exclusao-fechar").focus();
+      } catch (falha) {
+        erro.textContent = falha.message;
+        $("cfg-exclusao-senha").value = "";
+        $("cfg-exclusao-senha").focus();
+      } finally {
+        enviando = false;
+        botoes.forEach(b => { b.disabled = false; });
+      }
+    });
   }
 
   AACD.telas["tela-configuracoes"] = {
     iniciar() {
       form = $("cfg-form");
-      form.addEventListener("change", salvarMudanca);
+      notificacoes = $("cfg-canais");
+      form.addEventListener("change", e => {
+        if (notificacoes.contains(e.target)) salvarCanal();
+        else salvarMudanca();
+      });
       form.addEventListener("submit", (e) => e.preventDefault());
-      $("cfg-sair").addEventListener("click", sairDaConta);
-      $("cfg-excluir").addEventListener("click", excluirConta);
+      $("cfg-sair").addEventListener("click", AACD.util.sairDaConta);
+      prepararExclusao();
       prepararDialogos();
     },
 
     aoEntrar() {
       preencher(prefs.ler());
+      carregarNotificacoes();
     },
 
     aoSair() {

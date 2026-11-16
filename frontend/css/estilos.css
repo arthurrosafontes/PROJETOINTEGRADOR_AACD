@@ -514,7 +514,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .tela--cadastro .campo { display: flex; flex-direction: column; }
 .tela--cadastro .campo--inteiro { grid-column: 1 / -1; }
 .tela--cadastro .campo--duplo { grid-column: span 2; }
-.tela--cadastro input,
+.tela--cadastro input.form-control,
 .tela--cadastro select {
   width: 100%;
   height: 64px;
@@ -526,12 +526,13 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   font-size: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, .25);
 }
-.tela--cadastro input::placeholder { color: var(--placeholder); }
-.tela--cadastro input:focus, .tela--cadastro select:focus { outline: none; box-shadow: 0 0 0 3px #ffd1d7, 0 4px 6px rgba(0, 0, 0, .25); }
-.tela--cadastro input:disabled { background: #f2f2f2; cursor: not-allowed; }
+.tela--cadastro input.form-control::placeholder { color: var(--placeholder); }
+.tela--cadastro input.form-control:focus, .tela--cadastro select:focus { outline: none; box-shadow: 0 0 0 3px #ffd1d7, 0 4px 6px rgba(0, 0, 0, .25); }
+.tela--cadastro input.form-control:disabled { background: #f2f2f2; cursor: not-allowed; }
 .tela--cadastro [aria-invalid="true"] { box-shadow: 0 0 0 3px var(--amarelo-claro), 0 4px 6px rgba(0, 0, 0, .25); }
 .tela--cadastro .erro { min-height: 18px; margin-top: 6px; padding-left: 8px; font-size: 13px; font-weight: 700; color: var(--amarelo-claro); }
 .tela--cadastro .erro--envio { min-height: 0; margin-top: 20px; text-align: center; }
+
 
 .campo__com-status { position: relative; display: block; }
 .campo__status { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #777; }
@@ -1074,7 +1075,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
   .cartao-cadastro { padding: 28px 20px; }
   
   .tela--cadastro .campo--duplo { grid-column: auto; }
-  .tela--cadastro input, .tela--cadastro select, .botao-claro { height: 54px; font-size: 17px; }
+  .tela--cadastro input.form-control, .tela--cadastro select, .botao-claro { height: 54px; font-size: 17px; }
   .marca-texto { display: none; }
   .revisao { grid-template-columns: 1fr; }
   .cartao-form--grande { padding: 28px 20px; }
@@ -1476,3 +1477,94 @@ div.cfg-item { cursor: default; }
 @media (max-width: 480px) { #recebimento-dialogo .modal__form { padding: 18px; } #recebimento-dialogo .rc-opcoes { grid-template-columns: 1fr; } #recebimento-dialogo .rc-acoes { flex-wrap: wrap; } }
 
 #recebimento-dialogo button[type=submit].btn-danger { background: #a63850; border-color: #a63850; color: #fff; }
+
+/* Etapa de acesso do cadastro */
+.cad-acesso__titulo {
+  margin-bottom: 6px;
+  font-size: clamp(1.5rem, 4vw, 1.875rem);
+  font-weight: 700;
+}
+
+.cad-acesso .form-label { margin-bottom: 6px; font-weight: 600; }
+.tela--cadastro .cad-acesso .erro { min-height: 0; }
+.cad-acesso .erro:empty { display: none; }
+
+.cad-documentos {
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 16px;
+  background: rgba(64, 0, 14, .14);
+}
+
+.cad-confirmacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+}
+
+.cad-confirmacao + .cad-confirmacao { border-top: 1px solid rgba(255, 255, 255, .35); }
+.cad-confirmacao label { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.cad-confirmacao .form-check-input { flex: 0 0 auto; width: 1.125rem; height: 1.125rem; cursor: pointer; }
+.cad-confirmacao a { flex-shrink: 0; color: var(--branco); font-size: .875rem; font-weight: 600; }
+.cad-confirmacao :is(a, input):focus-visible { outline: 2px solid var(--branco); outline-offset: 3px; }
+
+@media (max-width: 575.98px) {
+  .cad-confirmacao { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .cad-confirmacao a { margin-left: calc(1.125rem + 10px); }
+  .cartao-cadastro:has(.cad-acesso:not([hidden])) .cadastro-acoes { gap: 12px; }
+  .cartao-cadastro:has(.cad-acesso:not([hidden])) .cadastro-acoes .botao-claro {
+    flex: 1;
+    min-width: 0;
+    padding-inline: 10px;
+  }
+}
+
+/* Avisos de pedidos e convites */
+#avisos-hub:empty { display: none; }
+
+#avisos-hub .aviso-hub {
+  pointer-events: auto;
+  margin-bottom: 10px;
+  overflow: hidden;
+  color: var(--texto);
+  border: 1px solid #c8dedc;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 26px rgba(15, 60, 62, .16);
+}
+
+#avisos-hub .aviso-hub:last-child { margin-bottom: 0; }
+
+.aviso-hub__cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  color: #075759;
+  background: #eaf6f5;
+}
+
+.aviso-hub__sinal {
+  flex: 0 0 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #137d7e;
+}
+
+.aviso-hub__cabecalho .btn-close {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 6px;
+  font-size: .75rem;
+}
+
+.aviso-hub__conteudo {
+  padding: 14px 16px 16px;
+  font-size: .9375rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.aviso-hub__conteudo p { margin: 0 0 12px; }
+.aviso-hub__conteudo .btn { padding: 6px 12px; font-weight: 600; border-radius: 8px; }

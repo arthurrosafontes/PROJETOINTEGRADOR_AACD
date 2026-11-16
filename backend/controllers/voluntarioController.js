@@ -1,5 +1,6 @@
 const pool = require('../config/mysql');
 const bcrypt = require('bcrypt');
+const VERSAO_DOCUMENTOS_CADASTRO = '2026-11-16.2';
 const FichaImpressora = require('../models/FichaTecnicaImpressora');
 
 const somenteDigitos = (valor) => String(valor ?? '').replace(/\D/g, '');
@@ -29,6 +30,12 @@ function cnpjValido(cnpj) {
 
 async function cadastrarVoluntario(req, res) {
   const dados = req.body ?? {};
+  if (dados.aceitouTermos !== true || dados.cientePrivacidade !== true) {
+    return res.status(400).json({ erro: 'Aceite os Termos de Uso e confirme a leitura do Aviso de Privacidade.' });
+  }
+  if (dados.versaoDocumentos !== VERSAO_DOCUMENTOS_CADASTRO) {
+    return res.status(409).json({ erro: 'Os documentos do cadastro foram atualizados. Recarregue a página e leia a versão vigente.' });
+  }
   const nome = String(dados.nome ?? '').trim();
   const email = String(dados.email ?? '').trim().toLowerCase();
   const telefone = somenteDigitos(dados.telefone);
@@ -85,6 +92,10 @@ async function cadastrarVoluntario(req, res) {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [usuario.insertId, tipo, documento, tipo === 'Pessoa física' ? null : (razaoSocial || nome),
         cep, logradouro, numero, complemento || null, bairro, cidade, estado, 'Pendente']
+    );
+    await conexao.execute(
+      'INSERT INTO aceite_cadastro (id_usuario, versao_termos, versao_privacidade, aceito_em_utc) VALUES (?, ?, ?, UTC_TIMESTAMP())',
+      [usuario.insertId, VERSAO_DOCUMENTOS_CADASTRO, VERSAO_DOCUMENTOS_CADASTRO]
     );
     await conexao.commit();
     return res.status(201).json({

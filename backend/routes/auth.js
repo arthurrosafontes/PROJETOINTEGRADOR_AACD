@@ -1,7 +1,7 @@
 
 const router = require('express').Router();
 const multer = require('multer');
-const { login, sair, perfil, verFoto, enviarFoto } = require('../controllers/authController');
+const { login, sair, perfil, verFoto, enviarFoto, excluirConta } = require('../controllers/authController');
 const { exigirAutenticacao } = require('../middleware/autenticacao');
 
 // Foto de perfil: até 2 MB, guardada na memória até o controller salvar
@@ -19,6 +19,7 @@ router.get('/perfil', exigirAutenticacao, perfil);
 router.get('/perfil/foto', exigirAutenticacao, verFoto);
 router.put('/perfil/foto', exigirAutenticacao, receberFoto, enviarFoto);
 
+router.delete('/conta', exigirAutenticacao, excluirConta);
 router.post('/logout', sair);
 
 module.exports = router;

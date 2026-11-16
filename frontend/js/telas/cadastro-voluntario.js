@@ -177,6 +177,12 @@
         if (!validarEtapa(etapa)) return;
         if (etapa < TOTAL - 1) return irPara(etapa + 1);
 
+        const pendencia = ["cad-aceite-termos", "cad-ciencia-privacidade"].map($).find(campo => !campo.checked);
+        if (pendencia) {
+          pendencia.reportValidity();
+          return;
+        }
+
         const dados = Object.fromEntries(new FormData(form));
         dados.documento = documento.value;
 

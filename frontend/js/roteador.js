@@ -144,6 +144,7 @@ if (perfilNecessario === "auto") {
     : "voluntario";
 }
 
+let usuarioAvisos;
 if (!paginaPublica) {
   // Não exibe a página restrita durante a verificação
   telas.forEach(t => {
@@ -156,6 +157,7 @@ if (!paginaPublica) {
   if (navegacaoAtual !== numeroNavegacao) return;
 
   if (!usuario) {
+    AACD.notificacoes.sessao();
     const rotaLogin = perfilNecessario === "funcionario"
       ? "#/funcionario/login"
       : "#/voluntario/login";
@@ -176,8 +178,10 @@ if (!paginaPublica) {
 
     return;
   }
+  usuarioAvisos = usuario.id_usuario;
 }
 
+    AACD.notificacoes.sessao(usuarioAvisos);
     const mesmaTela = tela === telaAtual;
     parametros.trocaInterna = mesmaTela;
 
@@ -227,6 +231,7 @@ if (!paginaPublica) {
     if (titulo) titulo.focus();
   });
 
+  $("usuario-sair").addEventListener("click", AACD.util.sairDaConta);
   prepararBarra();
   window.addEventListener("hashchange", navegar);
   navegar();
