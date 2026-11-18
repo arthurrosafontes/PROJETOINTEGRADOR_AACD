@@ -7,6 +7,7 @@
   const { $, escapar, formatarData, mostrarToast, alternarDetalhes, listaDescricao } = AACD.util;
   const pesoPrioridade = { Urgente: 4, Alta: 3, Normal: 2, Baixa: 1 };
   let pedidos = [];
+  let estado = "carregando";
 
   const el = {};
 
@@ -17,9 +18,8 @@
     const resultado = pedidos.filter(p => {
       const bateTexto = String(p.peca || "").toLowerCase().includes(termo) || String(p.id).includes(termo);
       const batePrioridade =
-      prioridade === "todas" ||
-      String(p.prioridade || "").trim().toLowerCase() ===
-      prioridade.trim().toLowerCase();
+        prioridade === "todas" ||
+        String(p.prioridade || "").trim().toLowerCase() === prioridade.toLowerCase();
       return bateTexto && batePrioridade;
     });
 
@@ -31,6 +31,7 @@
   }
 
   function renderizar() {
+    if (estado !== "pronto") return;
     const itens = filtrar();
     el.lista.innerHTML = itens.map(p => `
       <li class="card cartao-item cartao-item--faixa" data-id="${escapar(p.id)}">
@@ -61,13 +62,15 @@
       </li>`).join("");
 
     el.contador.textContent = `${itens.length} pedido(s) disponível(is)`;
-    el.vazio.textContent = "Nenhuma demanda aberta é compatível com suas impressoras. Confira material, volume, bico e disponibilidade.";
+    el.vazio.textContent = pedidos.length
+      ? "Nenhum pedido corresponde à busca ou à prioridade selecionada. Ajuste os filtros para ver outros pedidos."
+      : "Nenhum pedido disponível para suas impressoras no momento.";
     el.vazio.classList.remove("vazio--erro");
     el.vazio.hidden = itens.length > 0;
   }
 
   // Modal criado por JavaScript: não exige alterações no index.html.
-function obterDialogo() {
+  function obterDialogo() {
     let dialogo = document.getElementById("pd-dialogo-impressora");
     if (dialogo) return dialogo;
 
@@ -86,32 +89,16 @@ function obterDialogo() {
 
         <select id="pd-dialogo-select" class="form-select" required></select>
         <fieldset class="pd-dialogo-doacao">
-  <legend>
-    Deseja doar o material necessário para fabricar esta peça?
-  </legend>
-
-  <label>
-    <input
-      type="radio"
-      class="form-check-input"
-      name="doacao_material"
-      value="sim"
-      required
-    >
-    Sim, utilizarei meu próprio material.
-  </label>
-
-  <label>
-    <input
-      type="radio"
-      class="form-check-input"
-      name="doacao_material"
-      value="nao"
-      required
-    >
-    Não, precisarei que o material seja fornecido.
-  </label>
-</fieldset>
+          <legend>Deseja doar o material necessário para fabricar esta peça?</legend>
+          <label>
+            <input type="radio" class="form-check-input" name="doacao_material" value="sim" required>
+            Sim, utilizarei meu próprio material.
+          </label>
+          <label>
+            <input type="radio" class="form-check-input" name="doacao_material" value="nao" required>
+            Não, precisarei que o material seja fornecido.
+          </label>
+        </fieldset>
 
         <div class="pd-dialogo-acoes">
           <button type="button"
@@ -135,12 +122,12 @@ function obterDialogo() {
       .addEventListener("click", () => dialogo.close());
 
     return dialogo;
-}
+  }
 
   async function escolherImpressora(pedido) {
     const resultado = await AACD.api.consultarMatchmaking(pedido.id);
     const impressoras = resultado.candidatos.filter(i => i.compativel);
-    if (!Array.isArray(impressoras) || impressoras.length === 0) {
+    if (impressoras.length === 0) {
       mostrarToast("Nenhuma impressora sua atende aos requisitos desta demanda. Confira material, dimensões, bico e disponibilidade.", true);
       return null;
     }
@@ -172,28 +159,12 @@ function obterDialogo() {
       confirmar.disabled = false;
       const aoEnviar = e => {
         e.preventDefault();
-if (!seletor.value) {
-  seletor.reportValidity();
-  return;
-}
+        if (!formulario.reportValidity()) return;
 
-const resposta = formulario.querySelector(
-  'input[name="doacao_material"]:checked'
-);
-
-if (!resposta) {
-  mostrarToast("Informe se deseja doar o material.", true);
-  return;
-}
-
-if (!formulario.reportValidity()) return;
-const materialAacd = resposta.value === "nao" ? AACD.material.lerEscolha(formulario) : undefined;
-dialogo.close();
-
-resolve({
-  idImpressora: seletor.value,
-  doacaoMaterial: resposta.value === "sim", materialAacd
-});
+        const doacaoMaterial = formulario.elements.doacao_material.value === "sim";
+        const materialAacd = doacaoMaterial ? undefined : AACD.material.lerEscolha(formulario);
+        dialogo.close();
+        resolve({ idImpressora: seletor.value, doacaoMaterial, materialAacd });
       };
       const aoFechar = () => {
         formulario.removeEventListener("submit", aoEnviar);
@@ -223,28 +194,28 @@ resolve({
       botao.disabled = true;
       botao.textContent = "Carregando impressoras...";
       try {
-const escolha = await escolherImpressora(pedido);
-
-if (!escolha) return;
+        const escolha = await escolherImpressora(pedido);
+        if (!escolha) return;
         botao.textContent = "Aceitando...";
-        // Passo seguinte: implementar essa rota no backend com transação MySQL.
         const aceite = await AACD.api.aceitarDisponivel(
-  id,
-  escolha.idImpressora,
-  escolha.doacaoMaterial,
-  escolha.materialAacd
-);
+          id,
+          escolha.idImpressora,
+          escolha.doacaoMaterial,
+          escolha.materialAacd
+        );
+        pedidos = pedidos.filter(p => String(p.id) !== id);
         item.classList.add("saindo");
         setTimeout(() => {
-          pedidos = pedidos.filter(p => String(p.id) !== id);
           renderizar();
           mostrarToast(`Demanda #${aceite.id_demanda} aceita. Pedido #${aceite.id_pedido} criado.`);
         }, 300);
       } catch (erro) {
         mostrarToast(erro.message, true);
       } finally {
-        botao.disabled = false;
-        botao.textContent = "Aceitar";
+        if (!item.classList.contains("saindo")) {
+          botao.disabled = false;
+          botao.textContent = "Aceitar";
+        }
       }
     }
   }
@@ -266,11 +237,16 @@ if (!escolha) return;
 
     // Recarrega da API sempre que a tela é aberta
     async aoEntrar() {
+      estado = "carregando";
+      el.lista.innerHTML = "";
+      el.vazio.hidden = true;
       el.contador.textContent = "Carregando pedidos...";
       try {
         pedidos = await AACD.api.listarDisponiveis();
+        estado = "pronto";
         renderizar();
       } catch (erro) {
+        estado = "erro";
         pedidos = [];
         el.lista.innerHTML = "";
         el.contador.textContent = "";
