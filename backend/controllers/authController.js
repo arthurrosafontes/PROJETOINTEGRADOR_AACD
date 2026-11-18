@@ -4,13 +4,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/mysql');
 const exclusao = require('../services/exclusao-conta');
+const { verificarAcesso } = require('../services/acesso-conta');
 
 // Fotos de perfil: uploads/fotos-perfil/<id_usuario>.jpg ou .png (uma por usuário)
 const PASTA_FOTOS = exclusao.pastaPerfil;
 fs.mkdirSync(PASTA_FOTOS, { recursive: true });
 
 const COOKIE_NAME = 'aacd_sessao';
-const normalizar = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const cookieOptions = () => ({
   httpOnly: true,
   sameSite: 'lax',
@@ -43,21 +43,15 @@ async function login(req, res) {
     if (!usuario || !(await bcrypt.compare(senha, usuario.senha_hash))) {
       return res.status(401).json({ erro: 'E-mail ou senha inválidos.' });
     }
-    const perfilBanco = normalizar(usuario.tipo_usuario);
-    const permitido = perfil === 'voluntario'
-      ? perfilBanco === 'voluntario' && usuario.id_voluntario != null
-      : perfilBanco === 'funcionario aacd' && usuario.id_funcionario != null;
-    if (!permitido) return res.status(403).json({ erro: 'Conta sem acesso a esta área.' });
-    if (normalizar(usuario.status) !== 'ativo') {
-      return res.status(403).json({ erro: 'Essa conta foi reprovada.' });
-    }
-    // Voluntário só entra depois que um funcionário aceitar o cadastro
-    if (perfil === 'voluntario' && normalizar(usuario.status_homologacao) !== 'aprovado') {
-      return res.status(403).json({
-        erro: normalizar(usuario.status_homologacao) === 'pendente'
-          ? 'Seu cadastro ainda está aguardando a aprovação da AACD.'
-          : 'Seu cadastro de voluntário não está ativo.'
-      });
+    const bloqueio = verificarAcesso(usuario, perfil);
+    if (bloqueio) {
+      const mensagens = {
+        perfil: 'Conta sem acesso a esta área.',
+        inativo: 'Essa conta foi reprovada.',
+        pendente: 'Seu cadastro ainda está aguardando a aprovação da AACD.',
+        homologacao: 'Seu cadastro de voluntário não está ativo.'
+      };
+      return res.status(403).json({ erro: mensagens[bloqueio] });
     }
     const token = jwt.sign(
       { sub: String(usuario.id_usuario), perfil, id_voluntario: usuario.id_voluntario || null,

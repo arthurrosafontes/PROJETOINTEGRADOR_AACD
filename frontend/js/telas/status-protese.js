@@ -18,9 +18,7 @@
   let visita = 0;
   let carregando;
 
-  // "Aguardando validação" -> "aguardando-validacao" (para usar como classe CSS)
-  const classeStatus = (status) => String(status || "").normalize("NFD")
-    .replace(/[̀-ͯ]/g, "").toLowerCase().trim().replace(/\s+/g, "-");
+  const { classeStatus } = AACD.util;
 
   const unidades = (n) => `${n ?? "-"} ${Number(n) === 1 ? "unidade" : "unidades"}`;
 
@@ -40,14 +38,7 @@
     });
   }
 
-  function tabelaEtapa(titulo, linhas, vazio = "Sem registro.") {
-    return `<div class="col-12 col-xl-4"><table class="table table-sm tabela-etapa">
-      <caption class="caption-top">${titulo}</caption>
-      <tbody>${linhas.length ? linhas.map(([rotulo, valor]) =>
-        `<tr><th scope="row">${rotulo}</th><td>${valor || "—"}</td></tr>`).join("")
-        : `<tr><td colspan="2">${vazio}</td></tr>`}</tbody>
-    </table></div>`;
-  }
+  const tabelaEtapa = (titulo, linhas, vazio = "Sem registro.") => AACD.util.tabelaEtapa(titulo, linhas, vazio);
 
   function renderizar() {
     const itens = filtrar();

@@ -1,7 +1,7 @@
 const express = require('express');
 const pool = require('../config/mysql');
 const { exigirAutenticacao } = require('../middleware/autenticacao');
-const { emailConfigurado } = require('../services/notificacoes');
+const { emailConfigurado, condicaoDestinoPedido } = require('../services/notificacoes');
 const router = express.Router();
 const emailDeTeste = () => /@resend\.dev(?:\s*>\s*)?$/i.test(process.env.AACD_EMAIL_REMETENTE?.trim() || "");
 router.use(exigirAutenticacao, (_req, res, next) => {
@@ -37,6 +37,7 @@ router.get('/', async (req, res) => {
   const [avisos] = await pool.execute(`SELECT n.id, n.mensagem, n.link FROM notificacao n
     LEFT JOIN preferencia_notificacao p ON p.id_usuario = n.id_usuario
     WHERE n.id_usuario = ? AND n.popup AND NOT n.exibida AND COALESCE(p.hub, TRUE)
+      AND ${condicaoDestinoPedido}
     ORDER BY n.criada, n.id LIMIT 3`, [req.usuario.id_usuario]);
   res.json(avisos);
 });

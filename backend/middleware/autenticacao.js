@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const pool = require('../config/mysql');
-const normalizar = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const { verificarAcesso } = require('../services/acesso-conta');
 
 async function exigirAutenticacao(req, res, next) {
   const token = req.cookies?.aacd_sessao;
@@ -18,12 +18,7 @@ async function exigirAutenticacao(req, res, next) {
        WHERE u.id_usuario = ? LIMIT 1`, [dados.sub]
     );
     const usuario = rows[0];
-    const tipo = normalizar(usuario?.tipo_usuario);
-    const perfilCorreto = dados.perfil === 'voluntario'
-      ? tipo === 'voluntario' && usuario?.id_voluntario != null &&
-        normalizar(usuario.status_homologacao) === 'aprovado' // ainda não aceito pelo funcionário = sem acesso
-      :dados.perfil === 'funcionario' && tipo === 'funcionario aacd' && usuario?.id_funcionario != null;
-    if (!usuario || normalizar(usuario.status) !== 'ativo' || !perfilCorreto) {
+    if (verificarAcesso(usuario, dados.perfil)) {
       return res.status(401).json({ erro: 'Sessão inválida.' });
     }
     req.usuario = { id_usuario: usuario.id_usuario, nome: usuario.nome, email: usuario.email,
@@ -42,4 +37,7 @@ function exigirPerfil(perfil) {
   return (req, res, next) => req.usuario?.perfil === perfil
     ? next() : res.status(403).json({ erro: 'Acesso não autorizado.' });
 }
-module.exports = { exigirAutenticacao, exigirPerfil };
+const somenteFuncionario = [exigirAutenticacao, exigirPerfil('funcionario')];
+const somenteVoluntario = [exigirAutenticacao, exigirPerfil('voluntario')];
+
+module.exports = { exigirAutenticacao, exigirPerfil, somenteFuncionario, somenteVoluntario };

@@ -24,9 +24,7 @@
   let idObservacao = null;
   const el = {};
 
-  // "Aguardando validação" -> "aguardando-validacao" (para usar como classe CSS)
-  const classeStatus = (status) => String(status || "").normalize("NFD")
-    .replace(/[̀-ͯ]/g, "").toLowerCase().trim().replace(/\s+/g, "-");
+  const { classeStatus } = AACD.util;
 
   const unidades = (n) => `${n} ${Number(n) === 1 ? "unidade" : "unidades"}`;
   const medida = (v, sufixo) => (v === null || v === undefined ? "" : `${String(v).replace(".", ",")} ${sufixo}`);
@@ -69,14 +67,7 @@
     ]);
   }
 
-  function tabelaEtapa(titulo, linhas, vazio) {
-    const corpo = linhas.map(([rotulo, valor]) =>
-      `<tr><th scope="row">${rotulo}</th><td>${valor || "—"}</td></tr>`).join("");
-    return `<div class="col-12 col-xl-4"><table class="table table-sm tabela-etapa">
-      <caption class="caption-top">${titulo}</caption>
-      <tbody>${corpo || `<tr><td colspan="2">${vazio}</td></tr>`}</tbody>
-    </table></div>`;
-  }
+  const { tabelaEtapa } = AACD.util;
 
   function etapasPedido(pedido) {
     const respostas = { 1: "Sim", 0: "Não" };

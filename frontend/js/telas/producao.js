@@ -8,12 +8,7 @@
   let pedidos = [], statusSelecionado = "todos", visita = 0, carregando, intervalo, ocupada = false;
   const el = {};
 
-  function tabela(titulo, linhas, vazio = "Sem registro.") {
-    return `<div class="col-12 col-xl-4"><table class="table table-sm tabela-etapa">
-      <caption class="caption-top">${titulo}</caption><tbody>${linhas.length ? linhas.map(([rotulo, valor]) =>
-        `<tr><th scope="row">${rotulo}</th><td>${valor || "—"}</td></tr>`).join("") : `<tr><td colspan="2">${vazio}</td></tr>`}</tbody>
-    </table></div>`;
-  }
+  const tabelaEtapa = (titulo, linhas, vazio = "Sem registro.") => AACD.util.tabelaEtapa(titulo, linhas, vazio);
 
   function renderizar() {
     const abertos = new Set(Array.from(el.lista.querySelectorAll("details[open]"), d => d.closest("li").dataset.id));
@@ -47,19 +42,19 @@
         <details class="cartao-item__extra d-block" ${abertos.has(id) ? "open" : ""}>
           <summary>Ver produção e avaliação</summary>
           <section class="etapas-pedido" aria-label="Etapas do pedido #${id}"><div class="row g-3">
-            ${tabela("Aceito", [
+            ${tabelaEtapa("Aceito", [
               ["Pedido:", "#" + id], ["Demanda:", "#" + escapar(p.demandaId)],
               ["Aceito em:", p.dataAceiteUTC ? escapar(formatarDataHora(p.dataAceiteUTC)) : p.aceito_em ? escapar(formatarData(p.aceito_em)) : "—"],
               ["Impressora:", escapar(p.impressora)],
               ["Doação de material:", ({1: "Sim", 0: "Não"})[p.doacaoMaterial] ?? "Não informado"]
             ])}
-            ${tabela("Impressão", [
+            ${tabelaEtapa("Impressão", [
               ["Início da produção:", p.dataInicioUTC ? escapar(formatarDataHora(p.dataInicioUTC)) : "Não informado"],
               ...AACD.conclusao.detalhes(p.conclusao),
               ...(!p.conclusao ? [["Conclusão:", "Impressão ainda não finalizada."]] : [])
             ])}
-            ${tabela("Envio da peça", AACD.envio.detalhes(p.envio), "Envio ainda não registrado.")}
-            ${p.recebimento ? tabela("Recebimento e avaliação", AACD.recebimento.detalhes(p.recebimento)) : ""}
+            ${tabelaEtapa("Envio da peça", AACD.envio.detalhes(p.envio), "Envio ainda não registrado.")}
+            ${p.recebimento ? tabelaEtapa("Recebimento e avaliação", AACD.recebimento.detalhes(p.recebimento)) : ""}
           </div></section>
         </details>
       </li>`;
