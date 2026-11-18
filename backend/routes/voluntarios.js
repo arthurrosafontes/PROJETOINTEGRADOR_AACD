@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { cadastrarVoluntario, listarVoluntarios, aceitarVoluntario, removerVoluntario } = require('../controllers/voluntarioController');
-const { exigirAutenticacao, exigirPerfil } = require('../middleware/autenticacao');
-
-const somenteFuncionario = [exigirAutenticacao, exigirPerfil('funcionario')];
+const { somenteFuncionario } = require('../middleware/autenticacao');
 
 router.post('/', cadastrarVoluntario);
 router.get('/', ...somenteFuncionario, listarVoluntarios);

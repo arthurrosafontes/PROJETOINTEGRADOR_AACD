@@ -6,6 +6,22 @@ const caminhos = {
   convite: '/voluntario/pedidos-disponiveis'
 };
 
+const destinoPorEtapa = new Map([
+  ['aceite', 'funcionario'],
+  ['inicio', 'funcionario'],
+  ['impressao', 'funcionario'],
+  ['envio', 'funcionario'],
+  ['material-recebido', 'funcionario'],
+  ['material-pronto', 'voluntario'],
+  ['avaliacao', 'voluntario'],
+  ['cancelamento', 'voluntario']
+]);
+
+// Aplica o mesmo destino aos avisos pendentes gravados antes da mudança.
+const condicaoDestinoPedido = `(n.evento NOT LIKE 'pedido:%' OR CASE SUBSTRING_INDEX(n.evento, ':', -1)
+  ${Array.from(destinoPorEtapa, ([etapa, perfil]) => `WHEN '${etapa}' THEN n.link = '${caminhos[perfil]}'`).join('\n  ')}
+  ELSE TRUE END)`;
+
 const inserir = `INSERT INTO notificacao (id, id_usuario, evento, mensagem, link, popup, email_estado)
   SELECT ?, u.id_usuario, ?, ?, ?, COALESCE(pn.hub, TRUE),
     IF(COALESCE(pn.email, FALSE) AND ?, 'pendente', 'ignorado')
@@ -34,15 +50,16 @@ async function registrar(conexao, usuario, evento, mensagem, destino) {
 }
 
 async function pedido(conexao, id, etapa, mensagem) {
+  const perfil = destinoPorEtapa.get(etapa);
+  if (!perfil) throw new Error(`Etapa sem destinatário de notificação: ${etapa}`);
   const [[destinos]] = await conexao.execute(`SELECT d.id_demanda, v.id_usuario AS usuarioVoluntario, f.id_usuario AS usuarioFuncionario
     FROM pedido_producao pp JOIN demanda d ON d.id_demanda = pp.id_demanda
     JOIN voluntario v ON v.id_voluntario = pp.id_voluntario
     JOIN funcionario_aacd f ON f.id_funcionario = d.id_funcionario WHERE pp.id_pedido = ?`, [id]);
   if (!destinos) return;
-  for (const [perfil, usuario] of [['funcionario', destinos.usuarioFuncionario], ['voluntario', destinos.usuarioVoluntario]]) {
-    await registrar(conexao, usuario, `pedido:${id}:${etapa}`,
-      `Pedido #${id} (demanda #${destinos.id_demanda}). ${mensagem}`, perfil);
-  }
+  const usuario = perfil === 'funcionario' ? destinos.usuarioFuncionario : destinos.usuarioVoluntario;
+  await registrar(conexao, usuario, `pedido:${id}:${etapa}`,
+    `Pedido #${id} (demanda #${destinos.id_demanda}). ${mensagem}`, perfil);
 }
 
 async function enviarLote(pool, enviar = fetch) {
@@ -54,7 +71,7 @@ async function enviarLote(pool, enviar = fetch) {
       WHERE id = ? AND email_estado = 'pendente' AND proxima_tentativa <= CURRENT_TIMESTAMP`, [id]);
     if (!reserva.affectedRows) continue;
     const [[item]] = await pool.execute(`SELECT n.mensagem, n.tentativas, u.email,
-      (p.email = TRUE AND u.status = 'Ativo') AS autorizado,
+      (p.email = TRUE AND u.status = 'Ativo' AND ${condicaoDestinoPedido}) AS autorizado,
       (n.criada > CURRENT_TIMESTAMP - INTERVAL 23 HOUR) AS recente
       FROM notificacao n LEFT JOIN usuario u ON u.id_usuario = n.id_usuario
       LEFT JOIN preferencia_notificacao p ON p.id_usuario = n.id_usuario WHERE n.id = ? AND n.email_estado = 'pendente'`, [id]);
@@ -110,4 +127,4 @@ function iniciarEnvio(pool) {
   setInterval(processar, 15000).unref();
 }
 
-module.exports = { registrar, pedido, emailConfigurado, enviarLote, iniciarEnvio };
+module.exports = { registrar, pedido, condicaoDestinoPedido, emailConfigurado, enviarLote, iniciarEnvio };

@@ -8,11 +8,12 @@ O frontend é uma Single Page Application em HTML, CSS e JavaScript puros (sem f
 ```
 frontend/
 ├── index.html            ← todas as telas (cada uma é um <main data-rota="...">)
-├── css/estilos.css       ← estilos de todas as telas
+├── css/                 ← tema, telas, componentes e preferências
 ├── img/                  ← logo, foto do hospital e favicon
 └── js/
     ├── utilitarios.js    ← funções compartilhadas (toast, máscaras, confirmação…)
-    ├── api.js            ← TODAS as chamadas ao backend (troque API_URL aqui)
+    ├── api.js            ← transporte HTTP e endereço da API
+    ├── api/              ← chamadas por área do Hub
     ├── roteador.js       ← troca de telas pelo endereço (#/rota)
     └── telas/            ← um arquivo por tela
 ```
@@ -24,6 +25,6 @@ Rotas principais: `#/` (início), `#/funcionario/login`, `#/voluntario/login`, `
 `#/voluntario/impressora/cadastrar`, `#/funcionario/demandas/cadastrar`, `#/funcionario/voluntarios`,
 `#/funcionario/impressoras`.
 
-> `backend/legado/servidor_sqlite_telas.js` é o servidor SQLite que estava salvo por engano em
-> `frontend/FUNCIONARIO/VIZUALIZAR_IMPRESSORA_CADASTRADA/api.js`. Ele foi movido sem alterações,
-> pois é o único que implementa as rotas de pedidos, produção, próteses e demandas.
+## Backend
+
+`server.js` conecta o MongoDB, inicia o servidor e ativa as filas de notificações e exclusão de contas. `backend/app.js` configura o Express e registra as rotas. `backend/routes/` reúne as rotas por área, com regras compartilhadas em `backend/services/`. O aplicativo usa MySQL e MongoDB. O arquivo em `backend/legado/` guarda a versão anterior em SQLite.

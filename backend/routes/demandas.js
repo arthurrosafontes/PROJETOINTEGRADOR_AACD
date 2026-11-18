@@ -5,12 +5,10 @@ const { camposConclusao } = require('./conclusao');
 const { camposEnvio } = require('./envio');
 const { camposMaterial } = require('./material-aacd');
 const { camposRecebimento } = require('./recebimento');
-const { exigirAutenticacao, exigirPerfil } = require('../middleware/autenticacao');
+const { somenteFuncionario } = require('../middleware/autenticacao');
+const { PRIORIDADES } = require('../services/demandas');
 
 const router = express.Router();
-const somenteFuncionario = [exigirAutenticacao, exigirPerfil('funcionario')];
-
-const PRIORIDADES = ['Baixa', 'Normal', 'Alta', 'Urgente'];
 // Só demandas abertas podem ser editadas; nos outros status dá para adicionar observação
 const STATUS_EDITAVEIS = ['Aberta'];
 // Depois que a peça foi enviada para validação, a demanda não é mais cancelada por aqui

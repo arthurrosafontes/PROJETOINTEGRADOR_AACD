@@ -105,6 +105,20 @@ function formatarDataHora(utc) {
     return `<dl>${pares.map(([rotulo, valor]) => `<dt>${rotulo}</dt><dd>${valor || "-"}</dd>`).join("")}</dl>`;
   }
 
+  // Recebe linhas com valores já escapados, assim como listaDescricao.
+  function tabelaEtapa(titulo, linhas, vazio) {
+    const corpo = linhas.map(([rotulo, valor]) =>
+      `<tr><th scope="row">${rotulo}</th><td>${valor || "—"}</td></tr>`).join("");
+    return `<div class="col-12 col-xl-4"><table class="table table-sm tabela-etapa">
+      <caption class="caption-top">${titulo}</caption>
+      <tbody>${corpo || `<tr><td colspan="2">${vazio}</td></tr>`}</tbody>
+    </table></div>`;
+  }
+
+  // "Aguardando validação" -> "aguardando-validacao" (para usar como classe CSS)
+  const classeStatus = (status) => String(status || "").normalize("NFD")
+    .replace(/[̀-ͯ]/g, "").toLowerCase().trim().replace(/\s+/g, "-");
+
   // ===== Armazenamento local seguro (pode falhar em aba anônima) =====
   const armazenamento = {
     ler(chave, area = localStorage) {
@@ -163,7 +177,7 @@ function formatarDataHora(utc) {
 
 return {
   $, escapar, formatarData, formatarDataHora, hojeISO, digitos,
-  mostrarToast, confirmar, alternarDetalhes, listaDescricao,
+  mostrarToast, confirmar, alternarDetalhes, listaDescricao, tabelaEtapa, classeStatus,
   armazenamento, sessao, sairDaConta, mascaras, emailValido
 };
 })();
