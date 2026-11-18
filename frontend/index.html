@@ -311,24 +311,44 @@
        ===================================================== -->
   <main aria-labelledby="titulo-esqueci-senha" class="tela tela--acesso tela--acesso-senha" id="tela-esqueci-senha" data-rota="/funcionario/esqueci-senha /voluntario/esqueci-senha" data-area="publica" data-titulo="Recuperar senha" hidden>
     <form class="cartao-acesso card" id="form-esqueci-senha" novalidate aria-labelledby="titulo-esqueci-senha">
-      <h1 class="visualmente-oculto visually-hidden" id="titulo-esqueci-senha" tabindex="-1">Recuperar senha</h1>
+      <h1 class="h4 text-center mb-3" id="titulo-esqueci-senha" tabindex="-1">Recuperar senha</h1>
 
       <p class="cartao-acesso__campo">
-        <label class="form-label" for="es-email">Coloque seu email:</label>
-        <input class="form-control" type="email" id="es-email" name="email" placeholder="xxxxxx@gmail.com" autocomplete="email" aria-describedby="es-explicacao es-erro" required>
-        <small class="cartao-acesso__erro" id="es-erro"></small>
+        <label class="form-label" for="es-email">E-mail cadastrado</label>
+        <input class="form-control" type="email" id="es-email" name="email" placeholder="seu@email.com" maxlength="254" autocomplete="email" aria-describedby="es-explicacao es-erro" required>
+        <small class="cartao-acesso__erro" id="es-erro" role="alert"></small>
       </p>
-
-      <button class="cartao-acesso__botao cartao-acesso__botao--secundario btn btn-outline-light" type="button" id="es-reenviar">Reenviar código</button>
 
       <p class="cartao-acesso__explicacao" id="es-explicacao">
-        Enviaremos um código para seu email.<br>
-        Use-o para poder trocar a senha.
+        Enviaremos um código de 6 dígitos para você recuperar o acesso.
       </p>
 
-      <button class="cartao-acesso__botao btn btn-light" type="submit">Enviar</button>
+      <p class="cartao-acesso__mensagem" id="es-mensagem" role="status"></p>
+      <button class="cartao-acesso__botao btn btn-light" type="submit">Enviar código</button>
 
       <a class="cartao-acesso__voltar" href="#/" id="es-voltar">Voltar para tela anterior</a>
+    </form>
+
+    <img class="marca" src="img/logo-aacd.png" alt="Hospital Ortopédico AACD" width="480" height="210">
+  </main>
+
+  <main aria-labelledby="titulo-verificar-codigo" class="tela tela--acesso tela--acesso-senha" id="tela-verificar-codigo" data-rota="/funcionario/verificar-codigo /voluntario/verificar-codigo" data-area="publica" data-titulo="Verificar código" hidden>
+    <form class="cartao-acesso card" id="form-verificar-codigo" novalidate aria-labelledby="titulo-verificar-codigo">
+      <h1 class="h4 text-center mb-2" id="titulo-verificar-codigo" tabindex="-1">Confirme o código</h1>
+      <p class="cartao-acesso__explicacao" id="vc-instrucao">
+        Se o e-mail estiver cadastrado e a conta estiver ativa, você receberá um código válido por 15 minutos.
+      </p>
+
+      <p class="cartao-acesso__campo">
+        <label class="form-label" for="vc-codigo">Código de 6 dígitos</label>
+        <input class="form-control" type="text" id="vc-codigo" name="codigo" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" aria-describedby="vc-instrucao vc-erro" required>
+        <small class="cartao-acesso__erro" id="vc-erro" role="alert"></small>
+      </p>
+
+      <button class="cartao-acesso__botao btn btn-light" type="submit">Verificar código</button>
+      <button class="btn btn-link text-white align-self-center mt-2" type="button" id="vc-reenviar">Reenviar código</button>
+      <p class="cartao-acesso__mensagem mt-2" id="vc-mensagem" role="status"></p>
+      <a class="cartao-acesso__voltar" href="#/voluntario/esqueci-senha" id="vc-voltar">Alterar e-mail</a>
     </form>
 
     <img class="marca" src="img/logo-aacd.png" alt="Hospital Ortopédico AACD" width="480" height="210">
@@ -338,9 +358,9 @@
   <!-- =====================================================
        TELA: MUDANÇA DE SENHA
        ===================================================== -->
-  <main aria-labelledby="titulo-mudar-senha" class="tela tela--acesso tela--acesso-senha" id="tela-mudar-senha" data-rota="/mudar-senha" data-area="publica" data-titulo="Mudança de senha" hidden>
+  <main aria-labelledby="titulo-mudar-senha" class="tela tela--acesso tela--acesso-senha" id="tela-mudar-senha" data-rota="/mudar-senha /funcionario/mudar-senha /voluntario/mudar-senha" data-area="publica" data-titulo="Mudança de senha" hidden>
     <form class="cartao-acesso card" id="form-mudar-senha" novalidate aria-labelledby="titulo-mudar-senha">
-      <h1 class="visualmente-oculto visually-hidden" id="titulo-mudar-senha" tabindex="-1">Mudança de senha</h1>
+      <h1 class="h4 text-center mb-3" id="titulo-mudar-senha" tabindex="-1">Crie uma nova senha</h1>
 
       <p class="cartao-acesso__campo">
         <label class="form-label" for="ms-senha">Senha</label>
@@ -354,9 +374,10 @@
         <small class="cartao-acesso__erro" id="ms-erro-confirmar"></small>
       </p>
 
-      <button class="cartao-acesso__botao btn btn-light" type="submit">Trocar senha</button>
+      <p class="cartao-acesso__mensagem" id="ms-mensagem" role="alert"></p>
+      <button class="cartao-acesso__botao btn btn-light" type="submit">Salvar nova senha</button>
 
-      <a class="cartao-acesso__voltar" href="#/">Voltar para tela inicial</a>
+      <a class="cartao-acesso__voltar" href="#/voluntario/esqueci-senha" id="ms-voltar">Solicitar outro código</a>
     </form>
 
     <img class="marca" src="img/logo-aacd.png" alt="Hospital Ortopédico AACD" width="480" height="210">

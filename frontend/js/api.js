@@ -48,6 +48,12 @@ AACD.api = (() => {
     // ----- Autenticação -----
     login: (email, senha, perfil) =>
       requisitar("/auth/login", { metodo: "POST", corpo: { email, senha, perfil }, comCookie: true, erroPadrao: "Não foi possível fazer login." }),
+    solicitarCodigo: email =>
+      requisitar("/auth/recuperacao-senha/solicitar", { metodo: "POST", corpo: { email } }),
+    validarCodigo: (email, codigo) =>
+      requisitar("/auth/recuperacao-senha/validar", { metodo: "POST", corpo: { email, codigo } }),
+    redefinirSenha: (email, autorizacao, senha) =>
+      requisitar("/auth/recuperacao-senha/redefinir", { metodo: "POST", corpo: { email, autorizacao, senha } }),
     // Usuário logado, lido do banco pelo servidor: { id_usuario, nome, email, perfil, ... }
     usuarioLogado: () =>
       requisitar("/auth/me", { comCookie: true, erroPadrao: "Sessão inválida." }).then(r => r.usuario),

@@ -10,6 +10,7 @@ const receberFoto = (req, res, next) => uploadFoto(req, res, erro =>
   erro ? res.status(400).json({ erro: 'Envie uma única foto de até 2 MB.' }) : next());
 
 router.post('/login', login);
+router.use('/recuperacao-senha', require('./recuperacao-senha'));
 
 router.get('/me', exigirAutenticacao, (req, res) => {
     res.json({ usuario: req.usuario });

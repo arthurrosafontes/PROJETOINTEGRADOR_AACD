@@ -1,13 +1,10 @@
 const { randomUUID } = require('node:crypto');
+const { emailConfigurado, enviarEmail } = require('./email');
 const caminhos = {
   funcionario: '/funcionario/demandas/lista',
   voluntario: '/voluntario/pedidos-aceitos',
   convite: '/voluntario/pedidos-disponiveis'
 };
-
-function emailConfigurado() {
-  return Boolean(process.env.RESEND_API_KEY?.trim() && process.env.AACD_EMAIL_REMETENTE?.trim());
-}
 
 const inserir = `INSERT INTO notificacao (id, id_usuario, evento, mensagem, link, popup, email_estado)
   SELECT ?, u.id_usuario, ?, ?, ?, COALESCE(pn.hub, TRUE),
@@ -66,21 +63,12 @@ async function enviarLote(pool, enviar = fetch) {
     if (item.autorizado && item.email && item.recente) {
       estado = 'pendente';
       try {
-        const resposta = await enviar('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            Authorization: 'Bearer ' + process.env.RESEND_API_KEY,
-            'Content-Type': 'application/json',
-            'Idempotency-Key': 'aacd/' + id
-          },
-          body: JSON.stringify({
-            from: process.env.AACD_EMAIL_REMETENTE,
-            to: [item.email],
-            subject: 'Nova atualização no Hub AACD',
-            text: item.mensagem + '\n\nAcesse o Hub AACD para ver os detalhes.'
-          }),
-          signal: AbortSignal.timeout(10000)
-        });
+        const resposta = await enviarEmail({
+          destinatario: item.email,
+          assunto: 'Nova atualização no Hub AACD',
+          texto: item.mensagem + '\n\nAcesse o Hub AACD para ver os detalhes.',
+          idempotencia: 'aacd/' + id
+        }, enviar);
         if (resposta.ok) estado = 'enviado';
         else if ([400, 422].includes(resposta.status)) estado = 'falhou';
         if (resposta.ok) {

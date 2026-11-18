@@ -100,31 +100,133 @@
     }
   };
 
-  // ===== ESQUECI A SENHA (serve para os dois perfis) =====
+  // A recuperação é mantida na memória durante as três telas, sem dados no endereço ou no navegador.
+  let recuperacao;
+  let visitaRecuperacao = 0;
+  const areaDaRota = rota => rota.startsWith("/funcionario") ? "funcionario" : "voluntario";
+
+  async function processar(form, texto, tarefa) {
+    const botao = form.querySelector('button[type="submit"]');
+    const rotulo = botao.textContent;
+    botao.textContent = texto;
+    for (const controle of form.querySelectorAll("button, input")) controle.disabled = true;
+    try {
+      await tarefa();
+    } finally {
+      for (const controle of form.querySelectorAll("button, input")) controle.disabled = false;
+      botao.textContent = rotulo;
+    }
+  }
+
+  // ===== SOLICITAÇÃO DO CÓDIGO =====
   AACD.telas["tela-esqueci-senha"] = {
     iniciar() {
       const form = $("form-esqueci-senha");
       const email = $("es-email");
       const erro = $("es-erro");
+      const mensagem = $("es-mensagem");
 
-      email.addEventListener("input", () => erroCampo(email, erro, ""));
-
-      // O servidor ainda não tem a rota de envio de código.
-      $("es-reenviar").addEventListener("click", () => {
-        if (!erroCampo(email, erro, emailValido(email.value) ? "" : "Informe um e-mail válido.")) return email.focus();
-        mostrarToast("O envio de código ainda não está disponível no servidor.");
+      email.addEventListener("input", () => {
+        erroCampo(email, erro, "");
+        mensagem.textContent = "";
       });
 
-      form.addEventListener("submit", (evento) => {
+      form.addEventListener("submit", async (evento) => {
         evento.preventDefault();
         if (!erroCampo(email, erro, emailValido(email.value) ? "" : "Informe um e-mail válido.")) return email.focus();
-        form.reset();
-        location.hash = "#/mudar-senha";
+        const endereco = email.value.trim().toLowerCase();
+        const area = $("es-voltar").getAttribute("href").split("/")[1];
+        const visita = visitaRecuperacao;
+        mensagem.textContent = "";
+        await processar(form, "Enviando...", async () => {
+          try {
+            await AACD.api.solicitarCodigo(endereco);
+            if (visita !== visitaRecuperacao) return;
+            recuperacao = { email: endereco, area, reenviarApos: Date.now() + 60000 };
+            form.reset();
+            location.hash = `#/${area}/verificar-codigo`;
+          } catch (falha) {
+            if (visita === visitaRecuperacao) mensagem.textContent = falha.message;
+          }
+        });
       });
     },
-    // O link "voltar" leva ao login do perfil certo
     aoEntrar(_parametros, rota) {
-      $("es-voltar").href = rota.startsWith("/funcionario") ? "#/funcionario/login" : "#/voluntario/login";
+      recuperacao = null;
+      $("es-mensagem").textContent = "";
+      $("es-voltar").href = `#/${areaDaRota(rota)}/login`;
+    },
+    aoSair() {
+      visitaRecuperacao++;
+    }
+  };
+
+  // ===== VERIFICAÇÃO DO CÓDIGO =====
+  AACD.telas["tela-verificar-codigo"] = {
+    iniciar() {
+      const form = $("form-verificar-codigo");
+      const codigo = $("vc-codigo");
+      const erro = $("vc-erro");
+      const mensagem = $("vc-mensagem");
+      codigo.addEventListener("input", () => erroCampo(codigo, erro, ""));
+      form.addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+        if (!recuperacao) return;
+        const digitos = codigo.value.trim();
+        if (!erroCampo(codigo, erro, /^\d{6}$/.test(digitos) ? "" : "Digite os 6 dígitos do código.")) {
+          return codigo.focus();
+        }
+        const visita = visitaRecuperacao;
+        mensagem.textContent = "";
+        await processar(form, "Verificando...", async () => {
+          try {
+            const { autorizacao } = await AACD.api.validarCodigo(recuperacao.email, digitos);
+            if (visita !== visitaRecuperacao) return;
+            recuperacao.autorizacao = autorizacao;
+            location.hash = `#/${recuperacao.area}/mudar-senha`;
+          } catch (falha) {
+            if (visita === visitaRecuperacao) erroCampo(codigo, erro, falha.message);
+          }
+        });
+        if (visita === visitaRecuperacao && erro.textContent) codigo.focus();
+      });
+
+      $("vc-reenviar").addEventListener("click", async () => {
+        if (!recuperacao) return;
+        const segundos = Math.ceil((recuperacao.reenviarApos - Date.now()) / 1000);
+        if (segundos > 0) {
+          mensagem.textContent = `Aguarde ${segundos} s para reenviar o código.`;
+          return;
+        }
+        const visita = visitaRecuperacao;
+        mensagem.textContent = "Solicitando outro código...";
+        await processar(form, "Verificar código", async () => {
+          try {
+            const resultado = await AACD.api.solicitarCodigo(recuperacao.email);
+            if (visita !== visitaRecuperacao) return;
+            recuperacao.reenviarApos = Date.now() + 60000;
+            form.reset();
+            erroCampo(codigo, erro, "");
+            mensagem.textContent = resultado.mensagem;
+          } catch (falha) {
+            if (visita === visitaRecuperacao) mensagem.textContent = falha.message;
+          }
+        });
+      });
+    },
+    aoEntrar(_parametros, rota) {
+      const area = areaDaRota(rota);
+      if (recuperacao?.area !== area || recuperacao.autorizacao) {
+        location.hash = `#/${area}/esqueci-senha`;
+        return;
+      }
+      $("vc-voltar").href = `#/${area}/esqueci-senha`;
+      $("vc-mensagem").textContent = "";
+    },
+    aoSair() {
+      visitaRecuperacao++;
+      $("form-verificar-codigo").reset();
+      erroCampo($("vc-codigo"), $("vc-erro"), "");
     }
   };
 
@@ -136,20 +238,48 @@
       const confirmar = $("ms-confirmar");
       const erroSenha = $("ms-erro-senha");
       const erroConfirmar = $("ms-erro-confirmar");
+      const mensagem = $("ms-mensagem");
 
       senha.addEventListener("input", () => erroCampo(senha, erroSenha, ""));
       confirmar.addEventListener("input", () => erroCampo(confirmar, erroConfirmar, ""));
 
-      form.addEventListener("submit", (evento) => {
+      form.addEventListener("submit", async (evento) => {
         evento.preventDefault();
-        const okSenha = erroCampo(senha, erroSenha, senha.value.length >= 8 ? "" : "A senha precisa ter ao menos 8 caracteres.");
+        if (!recuperacao?.autorizacao) return;
+        const requisitos = senha.value.length >= 8 && new TextEncoder().encode(senha.value).length <= 72;
+        const okSenha = erroCampo(senha, erroSenha, requisitos ? "" : "Use pelo menos 8 caracteres. O limite é de 72 bytes.");
         const okConfirmar = erroCampo(confirmar, erroConfirmar, confirmar.value === senha.value ? "" : "As senhas não coincidem.");
         if (!okSenha) return senha.focus();
         if (!okConfirmar) return confirmar.focus();
-        // O servidor ainda não tem a rota de troca de senha: por enquanto só volta ao início.
-        form.reset();
-        location.hash = "#/";
+        const visita = visitaRecuperacao;
+        mensagem.textContent = "";
+        await processar(form, "Salvando...", async () => {
+          try {
+            const resultado = await AACD.api.redefinirSenha(recuperacao.email, recuperacao.autorizacao, senha.value);
+            if (visita !== visitaRecuperacao) return;
+            mostrarToast(resultado.mensagem);
+            location.hash = `#/${recuperacao.area}/login`;
+          } catch (falha) {
+            if (visita === visitaRecuperacao) mensagem.textContent = falha.message;
+          }
+        });
       });
+    },
+    aoEntrar(_parametros, rota) {
+      const area = areaDaRota(rota);
+      if (!recuperacao?.autorizacao || recuperacao.area !== area) {
+        location.hash = `#/${area}/esqueci-senha`;
+        return;
+      }
+      $("ms-voltar").href = `#/${area}/esqueci-senha`;
+      $("ms-mensagem").textContent = "";
+    },
+    aoSair() {
+      visitaRecuperacao++;
+      recuperacao = null;
+      $("form-mudar-senha").reset();
+      erroCampo($("ms-senha"), $("ms-erro-senha"), "");
+      erroCampo($("ms-confirmar"), $("ms-erro-confirmar"), "");
     }
   };
 })();
