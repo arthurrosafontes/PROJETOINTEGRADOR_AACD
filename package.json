@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "testar-mysql": "node backend/scripts/teste-mysql.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -30,5 +31,24 @@
     "mongoose": "^9.11.0",
     "multer": "^2.5.0",
     "mysql2": "^3.24.6"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "backend/services/**/*.js",
+      "backend/middleware/**/*.js",
+      "backend/config/unidades-aacd.js",
+      "frontend/js/utilitarios.js"
+    ],
+    "coverageReporters": [
+      "text",
+      "lcov"
+    ]
   }
 }
